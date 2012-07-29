@@ -43,6 +43,7 @@ import getopt
 import sys
 import os
 import Version
+import re
 
 ## Display command-line usage and exit.
 # Outputs to stdout unless py2exe'd, in which case the usage is presented
@@ -58,6 +59,7 @@ Options:
                                       your platform.  Use "reset" to use the
                                       usual fofix.ini but clear it first.
   --fullscreen=, -f [true/false]      Force (non-)usage of full-screen mode.
+  --geometry=,   -g [resolution][+x][+y] like Xorg standard argument
   --resolution=, -r [resolution]      Force a specific resolution to be used.
   --theme=,  -t [theme]               Force the specified theme to be used.
                                       Remember to quote the theme name if it
@@ -89,7 +91,7 @@ One-shot mode options (ignored unless in one-shot mode):
   sys.exit(1)
 
 try:
-  opts, args = getopt.getopt(sys.argv[1:], "hvdc:f:r:t:s:l:p:m:n:", ["help", "verbose", "debug", "config=", "fullscreen=", "resolution=", "theme=", "song=", "diff=", "part=", "mode=", "nbrplayers=", "opengl-error-checking"])
+	opts, args = getopt.getopt(sys.argv[1:], "hvdc:f:g:r:t:s:l:p:m:n:", ["help", "verbose", "debug", "config=", "fullscreen=", "geometry=", "resolution=", "theme=", "song=", "diff=", "part=", "mode=", "nbrplayers=", "opengl-error-checking"])
 except getopt.GetoptError, e:
   _usage(str(e))  # str(e): error message from getopt, e.g. "option --some-invalid-option not recognized"
 if ('-h', '') in opts or ('--help', '') in opts:
@@ -118,6 +120,8 @@ def main():
   configFile = None
   fullscreen = None
   resolution = None
+  x = None
+  y = None
   theme = None
   debug = False
   difficulty = None
@@ -135,6 +139,11 @@ def main():
       fullscreen = arg
     if opt in ["--resolution", "-r"]:
       resolution = arg
+    if opt in ["--geometry", "-g"]:
+      r = re.match('([0-9]+x\d+)\+?(\d+)?\+?(\d+)?',arg)
+      print "geometry tested ",arg
+      (resolution,x,y) = r.groups()
+      print "found ",resolution," x ",x," y ",y
     if opt in ["--theme", "-t"]:
       theme = arg
     if opt in ["--song", "-s"]:
@@ -167,6 +176,12 @@ def main():
   #Lysdestic - Change resolution from CLI
   if resolution is not None:
     Config.set("video", "resolution", resolution)
+  if x is not None:
+    Config.set("video", "x", x)
+    Config.set("video","fullscreen",False)
+  if y is not None:
+    Config.set("video", "y", y)
+    Config.set("video","fullscreen",False)
 
   #Lysdestic - Alter theme from CLI
   if theme is not None:

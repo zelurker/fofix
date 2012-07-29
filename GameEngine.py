@@ -93,6 +93,8 @@ Config.define("video",  "fullscreen",   bool,  False,  text = _("Fullscreen Mode
 Config.define("video",  "multisamples", int,   4,     text = _("Antialiasing Quality"), options = {0: _("None"), 2: "2x", 4: "4x", 6: "6x", 8: "8x"}, tipText = _("Sets the antialiasing quality of openGL rendering. Higher values reduce jaggediness, but could affect performance. (This is affected by the 'Performance' quickset)"))
 Config.define("video",  "disable_fretsfx", bool, False, text = _("Show Fret Glow Effect"), options = {False: _("Yes"), True: _("No")}, tipText = _("Turn on or off the glow that appears around a fret when you press it."))
 Config.define("video",  "resolution",   str,   "640x480")
+Config.define("video",  "x",   int,   0)
+Config.define("video",  "y",   int,   0)
 Config.define("video",  "fps",          int,   80,    text = _("Frames per Second"), options = dict([(n, n) for n in range(1, 120)]), tipText = _("Set the number of frames to render per second. Higher values are better, but your computer may not be able to keep up. You probably can leave this alone. (This is affected by the 'Performance' quickset)"))
 Config.define("video",  "show_fps",     bool,   False,  text = _("Print Frames per Second"), options = {False: _("No"), True: _("Yes")}, tipText = _("This will display your FPS on some screens, and if running from sources will print your FPS there every two seconds."))
 Config.define("video",  "hitglow_color", int,  0,     text = _("Fret Glow Color"), options = {0: _("Same as Fret"), 1: _("Actual Color")}, tipText = _("Sets whether or not the fret glow image will be color-masked with the theme-determined fret color."))
@@ -545,6 +547,9 @@ class GameEngine(Engine):
     os.environ['SDL_VIDEO_WINDOW_POS'] = 'center'
 
     width, height = [int(s) for s in self.config.get("video", "resolution").split("x")]
+    self.x = Config.get("video","x")
+    self.y = Config.get("video","y")
+    os.environ['SDL_VIDEO_WINDOW_POS'] = str(self.x)+","+str(self.y)
     fullscreen    = self.config.get("video", "fullscreen")
     multisamples  = self.config.get("video", "multisamples")
     self.video.setMode((width, height), fullscreen = fullscreen, multisamples = multisamples)
