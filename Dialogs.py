@@ -3899,6 +3899,7 @@ class NeckChooser(Layer, KeyListener):
     if self.owner: #rather hard-coded...
       if self.player != "default":
         self.owner.neck  = self.neck[self.selectedNeck]
+    self.engine.mainMenu.updateNeck()
     self.engine.view.popLayer(self)
     
   def cancel(self):
@@ -4051,20 +4052,20 @@ class AvatarChooser(Layer, KeyListener):
     self.logClassInits = self.engine.config.get("game", "log_class_inits")
     if self.logClassInits == 1:
       Log.debug("AvatarChooser class init (Dialogs.py)...")
-    
+
     splash = showLoadingSplashScreen(self.engine, _("Loading avatars..."))
-    
+
     #Get theme
     self.themename = self.engine.data.themeLabel
     self.theme = self.engine.data.theme
-    
+
     self.avatar = []
     self.avatars = []
     self.maxAv = 0
     self.themeAvs = 0
-    
+
     self.selectedAv = 0
-    
+
     self.scrolling = 0
     self.delay     = 0
     self.rate      = 0
@@ -4074,12 +4075,12 @@ class AvatarChooser(Layer, KeyListener):
     #          - os.listdir is not guaranteed to return a sorted list, so sort it!
     avatarfiles = os.listdir(self.engine.resource.fileName("avatars"))
     avatarfiles.sort()
-    
+
     themeavatarfiles = []
     if os.path.exists(self.engine.resource.fileName(os.path.join("themes",self.themename,"avatars"))):
       themeavatarfiles = os.listdir(self.engine.resource.fileName(os.path.join("themes",self.themename,"avatars")))
     themeavatarfiles.sort()
-    
+
     for i in themeavatarfiles:
       if str(i).lower()[-4:] != ".png":
         continue
@@ -4130,33 +4131,33 @@ class AvatarChooser(Layer, KeyListener):
       wFactor = 178.00/imgwidth
       self.avScale.append(min(hFactor, wFactor))
     self.maxAv -= 1 # evilynux - confusing, but there's an offset of -1
-    
+
     self.accepted       = False
     self.time           = 0.0
     self.dist           = 1.0
-    
+
 
     #MFH - added simple black background to place in front of Options background, behind Neck BG, for transparent neck displays
     try:
       self.engine.loadImgDrawing(self, "avFrame", os.path.join("themes",self.themename,"lobby","avatarframe.png"))
     except IOError:
       self.avFrame = None
-    
+
     try:
       self.engine.loadImgDrawing(self, "avSelFrame", os.path.join("themes",self.themename,"lobby","avatarselectframe.png"))
     except IOError:
       self.avSelFrame = self.avFrame
-    
+
     try:
       self.engine.loadImgDrawing(self, "avBigFrame", os.path.join("themes",self.themename,"lobby","avatarmainframe.png"))
     except IOError:
       self.avBigFrame = self.avFrame
-    
+
     try:
       self.engine.loadImgDrawing(self, "avText", os.path.join("themes",self.themename,"lobby","avatartext.png"))
     except IOError:
       self.avText = None
-    
+
     self.avFrameScale = None
     if self.avFrame:
       imgheight = self.avFrame.height1()
@@ -4164,7 +4165,7 @@ class AvatarChooser(Layer, KeyListener):
       hFactor = 110.00/imgheight
       wFactor = 178.00/imgwidth
       self.avFrameScale = (wFactor, -hFactor)
-    
+
     self.avSelFrameScale = None
     if self.avSelFrame:
       imgheight = self.avSelFrame.height1()
@@ -4172,7 +4173,7 @@ class AvatarChooser(Layer, KeyListener):
       hFactor = 110.00/imgheight
       wFactor = 178.00/imgwidth
       self.avSelFrameScale = (wFactor, -hFactor)
-    
+
     self.avBigFrameScale = None
     if self.avBigFrame:
       imgheight = self.avBigFrame.height1()
@@ -4180,9 +4181,9 @@ class AvatarChooser(Layer, KeyListener):
       hFactor = 110.00/imgheight
       wFactor = 178.00/imgwidth
       self.avBigFrameScale = (wFactor, -hFactor)
-    
+
     self.avatarText = _("Select Your Avatar:")
-    
+
     try:
       self.engine.loadImgDrawing(self, "background", os.path.join("themes",self.themename,"lobby","avatarbg.png"))
     except IOError:
@@ -4190,17 +4191,17 @@ class AvatarChooser(Layer, KeyListener):
 
     hideLoadingSplashScreen(self.engine, splash)
     splash = None
-    
+
   def shown(self):
     self.engine.input.addKeyListener(self, priority = True)
-  
+
   def hidden(self):
     self.engine.input.removeKeyListener(self)
-    
+
   def cancel(self):
     self.accepted = False
     self.engine.view.popLayer(self)
-  
+
   def keyPressed(self, key, unicode):
     c = self.engine.input.controls.getMapping(key)
     if c in Player.key1s or key == pygame.K_RETURN:
@@ -4219,29 +4220,29 @@ class AvatarChooser(Layer, KeyListener):
       self.delay = self.engine.scrollDelay
       self.scrollDown()
     return True
-    
+
   def scrollUp(self):
     self.engine.data.selectSound.play()
     self.selectedAv -= 1
     if self.selectedAv < 0:
       self.selectedAv = len(self.avatars) - 1
-  
+
   def scrollDown(self):
     self.engine.data.selectSound.play()
     self.selectedAv += 1
     if self.selectedAv >= len(self.avatars):
       self.selectedAv = 0
-    
+
   def keyReleased(self, key):
     self.scrolling = 0
-  
+
   def getAvatar(self):
     if self.accepted:
       t = self.selectedAv < self.themeAvs and os.path.join("themes",self.themename,"avatars",self.avatar[self.selectedAv]+".png") or os.path.join("avatars",self.avatar[self.selectedAv]+".png")
       return t
     else:
       return None
-  
+
   def run(self, ticks):
     self.time += ticks / 50.0
     if self.dist > 0:
@@ -4254,14 +4255,14 @@ class AvatarChooser(Layer, KeyListener):
       if self.delay <= 0 and self.rate >= self.engine.scrollRate:
         self.rate = 0
         self.scroller[self.scrolling]()
-    
+
   def render(self, visibility, topMost):
     v = (1 - visibility) ** 2
     t = self.time / 100
     self.engine.view.setViewport(1,0)
     self.engine.view.setOrthogonalProjection(normalize = True)
     w, h, = self.engine.view.geometry[2:4]
-    
+
     try:
       if self.background:
         wFactor = 640.000/self.background.width1()
@@ -4284,7 +4285,7 @@ class AvatarChooser(Layer, KeyListener):
       currentAv = self.avatars[int(self.selectedAv)]
       nextAv    = self.avatars[nextAvi]
       nextAv2   = self.avatars[nextAv2i]
-      
+
       self.x1 = w*(0.07-self.dist/2)
       self.x2 = w*(0.17-self.dist/2)
       self.x3 = w*(0.24-self.dist/2)
@@ -4296,11 +4297,11 @@ class AvatarChooser(Layer, KeyListener):
       self.y4 = h*(0.32+Theme.avatarSelectWheelY)
       self.y5 = h*(0.25+Theme.avatarSelectWheelY)
       bigCoord = (w*(Theme.avatarSelectAvX+self.dist),h*Theme.avatarSelectAvY)
-      
+
       if self.avBigFrame:
         self.engine.drawImage(self.avFrame, scale = (self.avBigFrameScale[0]*1.75,self.avBigFrameScale[1]*1.75), coord = bigCoord)
       self.engine.drawImage(currentAv, scale = (self.avScale[self.selectedAv]*1.75,-self.avScale[self.selectedAv]*1.75), coord = bigCoord)
-      
+
       if self.avFrame:
         self.engine.drawImage(self.avFrame, scale = self.avFrameScale, coord = (self.x1,self.y1))
       self.engine.drawImage(lastAv2, scale = (self.avScale[lastAv2i],-self.avScale[lastAv2i]), coord = (self.x1,self.y1))
@@ -4312,11 +4313,11 @@ class AvatarChooser(Layer, KeyListener):
       self.engine.drawImage(nextAv2, scale = (self.avScale[nextAv2i],-self.avScale[nextAv2i]), coord = (self.x5,self.y5))
       if self.avFrame:
         self.engine.drawImage(self.avFrame, scale = self.avFrameScale, coord = (self.x4,self.y4))
-      self.engine.drawImage(nextAv, scale = (self.avScale[nextAvi],-self.avScale[nextAvi]), coord = (self.x4,self.y4))   
+      self.engine.drawImage(nextAv, scale = (self.avScale[nextAvi],-self.avScale[nextAvi]), coord = (self.x4,self.y4))
       if self.avSelFrame:
         self.engine.drawImage(self.avSelFrame, scale = self.avSelFrameScale, coord = (self.x3,self.y3))
       self.engine.drawImage(currentAv, scale = (self.avScale[int(self.selectedAv)],-self.avScale[int(self.selectedAv)]), coord = (self.x3,self.y3))
-      
+
       try:
         font = self.engine.data.fontDict[Theme.avatarSelectFont]
       except:
@@ -5411,7 +5412,7 @@ def chooseNeck(engine, player = "default"):
 def chooseAvatar(engine):
   """
   Have the user select an avatar.
-  
+
   @param engine:   Game engine
   """
   d = AvatarChooser(engine)
