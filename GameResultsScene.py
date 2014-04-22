@@ -571,6 +571,11 @@ class GameResultsSceneClient(GameResultsScene, SceneClient):
         name = Dialogs.getText(self.engine, _("%d points is a new high score! Enter your name:") % self.finalScore[i], self.playerList[i].upname)
         if name:
           self.playerList[i].upname = name
+        else:
+            # Allow to skip entering a new score here to avoid to fill the
+            # hiscore tables too fast
+            self.doneScores = True
+            return
         scoreExt = (scoreCard.notesHit, scoreCard.totalStreakNotes, scoreCard.hiStreak, self.engine.uploadVersion, scoreCard.handicap, scoreCard.longHandicap, self.originalScore[i])
         self.highscoreIndex[i] = self.song.info.addHighscore(self.playerList[i].difficulty, self.finalScore[i], scoreCard.stars, self.playerList[i].upname, part = self.playerList[i].part, scoreExt = scoreExt)
         self.song.info.save()
