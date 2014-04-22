@@ -44,16 +44,18 @@ class Texture:
   """Represents an OpenGL texture, optionally loaded from disk in any format supported by PIL"""
 
   def __init__(self, name = None, target = GL_TEXTURE_2D):
-    # Delete all pending textures
+    # Delete *all* pending textures
     try:
-      func, args = cleanupQueue[0]
-      del cleanupQueue[0]
-      func(*args)
-    except IndexError:
-      pass
-    except Exception, e:    #MFH - to catch "did you call glewInit?" crashes
-      Log.error("Texture.py texture deletion exception: %s" % e)
-    
+      # There doesn't seem to be anything to test if a list is empty so we
+      # put this in a try block, and it produces an error when the list
+      # becomes empty
+      func, args = cleanupQueue.pop()
+      while func:
+        func(*args)
+        func, args = cleanupQueue.pop()
+    except:
+        pass
+
     self.texture = glGenTextures(1)
     self.texEnv = GL_MODULATE
     self.glTarget = target
@@ -107,7 +109,7 @@ class Texture:
       s = pygame.Surface((w2, h2), pygame.SRCALPHA, 32)
       s.blit(surface, (0, h2 - h))
       surface = s
-    
+
     if monochrome:
       # pygame doesn't support monochrome, so the fastest way
       # appears to be using PIL to do the conversion.
