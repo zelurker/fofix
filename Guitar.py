@@ -43,6 +43,7 @@ import math
 import os
 import Log
 import Song   #need the base song defines as well
+from numpy import array, float32
 
 
 class Guitar:
@@ -1583,9 +1584,12 @@ class Guitar:
           glEnable(GL_LIGHT0)
           glShadeModel(GL_SMOOTH)
           glRotatef(90, 0, 1, 0)
-          glLightfv(GL_LIGHT0, GL_POSITION, (5.0, 10.0, -10.0, 0.0))
-          glLightfv(GL_LIGHT0, GL_AMBIENT,  (.2, .2, .2, 0.0))
-          glLightfv(GL_LIGHT0, GL_DIFFUSE,  (1.0, 1.0, 1.0, 0.0))
+          glLightfv(GL_LIGHT0, GL_POSITION, array((5.0, 10.0, -10.0,
+              0.0),dtype=float32))
+          glLightfv(GL_LIGHT0, GL_AMBIENT,  array((.2, .2, .2,
+              0.0),dtype=float32))
+          glLightfv(GL_LIGHT0, GL_DIFFUSE,  array((1.0, 1.0, 1.0,
+              0.0),dtype=float32))
 
 
           glRotatef(-90, 1, 0, 0)
