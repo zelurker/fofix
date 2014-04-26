@@ -100,10 +100,12 @@ if ('-h', '') in opts or ('--help', '') in opts:
 #stump: disable pyOpenGL error checking if we are not asked for it.
 # This must be before *anything* that may import pyOpenGL!
 assert 'OpenGL' not in sys.modules
+import OpenGL
 if ('--opengl-error-checking', '') not in opts:
-  import OpenGL
   if OpenGL.__version__ >= '3':
     OpenGL.ERROR_CHECKING = False
+OpenGL.ERROR_ON_COPY = True
+OpenGL.STORE_POINTERS = False
 
 import Log
 import Config
@@ -149,7 +151,7 @@ def main():
     if opt in ["--song", "-s"]:
       playing = arg
     if opt in ["--diff", "-l"]:
-      difficulty = arg      
+      difficulty = arg
     if opt in ["--part", "-p"]:
       part = arg
     #evilynux - Multiplayer and mode selection support

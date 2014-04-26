@@ -21,6 +21,7 @@
 #####################################################################
 
 from OpenGL.GL import *
+from numpy import array, float32
 
 import Collada
 
@@ -30,7 +31,7 @@ class Mesh:
     self.doc.LoadDocumentFromFile(fileName)
     self.geoms = {}
     self.fullGeoms = {}
-    
+
   def _unflatten(self, array, stride):
     return [tuple(array[i * stride : (i + 1) * stride]) for i in range(len(array) / stride)]
 
@@ -38,9 +39,10 @@ class Mesh:
     l = light.techniqueCommon
     glEnable(GL_LIGHTING)
     glEnable(GL_LIGHT0 + n)
-    glLightfv(GL_LIGHT0 + n, GL_POSITION, (pos[0], pos[1], pos[2], 0.0))
-    glLightfv(GL_LIGHT0 + n, GL_DIFFUSE, (l.color[0], l.color[1], l.color[2], 0.0))
-    glLightfv(GL_LIGHT0 + n, GL_AMBIENT, (0.0, 0.0, 0.0, 0.0))
+    glLightfv(GL_LIGHT0 + n, GL_POSITION, array((pos[0], pos[1], pos[2],
+        0.0),dtype=float32))
+    glLightfv(GL_LIGHT0 + n, GL_DIFFUSE, array((l.color[0], l.color[1], l.color[2], 0.0),dtype=float32))
+    glLightfv(GL_LIGHT0 + n, GL_AMBIENT, array((0.0, 0.0, 0.0, 0.0),dtype=float32))
 
   def setupMaterial(self, material):
     for m in material.techniqueCommon.iMaterials:
@@ -58,13 +60,13 @@ class Mesh:
     if geomName in self.fullGeoms:
       glCallList(self.fullGeoms[geomName])
       return
-      
+
     # Prepare a new list for all the geometry
     if not self.geoms:
       for geom in self.doc.geometriesLibrary.items:
         self.geoms[geom.name] = glGenLists(1)
         glNewList(self.geoms[geom.name], GL_COMPILE)
-  
+
         for prim in geom.data.primitives:
           maxOffset = vertexOffset = normalOffset = 0
           vertexOffset = None
@@ -73,7 +75,7 @@ class Mesh:
           vertices = None
           normals = None
           texcoords = None
-  
+
           for input in prim.inputs:
             maxOffset = max(maxOffset, input.offset)
             if input.semantic == "VERTEX":
@@ -89,16 +91,16 @@ class Mesh:
               texcoordOffset = input.offset
               texcoords = geom.data.FindSource(input)
               texcoords = self._unflatten(texcoords.source.data, 2)
-  
+
           if normalOffset is None:
             normals = geom.data.FindSource(geom.data.vertices.FindInput("NORMAL"))
             normals = self._unflatten(normals.source.data, 3)
             normalOffset = vertexOffset
-  
+
           def drawElement(indices, offset, array, func):
             if offset is not None:
               func(*array[indices[offset]])
-          
+
           if hasattr(prim, "polygons"):
             for poly in prim.polygons:
               glBegin(GL_POLYGON)
@@ -114,13 +116,13 @@ class Mesh:
               drawElement(indices, texcoordOffset, texcoords, glTexCoord2f)
               drawElement(indices, vertexOffset,   vertices,  glVertex3f)
            glEnd()
-            
+
         glEndList()
-      
+
     # Prepare a new display list for this particular geometry
     self.fullGeoms[geomName] = glGenLists(1)
     glNewList(self.fullGeoms[geomName], GL_COMPILE)
-    
+
     if self.geoms:
       # setup lights
       for scene in self.doc.visualScenesLibrary.items:
@@ -133,7 +135,7 @@ class Mesh:
                 if t[0] == "translate":
                   pos = t[1]
               self.setupLight(light.object, n, pos)
-              
+
       # render geometry
       for scene in self.doc.visualScenesLibrary.items:
         for node in scene.nodes:
@@ -143,7 +145,7 @@ class Mesh:
             if geom.object:
               #for mat in geom.bindMaterials:
               #  self.setupMaterial(mat)
-                
+
               glPushMatrix()
               for t in node.transforms:
                 if t[0] == "translate":
@@ -159,13 +161,13 @@ class Mesh:
       for n in range(8):
         glDisable(GL_LIGHT0 + n)
     glEndList()
-      
+
     # Render the new list
     self.render(geomName)
 
   def find(self, geomName = None):
     found = False
-    if self.geoms:            
+    if self.geoms:
       # render geometry
       for scene in self.doc.visualScenesLibrary.items:
         for node in scene.nodes:

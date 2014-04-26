@@ -70,7 +70,7 @@ class SvgContext:
     self.transform = SvgTransform()
     self.setGeometry(geometry)
     self.setProjection(geometry)
-  
+
     # eat any possible OpenGL errors -- we can't handle them anyway
     try:
       glMatrixMode(GL_MODELVIEW)
@@ -102,7 +102,7 @@ class SvgRenderStyle:
     self.strokeLineJoin = None
     self.strokeOpacity = None
     self.fillOpacity = None
-    
+
     if baseStyle:
       self.__dict__.update(baseStyle.__dict__)
 
@@ -120,7 +120,7 @@ class SvgRenderStyle:
       return SvgColors.colors[color.lower()]
     except KeyError:
       pass
-      
+
     if color[0] == "#":
       color = color[1:]
       if len(color) == 3:
@@ -184,7 +184,7 @@ class SvgRenderStyle:
       drawBoard.SetStrokeEnabled(True)
     else:
       drawBoard.SetStrokeEnabled(False)
-    
+
     if self.fillColor is not None:
       if isinstance(self.fillColor, SvgGradient):
         self.fillColor.applyTransform(transform)
@@ -199,10 +199,10 @@ class SvgRenderStyle:
 
     if self.strokeWidth is not None:
       drawBoard.SetStrokeWidth(self.strokeWidth)
-    
+
     if self.strokeOpacity is not None:
       drawBoard.SetStrokeOpacity(self.strokeOpacity)
-      
+
     if self.fillOpacity is not None:
       drawBoard.SetFillOpacity(self.fillOpacity)
 
@@ -213,7 +213,7 @@ class SvgTransform:
   def __init__(self, baseTransform = None):
     self._gmatrix = amanith.GMatrix33()
     self.reset()
-    
+
     if baseTransform:
       self.matrix = baseTransform.matrix.copy()
 
@@ -263,10 +263,10 @@ class SvgTransform:
   def applyGL(self):
     # Interpret the 2D matrix as 3D
     m = self.matrix
-    m = [m[0, 0], m[1, 0], 0.0, 0.0,
-         m[0, 1], m[1, 1], 0.0, 0.0,
-             0.0,     0.0, 1.0, 0.0,
-         m[0, 2], m[1, 2], 0.0, 1.0]
+    m = array([m[0, 0], m[1, 0], 0.0, 0.0,
+		       m[0, 1], m[1, 1], 0.0, 0.0,
+                   0.0,     0.0, 1.0, 0.0,
+               m[0, 2], m[1, 2], 0.0, 1.0],dtype=float32)
     glMultMatrixf(m)
 
   def getGMatrix(self, m):
@@ -287,16 +287,16 @@ class SvgHandler(sax.ContentHandler):
     self.transformStack = [SvgTransform()]
     self.defs = {}
     self.cache = cache
-  
+
   def startElement(self, name, attrs):
     style = SvgRenderStyle(self.style())
     style.applyAttributes(attrs, self.defs)
     self.styleStack.append(style)
-    
+
     transform = SvgTransform(self.transform())
     transform.applyAttributes(attrs)
     self.transformStack.append(transform)
-    
+
     try:
       f = "start" + name.capitalize()
       #print f, self.transformStack
@@ -391,7 +391,7 @@ class SvgHandler(sax.ContentHandler):
         self.contextStack.append("gradient")
         self.stops = []
         self.gradientAttrs = attrs
-    
+
   def startRadialgradient(self, attrs):
     if self.context() == "defs":
       if "xlink:href" in attrs:
@@ -424,7 +424,7 @@ class SvgHandler(sax.ContentHandler):
         k = amanith.GKeyValue(offset, (color[0], color[1], color[2], opacity))
         keys.append(k)
     return keys
-    
+
   def endLineargradient(self):
     if self.context() == "gradient":
       keys = self.parseKeys(self.stops)
@@ -434,7 +434,7 @@ class SvgHandler(sax.ContentHandler):
       if id and grad:
         self.defs[id] = SvgGradient(grad, trans)
       self.contextStack.pop()
-    
+
   def endRadialgradient(self):
     if self.context() == "gradient":
       keys = self.parseKeys(self.stops)
@@ -444,11 +444,11 @@ class SvgHandler(sax.ContentHandler):
       if id and grad:
         self.defs[id] = SvgGradient(grad, trans)
       self.contextStack.pop()
-    
+
   def startStop(self, attrs):
     if self.context() == "gradient":
       self.stops.append(attrs)
-    
+
 class SvgCache:
   def __init__(self, drawBoard):
     self.drawBoard = drawBoard
@@ -471,7 +471,7 @@ class SvgCache:
       lastStyle = None
 
     self.transforms[slot] = transform
-    
+
     if lastStyle == style:
       lastSlotStart, lastSlotEnd = self.displayList[-1][1][-1]
       if lastSlotEnd == slot - 1:
@@ -584,13 +584,13 @@ class ImgDrawing:
     if not width == None:
       return wfactor
     else:
-      return 0    
+      return 0
 
   def _render(self, transform):
     glMatrixMode(GL_TEXTURE)
     glPushMatrix()
     glMatrixMode(GL_MODELVIEW)
-    
+
     glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_STENCIL_BUFFER_BIT | GL_TRANSFORM_BIT | GL_COLOR_BUFFER_BIT | GL_POLYGON_BIT | GL_CURRENT_BIT | GL_DEPTH_BUFFER_BIT)
     if not self.cache:
       self.cache = SvgCache(self.context.drawBoard)
@@ -619,11 +619,11 @@ class ImgDrawing:
       glScalef(self.texture.pixelSize[0], self.texture.pixelSize[1], 1)
       glTranslatef(-.5, -.5, 0)
       glColor4f(*color)
-      
+
 
       glEnable(GL_TEXTURE_2D)
       self.texture.bind()
-      
+
       triangVtx = array(
         [[0.0-lOffset, 1.0],
          [1.0-rOffset, 1.0],
@@ -636,7 +636,7 @@ class ImgDrawing:
          [rect[0], rect[2]],
          [rect[1], rect[2]]], dtype=float32)
 
-      glEnableClientState(GL_TEXTURE_COORD_ARRAY)    
+      glEnableClientState(GL_TEXTURE_COORD_ARRAY)
       glEnableClientState(GL_VERTEX_ARRAY)
       glTexCoordPointerf(textriangVtx)
       glVertexPointerf(triangVtx)
