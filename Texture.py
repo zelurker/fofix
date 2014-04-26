@@ -30,6 +30,7 @@ import StringIO
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
+import os.path
 
 class TextureException(Exception):
   pass
@@ -59,7 +60,6 @@ class Texture:
     self.texture = glGenTextures(1)
     self.texEnv = GL_MODULATE
     self.glTarget = target
-    self.framebuffer = None
 
     self.setDefaults()
     self.name = name
@@ -69,11 +69,18 @@ class Texture:
 
   def loadFile(self, name):
     """Load the texture from disk, using PIL to open the file"""
-    self.loadImage(Image.open(name))
-    self.name = name
+    if not os.path.isfile(name):
+        # print "pas de fichier ",name
+        raise IOError(name)
 
-  def loadImage(self, image):
+    self.name = name
+    self.loadImage() # Image.open(name))
+
+  def loadImage(self):
     """Load the texture from a PIL image"""
+    # Calling loadImage without parameter seems to vastly decrease the
+    # memory leak when using a theme with big bitmaps !!!
+    image = Image.open(self.name)
     image = image.transpose(Image.FLIP_TOP_BOTTOM)
     if image.mode == "RGBA":
       string = image.tostring('raw', 'RGBA', 0, -1)
