@@ -39,7 +39,6 @@ from Shader import shaders
 
 from OpenGL.GL import *
 import math
-from numpy import array, float32
 
 #myfingershurt: needed for multi-OS file fetching
 import os
@@ -134,7 +133,7 @@ class Drum:
     self.neckAlpha.append( self.neckAlpha[0] * self.engine.config.get("game", "fail_neck_alpha") ) # fail neck
 
 
-    #self.drumFillOnScreen = False   #MFH 
+    #self.drumFillOnScreen = False   #MFH
     self.drumFillEvents = []
     self.drumFillWasJustActive = False
 
@@ -279,7 +278,7 @@ class Drum:
 
 
     #myfingershurt:
-    self.hopoStyle = 0    
+    self.hopoStyle = 0
     self.LastStrumWasChord = False
     self.spRefillMode = self.engine.config.get("game","sp_notes_while_active")
     self.hitglow_color = self.engine.config.get("video", "hitglow_color") #this should be global, not retrieved every fret render.
@@ -319,7 +318,7 @@ class Drum:
 
     #check if BRE enabled
     if self.bigRockEndings == 2 or (self.theme == 2 and self.bigRockEndings == 1):
-      self.freestyleEnabled = True   
+      self.freestyleEnabled = True
 
     if self.theme < 2:    #make board same size as guitar board if GH based theme so it rockmeters dont interfere
       self.boardWidth     = 3.0
@@ -328,9 +327,9 @@ class Drum:
     #blazingamer
     self.nstype = self.engine.config.get("game", "nstype")
     self.twoDnote = Theme.twoDnote
-    self.twoDkeys = Theme.twoDkeys 
-    self.threeDspin = Theme.threeDspin 
-    self.opencolor = Theme.opencolor 
+    self.twoDkeys = Theme.twoDkeys
+    self.threeDspin = Theme.threeDspin
+    self.opencolor = Theme.opencolor
     self.noterotate = self.engine.config.get("coffee", "noterotate")
     self.rockLevel = 0.0
     self.failcount = 0
@@ -345,7 +344,7 @@ class Drum:
 
 
     #MFH- fixing neck speed
-    if self.nstype < 3:   #not constant mode: 
+    if self.nstype < 3:   #not constant mode:
       self.speed = self.engine.config.get("coffee", "neckSpeed")*0.01
     else:   #constant mode
       #self.speed = self.engine.config.get("coffee", "neckSpeed")
@@ -357,13 +356,13 @@ class Drum:
     #death_au: fixed neck size
     # elif self.twoDnote == False or self.twoDkeys == False:
       # self.boardWidth     = Theme.neckWidth + 0.6
-      # self.boardLength    = Theme.neckLength  
+      # self.boardLength    = Theme.neckLength
     self.boardWidth     = Theme.neckWidth
     self.boardLength    = Theme.neckLength
     if self.engine.config.get("game", "large_drum_neck"):
       self.boardWidth     *= (4.0/3.0)
       self.boardLength    *= (4.0/3.0)
-    
+
     self.boardScaleX    = self.boardWidth/3.0
     self.boardScaleY    = self.boardLength/9.0
     self.fretPress      = Theme.fret_press
@@ -371,15 +370,15 @@ class Drum:
     self.muteSustainReleases = self.engine.config.get("game", "sustain_muting") #MFH
 
     self.hitw = self.engine.config.get("game", "note_hit_window")  #this should be global, not retrieved every BPM change.
-    if self.hitw == 0: 
+    if self.hitw == 0:
       self.hitw = 2.3
-    elif self.hitw == 1: 
+    elif self.hitw == 1:
       self.hitw = 1.9
-    elif self.hitw == 2: 
+    elif self.hitw == 2:
       self.hitw = 1.2
-    elif self.hitw == 3:  
+    elif self.hitw == 3:
       self.hitw = 1.0
-    elif self.hitw == 4:  
+    elif self.hitw == 4:
       self.hitw = 0.70
     else:
       self.hitw = 1.2
@@ -436,7 +435,7 @@ class Drum:
     else: #death_au
       defaultKey = False
       defaultOpenKey = False
-      #MFH - can't use IOError for fallback logic for a Mesh() call... 
+      #MFH - can't use IOError for fallback logic for a Mesh() call...
       if self.engine.fileExists(os.path.join("themes", themename, "key_drum.dae")):
         engine.resource.load(self,  "keyMesh",  lambda: Mesh(engine.resource.fileName("themes", themename, "key_drum.dae")))
       elif self.engine.fileExists(os.path.join("themes", themename, "key.dae")):
@@ -473,7 +472,7 @@ class Drum:
     #Spinning starnotes or not?
     self.starspin = False
 
-    if self.twoDnote == True:  
+    if self.twoDnote == True:
       try:
         engine.loadImgDrawing(self, "noteButtons", os.path.join("themes",themename,"drumnotes.png"))
         self.separateDrumNotes = True
@@ -482,7 +481,7 @@ class Drum:
         self.separateDrumNotes = False
     else:
       defaultNote = False
-      #MFH - can't use IOError for fallback logic for a Mesh() call... 
+      #MFH - can't use IOError for fallback logic for a Mesh() call...
       if self.engine.fileExists(os.path.join("themes", themename, "note_drum.dae")):
         engine.resource.load(self,  "noteMesh",  lambda: Mesh(engine.resource.fileName("themes", themename, "note_drum.dae")))
       elif self.engine.fileExists(os.path.join("themes", themename, "note.dae")):
@@ -502,17 +501,17 @@ class Drum:
           for i in range(5):
             engine.loadImgDrawing(self,  "notetex"+chr(97+i),  os.path.join("themes", themename, "notetex_"+chr(97+i)+".png"))
           self.notetex = True
-  
+
         except IOError:
           self.notetex = False
 
-        if self.engine.fileExists(os.path.join("themes", themename, "star_drum.dae")):  
+        if self.engine.fileExists(os.path.join("themes", themename, "star_drum.dae")):
           engine.resource.load(self,  "starMesh",  lambda: Mesh(engine.resource.fileName("themes", themename, "star_drum.dae")))
-        elif self.engine.fileExists(os.path.join("themes", themename, "star.dae")):  
+        elif self.engine.fileExists(os.path.join("themes", themename, "star.dae")):
           engine.resource.load(self,  "starMesh",  lambda: Mesh(engine.resource.fileName("themes", themename, "star.dae")))
-        else:  
+        else:
           self.starMesh = None
-        
+
         try:
           for i in range(5):
             engine.loadImgDrawing(self,  "startex"+chr(97+i),  os.path.join("themes", themename, "startex_"+chr(97+i)+".png"))
@@ -520,7 +519,7 @@ class Drum:
 
         except IOError:
           self.startex = False
-        
+
         try:
           for i in range(5):
             engine.loadImgDrawing(self,  "staratex"+chr(97+i),  os.path.join("themes", themename, "staratex_"+chr(97+i)+".png"))
@@ -528,15 +527,15 @@ class Drum:
 
         except IOError:
           self.staratex = False
-        
+
         try:
           engine.loadImgDrawing(self, "spActTex", os.path.join("themes",themename,"spacttex.png"))
         except IOError:
           self.spActTex = None
-      
+
       if self.engine.fileExists(os.path.join("themes", themename, "open.dae")):
         engine.resource.load(self,  "openMesh",  lambda: Mesh(engine.resource.fileName("themes", themename, "open.dae")))
-      else:  
+      else:
         self.openMesh = None
 
       try:
@@ -544,13 +543,13 @@ class Drum:
         self.opentex = True
       except IOError:
         self.opentex = False
-        
+
       try:
         engine.loadImgDrawing(self,  "opentexture_star",  os.path.join("themes", themename, "opentex_star.png"))
         self.opentex_star = True
       except IOError:
         self.opentex_star = False
-      
+
       try:
         engine.loadImgDrawing(self,  "opentexture_stara",  os.path.join("themes", themename, "opentex_stara.png"))
         self.opentex_stara = True
@@ -573,11 +572,11 @@ class Drum:
     self.tail1 = None
     self.tail2 = None
     self.bigTail1 = None
-    self.bigTail2 = None  
+    self.bigTail2 = None
 
-    self.meshColor  = Theme.meshColor    
+    self.meshColor  = Theme.meshColor
     self.hopoColor  = Theme.hopoColor
-    self.spotColor = Theme.spotColor   
+    self.spotColor = Theme.spotColor
     self.keyColor = Theme.keyColor
     self.key2Color = Theme.key2Color
     self.tracksColor = Theme.tracksColor
@@ -600,7 +599,7 @@ class Drum:
     self.coOpRestart = False #akedrou
     self.starPowerActive = False
     self.neck = Neck(self.engine, self, playerObj)
-    
+
   def selectPreviousString(self):
     self.selectedString = (self.selectedString - 1) % self.strings
 
@@ -664,7 +663,7 @@ class Drum:
       self.noteReleaseMargin = (200 - bpm/5 - 70*1.0)
     elif self.muteSustainReleases == 2: #wide
       self.noteReleaseMargin = (200 - bpm/5 - 70*0.7)
-    else:  #ultra-wide 
+    else:  #ultra-wide
       self.noteReleaseMargin = (200 - bpm/5 - 70*0.5)
 
     #MFH - TODO - only calculate the below values if the realtime hit accuracy feedback display is enabled - otherwise this is a waste!
@@ -732,7 +731,7 @@ class Drum:
             else:
               f = 1.0
 
-            time -= self.freestyleOffset 
+            time -= self.freestyleOffset
             #volshebnyi - allow tail to move under frets
             if time > pos:
               self.drumFillsHits = -1
@@ -816,7 +815,7 @@ class Drum:
       s = (length + 0.00001)
 
     # render an inactive freestyle tail  (self.freestyle1 & self.freestyle2)
-    zsize = .25  
+    zsize = .25
     size = (.15, s - zsize)
 
     if self.drumFillsActive:
@@ -841,7 +840,7 @@ class Drum:
       tailGlow = 1 - (pos - self.freestyleLastFretHitTime[fret] ) / self.freestylePeriod
       if tailGlow < 0:
         tailGlow = 0
-      color = (c1 + c1*2.0*tailGlow, c2 + c2*2.0*tailGlow, c3 + c3*2.0*tailGlow, c4*0.6 + c4*0.4*tailGlow)    #MFH - this fades inactive tails' color darker                   
+      color = (c1 + c1*2.0*tailGlow, c2 + c2*2.0*tailGlow, c3 + c3*2.0*tailGlow, c4*0.6 + c4*0.4*tailGlow)    #MFH - this fades inactive tails' color darker
 
     tailcol = (color)
 
@@ -856,7 +855,7 @@ class Drum:
 
 
   #myfingershurt:
-  def renderNote(self, length, sustain, color, flat = False, tailOnly = False, isTappable = False, big = False, fret = 0, spNote = False, isOpen = False, spAct = False):    
+  def renderNote(self, length, sustain, color, flat = False, tailOnly = False, isTappable = False, big = False, fret = 0, spNote = False, isOpen = False, spAct = False):
 
     if flat:
       glScalef(1, .1, 1)
@@ -946,7 +945,7 @@ class Drum:
             else:
               texY = (0, 1*0.166667)
 
-          #rock band fret 0 needs to be reversed just like the fret to match angles better 
+          #rock band fret 0 needs to be reversed just like the fret to match angles better
           if fret == 0:
             texSize = (fret/5.0+0.2,fret/5.0)
 
@@ -963,11 +962,11 @@ class Drum:
       self.engine.draw3Dtex(self.noteButtons, vertex = (-size[0],size[1],size[0],-size[1]), texcoord = (texSize[0],texY[0],texSize[1],texY[1]),
                             scale = (1,1,1), multiples = True, color = color, vertscale = .2)
 
-    else:  
+    else:
 
-      #mesh = outer ring (black) 
-      #mesh_001 = main note (key color) 
-      #mesh_002 = top (spot or hopo if no mesh_003) 
+      #mesh = outer ring (black)
+      #mesh_001 = main note (key color)
+      #mesh_002 = top (spot or hopo if no mesh_003)
       #mesh_003 = hopo bump (hopo color)
 
       if fret == 0:
@@ -1037,7 +1036,7 @@ class Drum:
         glLoadIdentity()
         glMatrixMode(GL_MODELVIEW)
         glDisable(GL_TEXTURE_2D)
-        
+
       elif self.notetex == True and spNote == False and isOpen==False:
 
         glColor3f(1,1,1)
@@ -1088,7 +1087,7 @@ class Drum:
         glLoadIdentity()
         glMatrixMode(GL_MODELVIEW)
         glDisable(GL_TEXTURE_2D)
-      
+
       elif self.opentex == True and isOpen==True and spNote==False:
         glColor3f(1,1,1)
         glEnable(GL_TEXTURE_2D)
@@ -1104,7 +1103,7 @@ class Drum:
         glLoadIdentity()
         glMatrixMode(GL_MODELVIEW)
         glDisable(GL_TEXTURE_2D)
-      
+
       elif self.opentex_star == True and isOpen==True and spNote==True:
         glColor3f(1,1,1)
         glEnable(GL_TEXTURE_2D)
@@ -1120,7 +1119,7 @@ class Drum:
         glLoadIdentity()
         glMatrixMode(GL_MODELVIEW)
         glDisable(GL_TEXTURE_2D)
-      else: 
+      else:
         #death_au: fixed 3D note colours
         glColor4f(*color)
         if self.starPowerActive and self.theme != 2 and not color == (0,0,0,1):
@@ -1128,7 +1127,7 @@ class Drum:
           #glColor4f(.3,.7,.9, 1)
         if isOpen == True and self.starPowerActive == False:
           glColor4f(self.opencolor[0],self.opencolor[1],self.opencolor[2], 1)
-        
+
         meshObj.render("Mesh_001")
         glColor3f(self.spotColor[0], self.spotColor[1], self.spotColor[2])
         meshObj.render("Mesh_002")
@@ -1215,8 +1214,8 @@ class Drum:
       else:
         f = 1.0
 
-      #volshebnyi - hide open notes in BRE zone if BRE enabled  
-      if self.freestyleEnabled and self.freestyleStart > 0:  
+      #volshebnyi - hide open notes in BRE zone if BRE enabled
+      if self.freestyleEnabled and self.freestyleStart > 0:
         if self.drumFillsReady or self.freestyleReady:
           if time > self.freestyleStart - self.freestyleOffset and time < self.freestyleStart + self.freestyleOffset + self.freestyleLength:
             z = -2.0
@@ -1280,7 +1279,7 @@ class Drum:
           z = 0
           if length <= 0:
             continue
-        if z < 0 and not (event.played or event.hopod): 
+        if z < 0 and not (event.played or event.hopod):
           color = (.6, .6, .6, .5 * visibility * f)
           flat  = True
         ###endCapo###
@@ -1304,7 +1303,7 @@ class Drum:
       self.renderNote(length, sustain = sustain, color = color, flat = flat, tailOnly = tailOnly, isTappable = isTappable, fret = event.number, spNote = spNote, isOpen = isOpen)
       glPopMatrix()
 
-    #myfingershurt: end FOR loop / note rendering loop       
+    #myfingershurt: end FOR loop / note rendering loop
     if (not self.openStarNotesInView) and (not self.starNotesInView) and self.finalStarSeen:
       self.spEnabled = True
       self.finalStarSeen = False
@@ -1355,7 +1354,7 @@ class Drum:
       #volshebnyi - removed
       if event.number == 0: #MFH - skip all open notes
         continue
-      
+
       if self.coOpFailed:
         if self.coOpRestart:
           if time - self.coOpRescueTime < (self.currentPeriod * self.beatsPerBoard * 2):
@@ -1377,7 +1376,7 @@ class Drum:
         self.starNotesInView = True
 
       isOpen = False
-      
+
       x  = (self.strings / 2 - .5 - (event.number - 1)) * w
       if event.number == 4:
         c = self.fretColors[0]        #myfingershurt: need to swap note 0 and note 4 colors for drums:
@@ -1392,9 +1391,9 @@ class Drum:
       else:
         f = 1.0
 
-      #volshebnyi - hide notes in BRE zone if BRE enabled  
+      #volshebnyi - hide notes in BRE zone if BRE enabled
       if self.freestyleEnabled:
-        if self.drumFillsReady or self.freestyleReady:  
+        if self.drumFillsReady or self.freestyleReady:
           if time > self.freestyleStart - self.freestyleOffset and time < self.freestyleStart + self.freestyleOffset + self.freestyleLength:
             z = -2.0
 
@@ -1451,7 +1450,7 @@ class Drum:
           z = 0
           if length <= 0:
             continue
-        if z < 0 and not (event.played or event.hopod): 
+        if z < 0 and not (event.played or event.hopod):
           color = (.6, .6, .6, .5 * visibility * f)
           flat  = True
         ###endCapo###
@@ -1475,7 +1474,7 @@ class Drum:
       self.renderNote(length, sustain = sustain, color = color, flat = flat, tailOnly = tailOnly, isTappable = isTappable, fret = event.number, spNote = spNote, isOpen = isOpen)
       glPopMatrix()
 
-    #myfingershurt: end FOR loop / note rendering loop       
+    #myfingershurt: end FOR loop / note rendering loop
     if (not self.openStarNotesInView) and (not self.starNotesInView) and self.finalStarSeen:
       self.spEnabled = True
       self.isStarPhrase = False
@@ -1570,7 +1569,7 @@ class Drum:
           #Key_001 - Top of fret (key_color)
           #Key_002 - Bottom of fret (key2_color)
           #Glow_001 - Only rendered when a note is hit along with the glow.svg
-		  
+
           if n == 0: #red fret button
             glRotate(Theme.drumkeyrot[0], 0, 1, 0), glTranslatef(0, 0, Theme.drumkeypos[0])
           elif n == 1:
@@ -1584,7 +1583,7 @@ class Drum:
             glColor4f(1,1,1,visibility)
             glTranslatef(x, y, 0)
             glEnable(GL_TEXTURE_2D)
-            if n == 0: 
+            if n == 0:
               self.keytexb.texture.bind()
             elif n == 1:
               self.keytexc.texture.bind()
@@ -1626,7 +1625,7 @@ class Drum:
           glDisable(GL_LIGHT0)
           glDepthMask(0)
           glPopMatrix()
-          
+
       f = self.fretActivity[n]
 
       if f and self.disableFretSFX != True:
@@ -1675,7 +1674,7 @@ class Drum:
     #if we leave the depth test enabled, it thinks that the bass drum images
     #are under the other frets and openGL culls them. So I just leave it disabled
     if self.twoDkeys == False: #death_au
-    
+
       f = self.drumsHeldDown[0]/200.0
 
       c = self.openFretColor
@@ -1741,13 +1740,13 @@ class Drum:
         glDepthMask(0)
         glPopMatrix()
         glDisable(GL_DEPTH_TEST)
-    
+
       ######################
 
 
     elif self.twoDkeys == True and self.drumFretButtons != None: #death_au
       glDisable(GL_DEPTH_TEST)
-    
+
       x = 0.0#(self.boardWidth / 2 )
 
       size = (self.boardWidth/2, self.boardWidth/self.strings/2.4)
@@ -1785,11 +1784,11 @@ class Drum:
 ##    if self.disableFlameSFX != True:
 ##      for n in range(self.strings):
 ##        f = self.fretWeight[n]
-##        
+##
 ##        #c = self.fretColors[n]
 ##        c = self.fretColors[n+1]
 ##        if f and (controls.getState(self.keys[0]) or controls.getState(self.keys[5])):
-##          f += 0.25     
+##          f += 0.25
 ##        y = v + f / 6
 ##
 ##        x = (self.strings / 2 -.5 - n) * w
@@ -1801,7 +1800,7 @@ class Drum:
 ##          ms = math.sin(self.time) * .25 + 1
 ##          ff = f
 ##          ff += 1.2
-##          
+##
 ##          glBlendFunc(GL_ONE, GL_ONE)
 ##
 ##          flameSize = self.flameSizes[self.scoreMultiplier - 1][n]
@@ -1814,7 +1813,7 @@ class Drum:
 ##          flameColorMod0 = 1.1973333333333333333333333333333
 ##          flameColorMod1 = 1.9710526315789473684210526315789
 ##          flameColorMod2 = 10.592592592592592592592592592593
-##          
+##
 ##          glColor3f(flameColor[0] * flameColorMod0, flameColor[1] * flameColorMod1, flameColor[2] * flameColorMod2)
 ##          if self.starPowerActive:
 ##            if self.theme == 0 or self.theme == 1: #GH3 starcolor
@@ -1823,9 +1822,9 @@ class Drum:
 ##            else: #Default starcolor (Rockband)
 ##              glColor3f(.9,.9,.9)
 ##
-##          if not self.Hitanim:   
+##          if not self.Hitanim:
 ##            glEnable(GL_TEXTURE_2D)
-##            self.hitglowDrawing.texture.bind()    
+##            self.hitglowDrawing.texture.bind()
 ##            glPushMatrix()
 ##            glTranslate(x, y + .125, 0)
 ##            glRotate(90, 1, 0, 0)
@@ -1854,16 +1853,16 @@ class Drum:
 ##
 ##            glColor3f(1,1,1)
 ##            glEnable(GL_TEXTURE_2D)
-##            self.hitglowAnim.texture.bind()    
+##            self.hitglowAnim.texture.bind()
 ##            glPushMatrix()
 ##            glTranslate(x, y + .225, 0)
 ##            glRotate(90, 1, 0, 0)
-##            
+##
 ##            #glScalef(1.3, 1, 2)
 ##            #glScalef(1.7, 1, 2.6)
 ##            glScalef(2, 1, 2.9)   #worldrave correct flame size
 ##
-##            
+##
 ##            glBegin(GL_TRIANGLE_STRIP)
 ##            glTexCoord2f(texX[0], 0.0)#upper left corner of frame square in .png
 ##            glVertex3f(-flameSize * ff, 0, -flameSize * ff)#"upper left" corner of surface that texture is rendered on
@@ -1885,7 +1884,7 @@ class Drum:
 ##          flameColorMod0 = 1.1973333333333333333333333333333
 ##          flameColorMod1 = 1.7842105263157894736842105263158
 ##          flameColorMod2 = 12.222222222222222222222222222222
-##          
+##
 ##          glColor3f(flameColor[0] * flameColorMod0, flameColor[1] * flameColorMod1, flameColor[2] * flameColorMod2)
 ##          if self.starPowerActive:
 ##            if self.theme == 0 or self.theme == 1: #GH3 starcolor
@@ -1894,9 +1893,9 @@ class Drum:
 ##            else: #Default starcolor (Rockband)
 ##              glColor3f(.8,.8,.8)
 ##
-##          if not self.Hitanim: 
+##          if not self.Hitanim:
 ##            glEnable(GL_TEXTURE_2D)
-##            self.hitglow2Drawing.texture.bind()    
+##            self.hitglow2Drawing.texture.bind()
 ##            glPushMatrix()
 ##            glTranslate(x, y + .25, .05)
 ##            glRotate(90, 1, 0, 0)
@@ -1913,7 +1912,7 @@ class Drum:
 ##            glEnd()
 ##            glPopMatrix()
 ##            glDisable(GL_TEXTURE_2D)
-##          
+##
 ##          glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 ##
 ##          self.hit[n] = True
@@ -1940,7 +1939,7 @@ class Drum:
           #x  = (self.strings / 2 - event.number) * w
 
           xlightning = (self.strings / 2 - event.number)*2.2*w
-          ff = 1 + 0.25       
+          ff = 1 + 0.25
           y = v + ff / 6
 
           if self.theme == 2:
@@ -1985,7 +1984,7 @@ class Drum:
               flamecol = (flameColor[0] * flameColorMod0, flameColor[1] * flameColorMod1, flameColor[2] * flameColorMod2)
               spcolmod = (.7,.7,.7)
               if self.starPowerActive:
-                if self.theme == 0 or self.theme == 1: 
+                if self.theme == 0 or self.theme == 1:
                   flamecol = (self.spColor[0]*spcolmod[0], self.spColor[1]*spcolmod[1], self.spColor[2]*spcolmod[2])
                   #flamecol = (.3,.6,.7)#GH3 starcolor
                 else:
@@ -2005,7 +2004,7 @@ class Drum:
               flameColorMod1 = 0.1 * (flameLimit - event.flameCount)
               flameColorMod2 = 0.1 * (flameLimit - event.flameCount)
 
-              flamecol = (flameColor[0] * flameColorMod0, flameColor[1] * flameColorMod1, flameColor[2] * flameColorMod2)      
+              flamecol = (flameColor[0] * flameColorMod0, flameColor[1] * flameColorMod1, flameColor[2] * flameColorMod2)
               spcolmod = (.8,.8,.8)
               if self.starPowerActive:
                 if self.theme == 0 or self.theme == 1: #GH3 starcolor
@@ -2051,7 +2050,7 @@ class Drum:
               self.engine.draw3Dtex(self.hitflames1Drawing, coord = (x+.005, y +.35 +.005, 0), rot = (90, 1, 0, 0),
                                     scale = (.40 + .6 * ms * ff, (event.flameCount + 1) / 1.7 + .6 * ms * ff, (event.flameCount + 1) / 1.7 + .6 * ms * ff),
                                     vertex = (-flameSize * ff,-flameSize * ff,flameSize * ff,flameSize * ff), texcoord = (0.0,0.0,1.0,1.0),
-                                    multiples = True, alpha = True, color = flamecol)            
+                                    multiples = True, alpha = True, color = flamecol)
           else:
             self.HCount2 = 13
             self.HCountAni = True
@@ -2116,7 +2115,7 @@ class Drum:
               flamecol = (flameColor[0] * flameColorMod0, flameColor[1] * flameColorMod1, flameColor[2] * flameColorMod2)
               spcolmod = (.7,.7,.7)
               if self.starPowerActive:
-                if self.theme == 0 or self.theme == 1: 
+                if self.theme == 0 or self.theme == 1:
                   flamecol = (self.spColor[0]*spcolmod[0], self.spColor[1]*spcolmod[1], self.spColor[2]*spcolmod[2])
                   #flamecol = (.3,.6,.7)#GH3 starcolor
                 else:
@@ -2136,7 +2135,7 @@ class Drum:
               flameColorMod1 = 0.1 * (flameLimit - event.flameCount)
               flameColorMod2 = 0.1 * (flameLimit - event.flameCount)
 
-              flamecol = (flameColor[0] * flameColorMod0, flameColor[1] * flameColorMod1, flameColor[2] * flameColorMod2)      
+              flamecol = (flameColor[0] * flameColorMod0, flameColor[1] * flameColorMod1, flameColor[2] * flameColorMod2)
               spcolmod = (.8,.8,.8)
               if self.starPowerActive:
                 if self.theme == 0 or self.theme == 1: #GH3 starcolor
@@ -2204,7 +2203,7 @@ class Drum:
 ##        f = self.fretWeight[n]
 ##        c = self.fretColors[n+1]    #MFH shifted by 1 for most drum colors
 ##        if f and (controls.getState(self.keys[0]) or controls.getState(self.keys[5])):
-##          f += 0.25     
+##          f += 0.25
 ##        y = v + f / 6
 ##        x = (self.strings / 2 -.5 - n) * w
 ##        f = self.fretActivity[n]
@@ -2213,7 +2212,7 @@ class Drum:
 ##          ms = math.sin(self.time) * .25 + 1
 ##          ff = f
 ##          ff += 1.2
-##          
+##
 ##          glBlendFunc(GL_ONE, GL_ONE)
 ##
 ##          flameSize = self.flameSizes[self.scoreMultiplier - 1][n]
@@ -2226,7 +2225,7 @@ class Drum:
 ##          flameColorMod0 = 1.1973333333333333333333333333333
 ##          flameColorMod1 = 1.9710526315789473684210526315789
 ##          flameColorMod2 = 10.592592592592592592592592592593
-##          
+##
 ##          glColor3f(flameColor[0] * flameColorMod0, flameColor[1] * flameColorMod1, flameColor[2] * flameColorMod2)
 ##          if self.starPowerActive:
 ##            if self.theme == 0 or self.theme == 1: #GH3 starcolor
@@ -2235,9 +2234,9 @@ class Drum:
 ##            else: #Default starcolor (Rockband)
 ##              glColor3f(.9,.9,.9)
 ##
-##          if not self.Hitanim:   
+##          if not self.Hitanim:
 ##            glEnable(GL_TEXTURE_2D)
-##            self.hitglowDrawing.texture.bind()    
+##            self.hitglowDrawing.texture.bind()
 ##            glPushMatrix()
 ##            glTranslate(x, y + .125, 0)
 ##            glRotate(90, 1, 0, 0)
@@ -2266,16 +2265,16 @@ class Drum:
 ##
 ##            glColor3f(1,1,1)
 ##            glEnable(GL_TEXTURE_2D)
-##            self.hitglowAnim.texture.bind()    
+##            self.hitglowAnim.texture.bind()
 ##            glPushMatrix()
 ##            glTranslate(x, y + .225, 0)
 ##            glRotate(90, 1, 0, 0)
-##            
+##
 ##            #glScalef(1.3, 1, 2)
 ##            #glScalef(1.7, 1, 2.6)
 ##            glScalef(2, 1, 2.9)   #worldrave correct flame size
 ##
-##            
+##
 ##            glBegin(GL_TRIANGLE_STRIP)
 ##            glTexCoord2f(texX[0], 0.0)#upper left corner of frame square in .png
 ##            glVertex3f(-flameSize * ff, 0, -flameSize * ff)#"upper left" corner of surface that texture is rendered on
@@ -2297,7 +2296,7 @@ class Drum:
 ##          flameColorMod0 = 1.1973333333333333333333333333333
 ##          flameColorMod1 = 1.7842105263157894736842105263158
 ##          flameColorMod2 = 12.222222222222222222222222222222
-##          
+##
 ##          glColor3f(flameColor[0] * flameColorMod0, flameColor[1] * flameColorMod1, flameColor[2] * flameColorMod2)
 ##          if self.starPowerActive:
 ##            if self.theme == 0 or self.theme == 1: #GH3 starcolor
@@ -2306,9 +2305,9 @@ class Drum:
 ##            else: #Default starcolor (Rockband)
 ##              glColor3f(.8,.8,.8)
 ##
-##          if not self.Hitanim: 
+##          if not self.Hitanim:
 ##            glEnable(GL_TEXTURE_2D)
-##            self.hitglow2Drawing.texture.bind()    
+##            self.hitglow2Drawing.texture.bind()
 ##            glPushMatrix()
 ##            glTranslate(x, y + .25, .05)
 ##            glRotate(90, 1, 0, 0)
@@ -2325,7 +2324,7 @@ class Drum:
 ##            glEnd()
 ##            glPopMatrix()
 ##            glDisable(GL_TEXTURE_2D)
-##          
+##
 ##          glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 ##
 ##          #self.hit[n] = True
@@ -2350,7 +2349,7 @@ class Drum:
             #x  = (self.strings / 2 - fretNum) * w
 
             xlightning = (self.strings / 2 - fretNum)*2.2*w
-            ff = 1 + 0.25       
+            ff = 1 + 0.25
             y = v + ff / 6
             glBlendFunc(GL_ONE, GL_ONE)
 
@@ -2435,7 +2434,7 @@ class Drum:
               flameColorMod1 = 0.1 * (flameLimit - self.freestyleHitFlameCounts[fretNum])
               flameColorMod2 = 0.1 * (flameLimit - self.freestyleHitFlameCounts[fretNum])
 
-              flamecol = (flameColor[0] * flameColorMod0, flameColor[1] * flameColorMod1, flameColor[2] * flameColorMod2)      
+              flamecol = (flameColor[0] * flameColorMod0, flameColor[1] * flameColorMod1, flameColor[2] * flameColorMod2)
               if self.starPowerActive:
                 if self.theme == 0 or self.theme == 1: #GH3 starcolor
                   flamecol = self.spColor #(.3,.7,.9)
@@ -2459,7 +2458,7 @@ class Drum:
               self.engine.draw3Dtex(self.hitflames1Drawing, coord = (x + .005, y + .35 + .005, 0), rot = (90, 1, 0, 0),
                                     scale = (.35 + .6 * ms * ff, (self.freestyleHitFlameCounts[fretNum] + 1) / 2.0 + .6 * ms * ff, (self.freestyleHitFlameCounts[fretNum] + 1) / 2.0 + .6 * ms * ff),
                                     vertex = (-flameSize * ff,-flameSize * ff,flameSize * ff,flameSize * ff),
-                                    texcoord = (0.0,0.0,1.0,1.0), multiples = True, alpha = True, color = flamecol)              
+                                    texcoord = (0.0,0.0,1.0,1.0), multiples = True, alpha = True, color = flamecol)
 
               flameColorMod0 = 0.1 * (flameLimit - self.freestyleHitFlameCounts[fretNum])
               flameColorMod1 = 0.1 * (flameLimit - self.freestyleHitFlameCounts[fretNum])
@@ -2474,7 +2473,7 @@ class Drum:
               self.engine.draw3Dtex(self.hitflames1Drawing, coord = (x + .005, y + .35 + .005, 0), rot = (90, 1, 0, 0),
                                     scale = (.40 + .6 * ms * ff, (self.freestyleHitFlameCounts[fretNum] + 1) / 1.7 + .6 * ms * ff, (self.freestyleHitFlameCounts[fretNum] + 1) / 1.7 + .6 * ms * ff),
                                     vertex = (-flameSize * ff,-flameSize * ff,flameSize * ff,flameSize * ff),
-                                    texcoord = (0.0,0.0,1.0,1.0), multiples = True, alpha = True, color = flamecol)             
+                                    texcoord = (0.0,0.0,1.0,1.0), multiples = True, alpha = True, color = flamecol)
 
             self.freestyleHitFlameCounts[fretNum] += 1
 
@@ -2580,7 +2579,7 @@ class Drum:
       for time, event in notes:
         event.skipped = True
 
-    return sorted(notes, key=lambda x: x[1].number)        
+    return sorted(notes, key=lambda x: x[1].number)
 
 
   def getMissedNotesMFH(self, song, pos, catchup = False):
@@ -2597,7 +2596,7 @@ class Drum:
     notes   = [(time, event) for time, event in track.getEvents(pos - m2, pos - m1) if isinstance(event, Note)]   #was out of order
 
     #MFH - this additional filtration step removes sustains whose Note On event time is now outside the hitwindow.
-    notes   = [(time, event) for time, event in notes if (time >= (pos - m2)) and (time <= (pos - m1))] 
+    notes   = [(time, event) for time, event in notes if (time >= (pos - m2)) and (time <= (pos - m1))]
 
     notes   = [(time, event) for time, event in notes if not event.played and not event.hopod and not event.skipped]
 
@@ -2628,7 +2627,7 @@ class Drum:
 #-    if notes:
 #-      t     = min([time for time, event in notes])
 #-      notes = [(time, event) for time, event in notes if time - t < 1e-3]
-#-      
+#-
 #-    return sorted(notes, key=lambda x: x[1].number)
 
 
@@ -2668,7 +2667,7 @@ class Drum:
     self.pickStartPos = max(self.pickStartPos, time)
     self.playedNotes = [(time, note)]
     note.played       = True
-    return True  
+    return True
 
   def areNotesTappable(self, notes):
     if not notes:
@@ -2679,7 +2678,7 @@ class Drum:
     return False
 
 
-  def playDrumSounds(self, controls, playBassDrumOnly = False):   #MFH - handles playing of drum sounds.  
+  def playDrumSounds(self, controls, playBassDrumOnly = False):   #MFH - handles playing of drum sounds.
     #Returns list of drums that were just hit (including logic for detecting a held bass pedal)
     #pass playBassDrumOnly = True (optional paramater) to only play the bass drum sound, but still
     #  return a list of drums just hit (intelligently play the bass drum if it's held down during gameplay)
@@ -2736,7 +2735,7 @@ class Drum:
 
 
 
-#-    if controls.getState(self.keys[0]):   
+#-    if controls.getState(self.keys[0]):
 #-      if not self.bassDrumPedalDown:  #MFH - gotta check if bass drum pedal is just held down!
 #-        numHits = 1
 #-        if self.engine.data.bassDrumSoundFound:
@@ -2797,11 +2796,11 @@ class Drum:
             shaders.var["fret"][self.player][note.number]=shaders.time()
             shaders.var["fretpos"][self.player][note.number]=pos
 
-          return self.hitNote(time, note)  
+          return self.hitNote(time, note)
 
 
 
-    return False        
+    return False
 
   def startPick2(self, song, pos, controls, hopo = False):
     res = self.startPick(song, pos, controls, hopo)
@@ -2840,11 +2839,11 @@ class Drum:
       self.time += ticks
     #myfingershurt: must not decrease SP if paused.
     if self.starPowerActive == True and self.paused == False:
-      self.starPower -= ticks/self.starPowerDecreaseDivisor 
+      self.starPower -= ticks/self.starPowerDecreaseDivisor
       if self.starPower <= 0:
         self.starPower = 0
         self.starPowerActive = False
-    
+
     for i in range(len(self.drumsHeldDown)):
       if self.drumsHeldDown[i] > 0:
         self.drumsHeldDown[i] -= ticks
@@ -2853,10 +2852,10 @@ class Drum:
 
     activeFrets = [(note.number - 1) for time, note in self.playedNotes]
 
-    
+
     if -1 in activeFrets:
       self.openFretActivity = min(self.openFretActivity + ticks / 24.0, 0.6)
-    
+
     for n in range(self.strings):
       if n in activeFrets:
         self.fretActivity[n] = min(self.fretActivity[n] + ticks / 32.0, 1.0)

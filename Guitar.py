@@ -38,7 +38,6 @@ from Shader import shaders
 
 from OpenGL.GL import *
 import math
-from numpy import array, float32
 
 #myfingershurt: needed for multi-OS file fetching
 import os
@@ -56,14 +55,14 @@ class Guitar:
     self.isVocal = False
 
     self.starPowerDecreaseDivisor = 200.0/self.engine.audioSpeedFactor
-    
+
     self.debugMode = False
     self.gameMode2p = self.engine.config.get("game","multiplayer_mode")
     self.matchingNotes = []
-    
+
     self.sameNoteHopoString = False
     self.hopoProblemNoteNum = -1
-    
+
     self.useMidiSoloMarkers = False
     self.currentGuitarSoloHitNotes = 0
 
@@ -75,16 +74,16 @@ class Guitar:
     self.finalStarSeen = False
 
     self.freestyleActive = False
-    
+
     self.drumFillsActive = False
-    
+
     self.bigRockEndingMarkerSeen = False
 
     #MFH - I do not understand fully how the handicap scorecard works at the moment, nor do I have the time to figure it out.
     #... so for now, I'm just writing some extra code here for the early hitwindow size handicap.
     self.earlyHitWindowSizeFactor = 0.5
 
-    
+
     # Volshebnyi - BRE scoring variables
     self.freestyleEnabled = False
     self.freestyleStart = 0
@@ -98,7 +97,7 @@ class Guitar:
     self.freestylePercent = 50
     self.freestyleOffset = 5
     self.freestyleSP = False
-    
+
     #empty variables for class compatibility
     self.totalPhrases = 0
 
@@ -115,27 +114,27 @@ class Guitar:
     self.accThresholdVeryEarly = 0
 
     self.tempoBpm = 120   #MFH - default is NEEDED here...
-    
+
     self.logClassInits = self.engine.config.get("game", "log_class_inits")
     if self.logClassInits == 1:
       Log.debug("Guitar class init...")
 
     self.incomingNeckMode = self.engine.config.get("game", "incoming_neck_mode")
-    
 
-    
+
+
     self.bigRockEndings = self.engine.config.get("game", "big_rock_endings")
-    
+
     self.boardWidth     = Theme.neckWidth
     self.boardLength    = Theme.neckLength
     #death_au: fixed neck size
     #if Theme.twoDnote == False or Theme.twoDkeys == False:
       #self.boardWidth     = 3.6
-      #self.boardLength    = 9.0  
-    
+      #self.boardLength    = 9.0
+
     self.boardScaleX    = self.boardWidth/3.0
     self.boardScaleY    = self.boardLength/9.0
-    
+
     self.fretPress      = Theme.fret_press
 
     self.beatsPerBoard  = 5.0
@@ -150,9 +149,9 @@ class Guitar:
 
     self.freestyleHitFlameCounts = [0 for n in range(self.strings+1)]    #MFH
 
-    
+
     self.lastPlayedNotes = []   #MFH - for reverting when game discovers it implied incorrectly
-    
+
     self.missedNotes    = []
     self.missedNoteNums = []
     self.editorMode     = editorMode
@@ -161,7 +160,7 @@ class Guitar:
     self.pickStartPos   = 0
     self.leftyMode      = False
     self.drumFlip       = False
-    
+
     self.battleSuddenDeath  = False
     self.battleObjectsEnabled = []
     self.battleSDObjectsEnabled = []
@@ -184,7 +183,7 @@ class Guitar:
       self.battleObjectsEnabled.append(5)
     #if self.engine.config.get("game", "battle_Tune") == 1:
     #  self.battleObjectsEnabled.append(9)
-    
+
     Log.debug("Battle Objects Enabled: "+str(self.battleObjectsEnabled))
     self.battleNextObject   = 0
     self.battleObjects      = [0] * 3
@@ -193,7 +192,7 @@ class Guitar:
     self.battleStartTimes    = [0] * 9
     self.battleGetTime      = 0
 
-    
+
     self.battleLeftyLength  = 8000 #
     self.battleDiffUpLength = 15000
     self.battleDiffUpValue  = playerObj.getDifficultyInt()
@@ -209,8 +208,8 @@ class Guitar:
     self.battleSuddenDeath  = False
     self.battleDrainStart   = 0
     self.battleDrainLength  = 8000
-    
-    
+
+
 
 
     #self.actualBpm = 0.0
@@ -233,7 +232,7 @@ class Guitar:
     self.HCountAni      = False
     self.Hitanim        = True
     self.Hitanim2       = True
-    
+
     #myfingershurt: to keep track of pause status here as well
     self.paused = False
 
@@ -244,7 +243,7 @@ class Guitar:
     self.killPoints = False
 
     self.starpowerMode = self.engine.config.get("game", "starpower_mode") #MFH
-    
+
     #get difficulty
     self.difficulty = playerObj.getDifficultyInt()
     self.controlType = playerObj.controlType
@@ -261,50 +260,50 @@ class Guitar:
 
     self.vbpmLogicType = self.engine.config.get("debug",   "use_new_vbpm_beta")
 
-    
+
     #myfingershurt: this should be retrieved once at init, not repeatedly in-game whenever tails are rendered.
     self.notedisappear = self.engine.config.get("game", "notedisappear")
     self.fretsUnderNotes  = self.engine.config.get("game", "frets_under_notes")
-    
+
 
 
     self.muteSustainReleases = self.engine.config.get("game", "sustain_muting") #MFH
 
     self.hitw = self.engine.config.get("game", "note_hit_window")  #this should be global, not retrieved every BPM change.
-    if self.hitw == 0: 
+    if self.hitw == 0:
       self.hitw = 2.3
-    elif self.hitw == 1: 
+    elif self.hitw == 1:
       self.hitw = 1.9
-    elif self.hitw == 2: 
+    elif self.hitw == 2:
       self.hitw = 1.2
-    elif self.hitw == 3:  
+    elif self.hitw == 3:
       self.hitw = 1.0
-    elif self.hitw == 4:  
+    elif self.hitw == 4:
       self.hitw = 0.70
     else:
       self.hitw = 1.2
-    
+
     self.twoChord       = 0
     self.twoChordApply  = False
     self.hopoActive     = 0
-    
+
     #myfingershurt: need a separate variable to track whether or not hopos are actually active
     self.wasLastNoteHopod = False
-    
-    
+
+
     self.hopoLast       = -1
     self.hopoColor      = (0, .5, .5)
     self.player         = player
 
     self.hit = [False, False, False, False, False]
-    
+
     self.freestyleHit = [False, False, False, False, False]
 
     #Get theme
     themename = self.engine.data.themeLabel
     #now theme determination logic is only in data.py:
     self.theme = self.engine.data.theme
-    
+
     #check if BRE enabled
     if self.bigRockEndings == 2 or (self.theme == 2 and self.bigRockEndings == 1):
       self.freestyleEnabled = True
@@ -312,28 +311,28 @@ class Guitar:
     #blazingamer
     self.nstype = self.engine.config.get("game", "nstype")
     self.twoDnote = Theme.twoDnote
-    self.twoDkeys = Theme.twoDkeys 
-    self.threeDspin = Theme.threeDspin 
+    self.twoDkeys = Theme.twoDkeys
+    self.threeDspin = Theme.threeDspin
     self.killfx = self.engine.config.get("performance", "killfx")
     self.killCount         = 0
     self.noterotate = self.engine.config.get("coffee", "noterotate")
-    
+
     #akedrou
     self.coOpRescueTime = 0.0
-    
+
     #MFH- fixing neck speed
-    if self.nstype < 3:   #not constant mode: 
+    if self.nstype < 3:   #not constant mode:
       self.speed = self.engine.config.get("coffee", "neckSpeed")*0.01
     else:   #constant mode
       self.speed = 410 - self.engine.config.get("coffee", "neckSpeed")    #invert this value
 
     self.bigMax = 1
-    
+
     self.keys = []
     self.actions = []
     self.soloKey = []
 
-    
+
     self.setBPM(self.currentBpm)
 
     if self.starpowerMode == 1:
@@ -347,7 +346,7 @@ class Guitar:
 
 
     engine.loadImgDrawing(self, "glowDrawing", "glow.png")
-    
+
     self.oFlash = None
 
     #MFH - making hitflames optional
@@ -365,7 +364,7 @@ class Guitar:
       engine.loadImgDrawing(self, "hitflamesAnim", os.path.join("themes",themename,"hitflamesanimation.png"),  textureSize = (128, 128))
     except IOError:
       self.Hitanim2 = False
-      
+
     try:
       engine.loadImgDrawing(self, "hitglowAnim", os.path.join("themes",themename,"hitglowanimation.png"),  textureSize = (128, 128))
     except IOError:
@@ -377,7 +376,7 @@ class Guitar:
         self.hitglow2Drawing = None
         self.hitFlamesPresent = False   #MFH - shut down all flames if these are missing.
       self.Hitanim = False
-    
+
     #myfingershurt:
     self.bassGrooveNeckMode = self.engine.config.get("game", "bass_groove_neck")
     self.guitarSoloNeckMode = self.engine.config.get("game", "guitar_solo_neck")
@@ -389,7 +388,7 @@ class Guitar:
       if self.starspin == True and self.theme < 2:
         #myfingershurt: check for SpinNotes, if not there then no animation
         if self.gameMode2p == 6:
-          try:  
+          try:
             engine.loadImgDrawing(self, "noteButtons", os.path.join("themes",themename,"spinnotesbattle.png"))
             self.starSpinFrames = 8
           except IOError:
@@ -399,8 +398,8 @@ class Guitar:
             except IOError:
               self.starspin = False
               engine.loadImgDrawing(self, "noteButtons", os.path.join("themes",themename,"notes.png"))
-        else:    
-          try:  
+        else:
+          try:
             engine.loadImgDrawing(self, "noteButtons", os.path.join("themes",themename,"spinnotes.png"))
           except IOError:
             self.starspin = False
@@ -415,12 +414,12 @@ class Guitar:
           engine.loadImgDrawing(self, "noteButtons", os.path.join("themes",themename,"notes.png"))
         #mfh - adding fallback for beta option
     else:
-      #MFH - can't use IOError for fallback logic for a Mesh() call... 
+      #MFH - can't use IOError for fallback logic for a Mesh() call...
       if self.engine.fileExists(os.path.join("themes", themename, "note.dae")):
         engine.resource.load(self,  "noteMesh",  lambda: Mesh(engine.resource.fileName("themes", themename, "note.dae")))
       else:
         engine.resource.load(self,  "noteMesh",  lambda: Mesh(engine.resource.fileName("note.dae")))
-        
+
       try:
         for i in range(5):
           engine.loadImgDrawing(self,  "notetex"+chr(97+i),  os.path.join("themes", themename, "notetex_"+chr(97+i)+".png"))
@@ -428,10 +427,10 @@ class Guitar:
 
       except IOError:
         self.notetex = False
-        
-      if self.engine.fileExists(os.path.join("themes", themename, "star.dae")):  
+
+      if self.engine.fileExists(os.path.join("themes", themename, "star.dae")):
         engine.resource.load(self,  "starMesh",  lambda: Mesh(engine.resource.fileName("themes", themename, "star.dae")))
-      else:  
+      else:
         self.starMesh = None
 
       try:
@@ -441,7 +440,7 @@ class Guitar:
 
       except IOError:
         self.startex = False
-        
+
       try:
         for i in range(5):
           engine.loadImgDrawing(self,  "staratex"+chr(97+i),  os.path.join("themes", themename, "staratex_"+chr(97+i)+".png"))
@@ -460,13 +459,13 @@ class Guitar:
       engine.loadImgDrawing(self, "fretButtons", os.path.join("themes",themename,"fretbuttons.png"))
     else:
       defaultKey = False
-      #MFH - can't use IOError for fallback logic for a Mesh() call... 
+      #MFH - can't use IOError for fallback logic for a Mesh() call...
       if self.engine.fileExists(os.path.join("themes", themename, "key.dae")):
         engine.resource.load(self,  "keyMesh",  lambda: Mesh(engine.resource.fileName("themes", themename, "key.dae")))
       else:
         engine.resource.load(self,  "keyMesh",  lambda: Mesh(engine.resource.fileName("key.dae")))
         defaultKey = True
-      
+
       if defaultKey:
         self.keytex = False
       else:
@@ -477,13 +476,13 @@ class Guitar:
 
         except IOError:
           self.keytex = False
-    
+
 
 
     if self.theme == 0 or self.theme == 1:
       engine.loadImgDrawing(self, "hitlightning", os.path.join("themes",themename,"lightning.png"),  textureSize = (128, 128))
 
-                                                           
+
     #inkk: loading theme-dependant tail images
     #myfingershurt: must ensure the new tails don't affect the Rock Band mod...
     self.simpleTails = False
@@ -494,7 +493,7 @@ class Guitar:
         engine.loadImgDrawing(self, "taile"+str(i), os.path.join("themes",themename,"tails","taile"+str(i)+".png"),  textureSize = (128, 128))
         engine.loadImgDrawing(self, "btail"+str(i), os.path.join("themes",themename,"tails","btail"+str(i)+".png"),  textureSize = (128, 128))
         engine.loadImgDrawing(self, "btaile"+str(i), os.path.join("themes",themename,"tails","btaile"+str(i)+".png"),  textureSize = (128, 128))
-        
+
     except IOError:
       self.simpleTails = True
       Log.debug("Simple tails used; complex tail loading error...")
@@ -528,7 +527,7 @@ class Guitar:
 
     self.meshColor  = Theme.meshColor
     self.hopoColor  = Theme.hopoColor
-    self.spotColor = Theme.spotColor   
+    self.spotColor = Theme.spotColor
     self.keyColor = Theme.keyColor
     self.key2Color = Theme.key2Color
     self.tracksColor = Theme.tracksColor
@@ -536,8 +535,8 @@ class Guitar:
     self.gh3flameColor = Theme.gh3flameColor
     self.flameSizes = Theme.flameSizes
     self.glowColor  = Theme.glowColor
-    
-    
+
+
     self.twoChordMax = False
     self.disableVBPM  = self.engine.config.get("game", "disable_vbpm")
     self.disableNoteSFX  = self.engine.config.get("video", "disable_notesfx")
@@ -554,7 +553,7 @@ class Guitar:
     self.coOpRestart = False #akedrou
     self.starPowerActive = False
     self.neck = Neck(self.engine, self, playerObj)
-  
+
   def selectPreviousString(self):
     self.selectedString = (self.selectedString - 1) % self.strings
 
@@ -624,7 +623,7 @@ class Guitar:
       self.noteReleaseMargin = (200 - bpm/5 - 70*1.0)
     elif self.muteSustainReleases == 2: #wide
       self.noteReleaseMargin = (200 - bpm/5 - 70*0.7)
-    else:  #ultra-wide 
+    else:  #ultra-wide
       self.noteReleaseMargin = (200 - bpm/5 - 70*0.5)
 
 
@@ -641,7 +640,7 @@ class Guitar:
     self.accThresholdVeryEarly = (4*self.lateMargin/4)
 
 
-    
+
   def setMultiplier(self, multiplier):
     self.scoreMultiplier = multiplier
     self.neck.scoreMultiplier = multiplier
@@ -663,7 +662,7 @@ class Guitar:
         #volshebnyi - tail color when sp is active
         if self.starPowerActive and self.theme != 2 and not color == (0,0,0,1):#8bit
           c = self.fretColors[5]
-          tailcol = (.1 + .8 * c[0], .1 + .8 * c[1], .1 + .8 * c[2], color[3]) 
+          tailcol = (.1 + .8 * c[0], .1 + .8 * c[1], .1 + .8 * c[2], color[3])
 
     if flat:
       tailscale = (1, .1, 1)
@@ -689,7 +688,7 @@ class Guitar:
                 zsize = .25
                 tex1 = self.kill1
                 tex2 = self.kill2
-                
+
                 #volshebnyi - killswitch tail width and color change
                 kEffect = ( math.sin( pos / 50 ) + 1 ) /2
                 size = (0.02+kEffect*0.15, s - zsize)
@@ -697,7 +696,7 @@ class Guitar:
                 if c != [0,0,0]:
                   for i in range(0,3):
                     c[i]=c[i]*kEffect+color[i]*(1-kEffect)
-                  tailcol = (.1 + .8 * c[0], .1 + .8 * c[1], .1 + .8 * c[2], 1) 
+                  tailcol = (.1 + .8 * c[0], .1 + .8 * c[1], .1 + .8 * c[2], 1)
 
               else:
                 zsize = .25
@@ -760,7 +759,7 @@ class Guitar:
                 if c != [0,0,0]:
                   for i in range(0,3):
                     c[i]=c[i]*kEffect+color[i]*(1-kEffect)
-                  tailcol = (.1 + .8 * c[0], .1 + .8 * c[1], .1 + .8 * c[2], 1) 
+                  tailcol = (.1 + .8 * c[0], .1 + .8 * c[1], .1 + .8 * c[2], 1)
               else:
                 zsize = .25
                 size = (.11, s - zsize)
@@ -771,16 +770,16 @@ class Guitar:
               size = (.08, s - zsize)
               tex1 = self.tail1
               tex2 = self.tail2
-        
+
         else:   #freestyleTail > 0
           # render an inactive freestyle tail  (self.freestyle1 & self.freestyle2)
-          zsize = .25  
-          
+          zsize = .25
+
           if self.freestyleActive:
             size = (.30, s - zsize)   #was .15
           else:
-            size = (.15, s - zsize)   
-          
+            size = (.15, s - zsize)
+
           tex1 = self.freestyle1
           tex2 = self.freestyle2
           if freestyleTail == 1:
@@ -789,8 +788,8 @@ class Guitar:
             tailGlow = 1 - (pos - self.freestyleLastFretHitTime[fret] ) / self.freestylePeriod
             if tailGlow < 0:
               tailGlow = 0
-            color = (c1 + c1*2.0*tailGlow, c2 + c2*2.0*tailGlow, c3 + c3*2.0*tailGlow, c4*0.6 + c4*0.4*tailGlow)    #MFH - this fades inactive tails' color darker                    
-            
+            color = (c1 + c1*2.0*tailGlow, c2 + c2*2.0*tailGlow, c3 + c3*2.0*tailGlow, c4*0.6 + c4*0.4*tailGlow)    #MFH - this fades inactive tails' color darker
+
           tailcol = (color)
         if self.theme == 2 and freestyleTail == 0 and big and tailOnly and shaders.enable("tail"):
           color = (color[0]*1.5,color[1]*1.5,color[2]*1.5,1.0)
@@ -800,21 +799,21 @@ class Guitar:
             shaders.modVar("height",0.5,0.06/h-0.1)
           shaders.setVar("offset",(5.0-size[1],0.0))
           size=(size[0]*15,size[1])
-          
-          
+
+
         self.engine.draw3Dtex(tex1, vertex = (-size[0], 0, size[0], size[1]), texcoord = (0.0, 0.0, 1.0, 1.0),
                               scale = tailscale, color = tailcol)
         self.engine.draw3Dtex(tex2, vertex = (-size[0], size[1], size[0], size[1] + (zsize)),
                               scale = tailscale, texcoord = (0.0, 0.05, 1.0, 0.95), color = tailcol)
 
-        shaders.disable()  
+        shaders.disable()
 
         #MFH - this block of code renders the tail "beginning" - before the note, for freestyle "lanes" only
         #volshebnyi
         if freestyleTail > 0 and pos < self.freestyleStart + self.freestyleLength:
           self.engine.draw3Dtex(tex2, vertex = (-size[0], 0-(zsize), size[0], 0 + (.05)),
                                 scale = tailscale, texcoord = (0.0, 0.95, 1.0, 0.05), color = tailcol)
-          
+
 
     if tailOnly:
       return
@@ -879,7 +878,7 @@ class Guitar:
               texSize = (0.2,0.4)
             else:
               texSize = (0,0.2)
-          
+
       elif self.theme == 2:
         size = (self.boardWidth/self.strings/2, self.boardWidth/self.strings/2)
         texSize = (fret/5.0,fret/5.0+0.2)
@@ -905,12 +904,12 @@ class Guitar:
 
     else:
       shaders.setVar("Material",color,"notes")
-      
-      #mesh = outer ring (black) 
-      #mesh_001 = main note (key color) 
-      #mesh_002 = top (spot or hopo if no mesh_003) 
+
+      #mesh = outer ring (black)
+      #mesh_001 = main note (key color)
+      #mesh_002 = top (spot or hopo if no mesh_003)
       #mesh_003 = hopo bump (hopo color)
-    
+
       if spNote == True and self.starMesh is not None:
         meshObj = self.starMesh
       else:
@@ -920,11 +919,11 @@ class Guitar:
       glEnable(GL_DEPTH_TEST)
       glDepthMask(1)
       glShadeModel(GL_SMOOTH)
-      
+
       if self.noterotate:
         glRotatef(90, 0, 1, 0)
         glRotatef(-90, 1, 0, 0)
-      
+
       if spNote == True and self.threeDspin == True:
         glRotate(90 + self.time/3, 0, 1, 0)
       #death_au: fixed 3D note colours
@@ -932,7 +931,7 @@ class Guitar:
       glColor4f(*color)
       if self.starPowerActive and self.theme != 2 and not color == (0,0,0,1):
         c = self.fretColors[5]
-        glColor4f(.1 + .8 * c[0], .1 + .8 * c[1], .1 + .8 * c[2], 1) 
+        glColor4f(.1 + .8 * c[0], .1 + .8 * c[1], .1 + .8 * c[2], 1)
 
       if fret == 0: # green note
         glRotate(Theme.noterot[0], 0, 0, 1), glTranslatef(0, Theme.notepos[0], 0)
@@ -962,19 +961,19 @@ class Guitar:
           mesh = "Mesh"
 
         meshObj.render(mesh)
-        
+
         if shaders.enable("notes"):
           shaders.setVar("isTextured",True)
           meshObj.render(mesh)
-          shaders.disable() 
-          
+          shaders.disable()
+
         glMatrixMode(GL_TEXTURE)
         glLoadIdentity()
         glMatrixMode(GL_MODELVIEW)
-        glDisable(GL_TEXTURE_2D)          
-      
+        glDisable(GL_TEXTURE_2D)
+
       elif self.notetex == True and spNote == False:
-          
+
         glColor3f(1,1,1)
         glEnable(GL_TEXTURE_2D)
         getattr(self,"notetex"+chr(97+fret)).texture.bind()
@@ -982,18 +981,18 @@ class Guitar:
         glScalef(1, -1, 1)
         glMatrixMode(GL_MODELVIEW)
         glScalef(self.boardScaleX, self.boardScaleY, 1)
-        
+
         if isTappable:
           mesh = "Mesh_001"
         else:
           mesh = "Mesh"
         meshObj.render(mesh)
-        
+
         if shaders.enable("notes"):
           shaders.setVar("isTextured",True)
           meshObj.render(mesh)
           shaders.disable()
-        
+
         glMatrixMode(GL_TEXTURE)
         glLoadIdentity()
         glMatrixMode(GL_MODELVIEW)
@@ -1015,17 +1014,17 @@ class Guitar:
           mesh = "Mesh"
 
         meshObj.render(mesh)
-        
+
         if shaders.enable("notes"):
           shaders.setVar("isTextured",True)
           meshObj.render(mesh)
-          shaders.disable() 
-          
+          shaders.disable()
+
         glMatrixMode(GL_TEXTURE)
         glLoadIdentity()
         glMatrixMode(GL_MODELVIEW)
-        glDisable(GL_TEXTURE_2D)          
-        
+        glDisable(GL_TEXTURE_2D)
+
       else:
         if shaders.enable("notes"):
           shaders.setVar("isTextured",False)
@@ -1043,7 +1042,7 @@ class Guitar:
         meshObj.render("Mesh_002")
         glColor3f(self.meshColor[0], self.meshColor[1], self.meshColor[2])
         meshObj.render("Mesh")
-        
+
 
 
       glDepthMask(0)
@@ -1073,22 +1072,22 @@ class Guitar:
             self.freestyleStart = time # volshebnyi
             z  = ((time - pos) / self.currentPeriod) / self.beatsPerUnit
             z2 = ((time + event.length - pos) / self.currentPeriod) / self.beatsPerUnit
-      
+
             if z > self.boardLength * .8:
               f = (self.boardLength - z) / (self.boardLength * .2)
             elif z < 0:
               f = min(1, max(0, 1 + z2))
             else:
               f = 1.0
-  
+
             #MFH - must extend the tail past the first fretboard section dynamically so we don't have to render the entire length at once
-            #volshebnyi - allow tail to move under frets 
+            #volshebnyi - allow tail to move under frets
             if time - self.freestyleOffset < pos:
               freestyleActive = True
               if z < -1.5:
                 length += z +1.5
                 z =  -1.5
-  
+
             #MFH - render 5 freestyle tails
             for theFret in range(0,5):
               x  = (self.strings / 2 - theFret) * w
@@ -1098,15 +1097,15 @@ class Guitar:
               glTranslatef(x, (1.0 - visibility) ** (theFret + 1), z)
 
               freestyleTailMode = 1
-              
+
               self.renderTail(length, sustain = True, kill = False, color = color, flat = False, tailOnly = True, isTappable = False, big = True, fret = theFret, spNote = False, freestyleTail = freestyleTailMode, pos = pos)
               glPopMatrix()
-              
+
       self.freestyleActive = freestyleActive
 
 
 
-              
+
 
 
   def renderNotes(self, visibility, song, pos, killswitch):
@@ -1142,7 +1141,7 @@ class Guitar:
           self.neck.baseBeat      = self.baseBeat
         #  self.setBPM(self.targetBpm) # glorandwarf: was setDynamicBPM(self.targetBpm)
         continue
-      
+
       if not isinstance(event, Note):
         continue
 
@@ -1159,7 +1158,7 @@ class Guitar:
             Log.debug("Turning off coOpFailed. Rescue successful.")
         else:
           continue #can't break. Tempo.
-        
+
       c = self.fretColors[event.number]
 
       x  = (self.strings / 2 - event.number) * w
@@ -1173,8 +1172,8 @@ class Guitar:
         f = min(1, max(0, 1 + z2))
       else:
         f = 1.0
-      
-      #volshebnyi - hide notes in BRE zone if BRE enabled  
+
+      #volshebnyi - hide notes in BRE zone if BRE enabled
       if self.freestyleEnabled and self.freestyleStart > 0:
         if time >= self.freestyleStart-self.freestyleOffset and time < self.freestyleStart + self.freestyleLength+self.freestyleOffset:
           z = -2.0
@@ -1237,7 +1236,7 @@ class Guitar:
         isTappable = False
       else:
         isTappable = True
-      
+
       # Clip the played notes to the origin
       #myfingershurt: this should be loaded once at init, not every render...
       if self.notedisappear == True:#Notes keep on going when missed
@@ -1248,7 +1247,7 @@ class Guitar:
           z = 0
           if length <= 0:
             continue
-        if z < 0 and not (event.played or event.hopod): 
+        if z < 0 and not (event.played or event.hopod):
           color = (.6, .6, .6, .5 * visibility * f)
           flat  = True
         ###endCapo###
@@ -1263,7 +1262,7 @@ class Guitar:
           else:
             color = (.6, .6, .6, .5 * visibility * f)
             flat  = True
-          
+
       big = False
       self.bigMax = 0
       for i in range(0,5):
@@ -1286,10 +1285,10 @@ class Guitar:
       sustain = False
       if event.length > (1.4 * (60000.0 / event.noteBpm) / 4):
         sustain = True
-        
+
       glPushMatrix()
       glTranslatef(x, (1.0 - visibility) ** (event.number + 1), z)
-      
+
       if shaders.turnon:
         shaders.setVar("note_position",(x, (1.0 - visibility) ** (event.number + 1), z),"notes")
 
@@ -1297,7 +1296,7 @@ class Guitar:
         renderNote = random.randint(0,2)
       else:
         renderNote = 0
-      if renderNote == 0:  
+      if renderNote == 0:
         if big == True and num < self.bigMax:
           num += 1
           self.renderNote(length, sustain = sustain, kill = killswitch, color = color, flat = flat, tailOnly = tailOnly, isTappable = isTappable, big = True, fret = event.number, spNote = spNote)
@@ -1323,7 +1322,7 @@ class Guitar:
     self.killPoints = False
 
     w = self.boardWidth / self.strings
-    
+
     track = song.track[self.player]
 
     num = 0
@@ -1334,7 +1333,7 @@ class Guitar:
       if isinstance(event, Tempo):
         self.tempoBpm = event.bpm
         continue
-      
+
       if not isinstance(event, Note):
         continue
 
@@ -1405,7 +1404,7 @@ class Guitar:
         isTappable = False
       else:
         isTappable = True
-      
+
       # Clip the played notes to the origin
       #myfingershurt: this should be loaded once at init, not every render...
       if self.notedisappear == True:#Notes keep on going when missed
@@ -1416,7 +1415,7 @@ class Guitar:
           z = 0
           if length <= 0:
             continue
-        if z < 0 and not (event.played or event.hopod): 
+        if z < 0 and not (event.played or event.hopod):
           color = (.6, .6, .6, .5 * visibility * f)
           flat  = True
         ###endCapo###
@@ -1431,7 +1430,7 @@ class Guitar:
           else:
             color = (.6, .6, .6, .5 * visibility * f)
             flat  = True
-          
+
       big = False
       self.bigMax = 0
       for i in range(0,5):
@@ -1453,7 +1452,7 @@ class Guitar:
       sustain = False
       if event.length > (1.4 * (60000.0 / event.noteBpm) / 4):
         sustain = True
-        
+
       glPushMatrix()
       glTranslatef(x, (1.0 - visibility) ** (event.number + 1), z)
 
@@ -1461,7 +1460,7 @@ class Guitar:
         renderNote = random.randint(0,2)
       else:
         renderNote = 0
-      if renderNote == 0:  
+      if renderNote == 0:
         if big == True and num < self.bigMax:
           num += 1
           self.renderTail(length, sustain = sustain, kill = killswitch, color = color, flat = flat, tailOnly = tailOnly, isTappable = isTappable, big = True, fret = event.number, spNote = spNote, pos = pos)
@@ -1469,7 +1468,7 @@ class Guitar:
           self.renderTail(length, sustain = sustain, kill = killswitch, color = color, flat = flat, tailOnly = tailOnly, isTappable = isTappable, fret = event.number, spNote = spNote, pos = pos)
 
       glPopMatrix()
-  
+
 
       if killswitch and self.killfx == 1:
         glBlendFunc(GL_SRC_ALPHA, GL_ONE)
@@ -1489,12 +1488,12 @@ class Guitar:
           glBegin(GL_TRIANGLE_STRIP)
           f1 = 0
           while t > time:
-            
+
             if ((t-pos)*proj) < self.boardLength:
               z  = (t - pos) * proj
             else:
-              z = self.boardLength            
-            
+              z = self.boardLength
+
             if z < 0:
               break
             f2 = min((s - t) / (6 * step), 1.0)
@@ -1520,7 +1519,7 @@ class Guitar:
             t -= step
             f1 = f2
           glEnd()
-      
+
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 
@@ -1530,13 +1529,13 @@ class Guitar:
     v = 1.0 - visibility
 
     glEnable(GL_DEPTH_TEST)
-    
+
     #Hitglow color option - myfingershurt sez this should be a Guitar class global, not retrieved ever fret render in-game...
-    
+
     for n in range(self.strings):
       f = self.fretWeight[n]
       c = self.fretColors[n]
-            
+
       if f and (controls.getState(self.actions[0]) or controls.getState(self.actions[1])):
         f += 0.25
 
@@ -1571,7 +1570,7 @@ class Guitar:
             texY = (1.0/3.0,2.0/3.0)
           if self.hit[n] or (self.battleStatus[3] and self.battleBreakString == n):
             texY = (2.0/3.0,1.0)
-  
+
           self.engine.draw3Dtex(self.fretButtons, vertex = (size[0],size[1],-size[0],-size[1]), texcoord = (texSize[0], texY[0], texSize[1], texY[1]),
                                 coord = (x,v + fretWhamOffset,0), multiples = True,color = fretColor, depth = True)
 
@@ -1587,8 +1586,8 @@ class Guitar:
           glLightfv(GL_LIGHT0, GL_POSITION, (5.0, 10.0, -10.0, 0.0))
           glLightfv(GL_LIGHT0, GL_AMBIENT,  (.2, .2, .2, 0.0))
           glLightfv(GL_LIGHT0, GL_DIFFUSE,  (1.0, 1.0, 1.0, 0.0))
-          
-          
+
+
           glRotatef(-90, 1, 0, 0)
           glRotatef(-90, 0, 0, 1)
 
@@ -1637,14 +1636,14 @@ class Guitar:
             glLoadIdentity()
             glMatrixMode(GL_MODELVIEW)
             glDisable(GL_TEXTURE_2D)
-          else: 
+          else:
             glColor4f(.1 + .8 * c[0] + f, .1 + .8 * c[1] + f, .1 + .8 * c[2] + f, visibility)
             if self.battleStatus[4]:
               glTranslatef(x, y + self.battleWhammyNow * .15 + v * 6, 0)
             else:
               glTranslatef(x, y + v * 6, 0)
             key = self.keyMesh
-        
+
             if(key.find("Glow_001")) == True:
               key.render("Mesh")
               if(key.find("Key_001")) == True:
@@ -1655,7 +1654,7 @@ class Guitar:
                 key.render("Key_002")
             else:
               key.render()
-          
+
           glDisable(GL_LIGHTING)
           glDisable(GL_LIGHT0)
           glDepthMask(0)
@@ -1671,14 +1670,14 @@ class Guitar:
           s = 1.0
         else:
           s = 0.0
-        
+
         while s < 1:
           ms = s * (math.sin(self.time) * .25 + 1)
           if self.glowColor[0] == -2:
             glColor3f(c[0] * (1 - ms), c[1] * (1 - ms), c[2] * (1 - ms))
           else:
             glColor3f(self.glowColor[0] * (1 - ms), self.glowColor[1] * (1 - ms), self.glowColor[2] * (1 - ms))
-          
+
           glPushMatrix()
           if self.battleStatus[4]:
             glTranslatef(x, y + self.battleWhammyNow * .15, 0)
@@ -1695,7 +1694,7 @@ class Guitar:
               key.render()
           glPopMatrix()
           s += 0.2
-          
+
         #Hitglow color
         if self.hitglow_color == 0:
           glowcol = (c[0], c[1], c[2])#Same as fret
@@ -1734,15 +1733,15 @@ class Guitar:
 
           if self.freestyleHitFlameCounts[fretNum] < flameLimit:
             ms = math.sin(self.time) * .25 + 1
-  
+
             x  = (self.strings / 2 - fretNum) * w
-  
-            ff = 1 + 0.25       
+
+            ff = 1 + 0.25
             y = v + ff / 6
-  
+
             if self.theme == 2:
               y -= 0.5
-            
+
             #flameSize = self.flameSizes[self.scoreMultiplier - 1][fretNum]
             flameSize = self.flameSizes[self.cappedScoreMult - 1][fretNum]
             if self.theme == 0 or self.theme == 1: #THIS SETS UP GH3 COLOR, ELSE ROCKBAND(which is DEFAULT in Theme.py)
@@ -1754,9 +1753,9 @@ class Guitar:
               flameColor = self.fretColors[fretNum]
             if flameColor[0] == -2:
               flameColor = self.fretColors[fretNum]
-            
+
             ff += 1.5 #ff first time is 2.75 after this
-  
+
             if self.freestyleHitFlameCounts[fretNum] < flameLimitHalf:
               flamecol = tuple([flameColor[ifc] for ifc in range(3)])
               rbStarColor = (.1, .1, .2, .3)
@@ -1776,7 +1775,7 @@ class Guitar:
                                     scale = (.25 + .05 * step + scaleMod, hfCount/scaleFix[step] + scaleMod, hfCount/scaleFix[step] + scaleMod),
                                     vertex = (-flameSize * ff,-flameSize * ff,flameSize * ff,flameSize * ff),
                                     texcoord = (0.0,0.0,1.0,1.0), multiples = True, alpha = True, color = flamecol)
-            
+
             else:
               flameColorMod = 0.1 * (flameLimit - self.freestyleHitFlameCounts[fretNum])
               flamecol = tuple([flameColor[ifc]*flameColorMod for ifc in range(3)])
@@ -1788,19 +1787,19 @@ class Guitar:
                 hfCount = self.freestyleHitFlameCounts[fretNum]
                 if step == 0:
                   hfCount += 1
-                else:  
+                else:
                   if self.starPowerActive and self.theme < 2:
                     flamecol = self.spColor
                   else: #Default starcolor (Rockband)
                     flamecol = (.4+.1*step,)*3
-                
+
                 self.engine.draw3Dtex(self.hitflames1Drawing, coord = (x+xOffset[step], y+yOffset[step], 0), rot = (90, 1, 0, 0),
                                     scale = (.25 + .05 * step + scaleMod, hfCount/scaleFix[step] + scaleMod, hfCount/scaleFix[step] + scaleMod),
                                     vertex = (-flameSize * ff,-flameSize * ff,flameSize * ff,flameSize * ff),
-                                    texcoord = (0.0,0.0,1.0,1.0), multiples = True, alpha = True, color = flamecol)            
+                                    texcoord = (0.0,0.0,1.0,1.0), multiples = True, alpha = True, color = flamecol)
 
             self.freestyleHitFlameCounts[fretNum] += 1
-        
+
           else:   #MFH - flame count is done - reset it!
             self.freestyleHitFlameCounts[fretNum] = 0    #MFH
 
@@ -1820,7 +1819,7 @@ class Guitar:
         f = self.fretWeight[n]
         c = self.fretColors[n]
         if f and (controls.getState(self.actions[0]) or controls.getState(self.actions[1])):
-          f += 0.25      
+          f += 0.25
         y = v + f / 6
         x = (self.strings / 2 - n) * w
         f = self.fretActivity[n]
@@ -1829,8 +1828,8 @@ class Guitar:
           ms = math.sin(self.time) * .25 + 1
           ff = f
           ff += 1.2
-          
-          
+
+
           #myfingershurt: need to cap flameSizes use of scoreMultiplier to 4x, the 5x and 6x bass groove mults cause crash:
           self.cappedScoreMult = min(self.scoreMultiplier,4)
 
@@ -1848,8 +1847,8 @@ class Guitar:
               flamecol = self.spColor
             else: #Default starcolor (Rockband)
               flamecol = (.9,.9,.9)
-              
-          if self.Hitanim != True:   
+
+          if self.Hitanim != True:
             self.engine.draw3Dtex(self.hitglowDrawing, coord = (x, y + .125, 0), rot = (90, 1, 0, 0),
                                   scale = (0.5 + .6 * ms * ff, 1.5 + .6 * ms * ff, 1 + .6 * ms * ff),
                                   vertex = (-flameSize * ff,-flameSize * ff,flameSize * ff,flameSize * ff),
@@ -1869,7 +1868,7 @@ class Guitar:
                                   texcoord = (texX[0],0.0,texX[1],1.0), multiples = True, alpha = True, color = (1,1,1))
 
           ff += .3
-          
+
           flameColorMod = (1.19, 1.78, 12.22)
           flamecol = tuple([flameColor[ifc]*flameColorMod[ifc] for ifc in range(3)])
 
@@ -1879,7 +1878,7 @@ class Guitar:
             else: #Default starcolor (Rockband)
               flamecol = (.8,.8,.8)
 
-          if self.Hitanim != True: 
+          if self.Hitanim != True:
 
             self.engine.draw3Dtex(self.hitglow2Drawing, coord = (x, y + .25, .05), rot = (90, 1, 0, 0),
                                   scale = (.40 + .6 * ms * ff, 1.5 + .6 * ms * ff, 1 + .6 * ms * ff),
@@ -1893,20 +1892,20 @@ class Guitar:
       for time, event in renderedNotes:
         if isinstance(event, Tempo):
           continue
-        
+
         if not isinstance(event, Note):
           continue
-        
+
         if (event.played or event.hopod) and event.flameCount < flameLimit:
           ms = math.sin(self.time) * .25 + 1
           x  = (self.strings / 2 - event.number) * w
           xlightning = (self.strings / 2 - event.number)*2.2*w
-          ff = 1 + 0.25       
+          ff = 1 + 0.25
           y = v + ff / 6
 
           if self.theme == 2:
             y -= 0.5
-          
+
           flameSize = self.flameSizes[self.cappedScoreMult - 1][event.number]
           if self.theme == 0 or self.theme == 1: #THIS SETS UP GH3 COLOR, ELSE ROCKBAND(which is DEFAULT in Theme.py)
             flameColor = self.gh3flameColor
@@ -1914,7 +1913,7 @@ class Guitar:
             flameColor = self.flameColors[self.cappedScoreMult - 1][event.number]
           if flameColor[0] == -2:
             flameColor = self.fretColors[event.number]
-          
+
           ff += 1.5 #ff first time is 2.75 after this
 
           if self.Hitanim2 == True:
@@ -1927,11 +1926,11 @@ class Guitar:
                 self.HCountAni = True
             if event.flameCount < flameLimitHalf:
 
-                  
+
                 HIndex = (self.HCount2 * 13 - (self.HCount2 * 13) % 13) / 13
                 if HIndex > 12 and self.HCountAni != True:
                   HIndex = 0
-                  
+
                 texX = (HIndex*(1/13.0), HIndex*(1/13.0)+(1/13.0))
 
                 self.engine.draw3Dtex(self.hitflamesAnim, coord = (x, y + .665, 0), rot = (90, 1, 0, 0), scale = (1.6, 1.6, 4.9),
@@ -1953,30 +1952,30 @@ class Guitar:
                                         scale = (.15 + .5 * ms * ff, event.flameCount / 3.0 + .6 * ms * ff, 2), vertex = (.4,-2,-.4,2),
                                         texcoord = (0.0,0.0,1.0,1.0), multiples = True, alpha = True, color = (1,1,1))
                   continue
-              
+
                 if step == 0:
                   yzscaleMod = event.flameCount/ scaleChange[step]
                 else:
                   yzscaleMod = (event.flameCount + 1)/ scaleChange[step]
-                  
+
                 if self.starPowerActive:
-                  if self.theme == 0 or self.theme == 1: 
+                  if self.theme == 0 or self.theme == 1:
                     spcolmod = .7+step*.1
                     flamecol = tuple([isp*spcolmod for isp in self.spColor])
                   else:
                     flamecol = (.4+step*.1,)*3#Default starcolor (Rockband)
-                
+
                 if self.hitFlamesPresent == True:
                   self.engine.draw3Dtex(self.hitflames1Drawing, coord = (x - .005, y + yOffset[step], 0), rot = (90, 1, 0, 0),
                                 scale = (.25 + step*.05 + scaleMod, yzscaleMod + scaleMod, yzscaleMod + scaleMod),
                                 vertex = (-vtx,-vtx,vtx,vtx), texcoord = (0.0,0.0,1.0,1.0),
                                 multiples = True, alpha = True, color = flamecol)
-                                    
+
           elif self.hitFlamesPresent == True and self.Hitanim2 == False:
             self.HCount2 = 13
             self.HCountAni = True
             if event.flameCount < flameLimitHalf:
-            
+
               flamecol = flameColor
               if self.starPowerActive:
                 if self.theme == 0 or self.theme == 1: #GH3 starcolor
@@ -1984,13 +1983,13 @@ class Guitar:
                   flamecol = tuple([isp*spcolmod for isp in self.spColor])
                 else: #Default starcolor (Rockband)
                   flamecol = (.1,.1,.1)
-                
+
               self.engine.draw3Dtex(self.hitflames2Drawing, coord = (x, y + .20, 0), rot = (90, 1, 0, 0),
                                       scale = (.25 + .6 * ms * ff, event.flameCount/6.0 + .6 * ms * ff, event.flameCount / 6.0 + .6 * ms * ff),
                                       vertex = (-flameSize * ff,-flameSize * ff,flameSize * ff,flameSize * ff), texcoord = (0.0,0.0,1.0,1.0),
                                       multiples = True, alpha = True, color = flamecol)
-              
-                   
+
+
               for i in range(3):
                 if self.starPowerActive:
                   if self.theme == 0 or self.theme == 1: #GH3 starcolor
@@ -2018,27 +2017,27 @@ class Guitar:
                                       scale = (.15 + .5 * ms * ff, event.flameCount / 3.0 + .6 * ms * ff, 2), vertex = (.4,-2,-.4,2),
                                       texcoord = (0.0,0.0,1.0,1.0), multiples = True, alpha = True, color = (1,1,1))
                   continue
-              
+
                 if step == 0:
                   yzscaleMod = event.flameCount/ scaleChange[step]
                 else:
                   yzscaleMod = (event.flameCount + 1)/ scaleChange[step]
-                  
+
                 if self.starPowerActive:
-                  if self.theme == 0 or self.theme == 1: 
+                  if self.theme == 0 or self.theme == 1:
                     spcolmod = .7+step*.1
                     flamecol = tuple([isp*spcolmod for isp in self.spColor])
                   else:
                     flamecol = (.4+step*.1,)*3#Default starcolor (Rockband)
-                
+
                 self.engine.draw3Dtex(self.hitflames1Drawing, coord = (x - .005, y + yOffset[step], 0), rot = (90, 1, 0, 0),
                                 scale = (.25 + step*.05 + scaleMod, yzscaleMod + scaleMod, yzscaleMod + scaleMod),
                                 vertex = (-vtx,-vtx,vtx,vtx), texcoord = (0.0,0.0,1.0,1.0),
                                 multiples = True, alpha = True, color = flamecol)
           event.flameCount += 1
-        
+
   def render(self, visibility, song, pos, controls, killswitch):
-  
+
     if shaders.turnon:
       shaders.globals["dfActive"] = self.drumFillsActive
       shaders.globals["breActive"] = self.freestyleActive
@@ -2047,18 +2046,18 @@ class Guitar:
         shaders.globals["killswitchPos"] = pos
       shaders.globals["killswitch"] = killswitch
       shaders.modVar("height",0.2,0.2,1.0,"tail")
-      
+
 
     if not self.starNotesSet == True:
       self.totalNotes = 0
-      
-      
+
+
       for time, event in song.track[self.player].getAllEvents():
         if not isinstance(event, Note):
           continue
         self.totalNotes += 1
-        
-        
+
+
       stars = []
       maxStars = []
       maxPhrase = self.totalNotes/120
@@ -2111,7 +2110,7 @@ class Guitar:
         if self.hitFlamesPresent:   #MFH - only if present!
           self.renderFreestyleFlames(visibility, controls)    #MFH - freestyle hit flames
 
-      else:    
+      else:
         self.renderTails(visibility, song, pos, killswitch)
         if self.fretsUnderNotes:  #MFH
           if self.twoDnote == True:
@@ -2126,10 +2125,10 @@ class Guitar:
 
         self.renderFreestyleLanes(visibility, song, pos) #MFH - render the lanes on top of the notes.
 
-        
+
         if self.hitFlamesPresent:   #MFH - only if present!
           self.renderFlames(visibility, song, pos, controls)    #MFH - only when freestyle inactive!
-        
+
       if self.leftyMode:
         if not self.battleStatus[6]:
           glScalef(-1, 1, 1)
@@ -2147,7 +2146,7 @@ class Guitar:
 
     #if catchup == True:
     #  m2 = 0
-      
+
     track   = song.track[self.player]
     notes   = [(time, event) for time, event in track.getEvents(pos - m1, pos - m2) if isinstance(event, Note)]
     notes   = [(time, event) for time, event in notes if (time >= (pos - m2)) and (time <= (pos - m1))]
@@ -2157,7 +2156,7 @@ class Guitar:
       for time, event in notes:
         event.skipped = True
 
-    return sorted(notes, key=lambda x: x[1].number)        
+    return sorted(notes, key=lambda x: x[1].number)
     #return notes
 
   def getMissedNotesMFH(self, song, pos, catchup = False):
@@ -2168,19 +2167,19 @@ class Guitar:
 
     m1      = self.lateMargin
     m2      = self.lateMargin * 2
-      
+
     track   = song.track[self.player]
     notes   = [(time, event) for time, event in track.getEvents(pos - m2, pos - m1) if isinstance(event, Note)]   #was out of order
-    
+
     #MFH - this additional filtration step removes sustains whose Note On event time is now outside the hitwindow.
-    notes   = [(time, event) for time, event in notes if (time >= (pos - m2)) and (time <= (pos - m1))] 
-    
+    notes   = [(time, event) for time, event in notes if (time >= (pos - m2)) and (time <= (pos - m1))]
+
     notes   = [(time, event) for time, event in notes if not event.played and not event.hopod and not event.skipped]
 
     if catchup:
       for time, event in notes:
         event.skipped = True
-      
+
     return sorted(notes, key=lambda x: x[0])    #MFH - what the hell, this should be sorted by TIME not note number....
 
 
@@ -2191,7 +2190,7 @@ class Guitar:
         song.difficulty[self.player] = Song.difficulties[self.battleDiffUpValue]
       else:
         song.difficulty[self.player] = Song.difficulties[self.battleDiffUpValue - 1]
-        
+
     track   = song.track[self.player]
     notes = [(time, event) for time, event in track.getEvents(pos - self.lateMargin, pos + self.earlyMargin) if isinstance(event, Note)]
     notes = [(time, event) for time, event in notes if not event.played]
@@ -2210,7 +2209,7 @@ class Guitar:
         song.difficulty[self.player] = Song.difficulties[self.battleDiffUpValue]
       else:
         song.difficulty[self.player] = Song.difficulties[self.battleDiffUpValue - 1]
-        
+
     track   = song.track[self.player]
     notes = [(time, event) for time, event in track.getEvents(pos - self.lateMargin, pos + self.earlyMargin) if isinstance(event, Note)]
     notes = [(time, event) for time, event in notes if not (event.hopod or event.played)]
@@ -2222,14 +2221,14 @@ class Guitar:
     if self.battleStatus[7]:
       notes = self.getDoubleNotes(notes)
     return sorted(notes, key=lambda x: x[1].number)
-    
+
   def getRequiredNotes3(self, song, pos, hopo = False):
     if self.battleStatus[2] and self.difficulty != 0:
       if pos < self.battleStartTimes[2] + self.currentPeriod * self.beatsPerBoard or pos > self.battleStartTimes[2] - self.currentPeriod * self.beatsPerBoard + self.battleDiffUpLength:
         song.difficulty[self.player] = Song.difficulties[self.battleDiffUpValue]
       else:
         song.difficulty[self.player] = Song.difficulties[self.battleDiffUpValue - 1]
-        
+
     track   = song.track[self.player]
     notes = [(time, event) for time, event in track.getEvents(pos - self.lateMargin, pos + self.earlyMargin) if isinstance(event, Note)]
     notes = [(time, event) for time, event in notes if not (event.hopod or event.played or event.skipped)]
@@ -2247,7 +2246,7 @@ class Guitar:
         song.difficulty[self.player] = Song.difficulties[self.battleDiffUpValue]
       else:
         song.difficulty[self.player] = Song.difficulties[self.battleDiffUpValue - 1]
-    
+
     track   = song.track[self.player]
     if hopoTroubleCheck:
       #notes = [(time, event) for time, event in track.getEvents(pos, pos + (self.earlyMargin*2)) if isinstance(event, Note)]
@@ -2373,11 +2372,11 @@ class Guitar:
       song.difficulty[self.player] = Song.difficulties[self.battleDiffUpValue]
       track0 = song.track[self.player]
       notes0 = [(time, event) for time, event in track0.getEvents(pos - self.currentPeriod * 2, pos + self.currentPeriod * self.beatsPerBoard)]
-    
+
       song.difficulty[self.player] = Song.difficulties[self.battleDiffUpValue - 1]
       track1   = song.track[self.player]
       notes1 = [(time, event) for time, event in track1.getEvents(pos - self.currentPeriod * 2, pos + self.currentPeriod * self.beatsPerBoard)]
-      
+
       notes = []
       for time,note in notes0:
         if time < self.battleStartTimes[2] + self.currentPeriod * self.beatsPerBoard or time > self.battleStartTimes[2] - self.currentPeriod * self.beatsPerBoard + self.battleDiffUpLength:
@@ -2394,11 +2393,11 @@ class Guitar:
     else:
       track   = song.track[self.player]
       notes = [(time, event) for time, event in track.getEvents(pos - self.currentPeriod * 2, pos + self.currentPeriod * self.beatsPerBoard)]
-    
+
     if self.battleStatus[7]:
       notes = self.getDoubleNotes(notes)
     return notes
- 
+
   #MFH - corrected and optimized:
   def getRequiredNotesForJurgenOnTime(self, song, pos):
     track   = song.track[self.player]
@@ -2415,7 +2414,7 @@ class Guitar:
     # no notes?
     if not notes:
       return False
-  
+
     # check each valid chord
     chords = {}
     for time, note in notes:
@@ -2432,7 +2431,7 @@ class Guitar:
       # matching keys?
       requiredKeys = [note.number for time, note in chord]
       requiredKeys = self.uniqify(requiredKeys)
-      
+
       if len(requiredKeys) > 2 and self.twoChordMax == True:
         twochord = 0
         for k in self.keys:
@@ -2504,7 +2503,7 @@ class Guitar:
           requiredKeys = [min(requiredKeys), max(requiredKeys)]
         else:
           twochord = 0
-        
+
       for n in range(self.strings):
         if n in requiredKeys and not (controls.getState(self.keys[n]) or controls.getState(self.keys[n+5])):
           return False
@@ -2524,10 +2523,10 @@ class Guitar:
           chord[-1][1].skipped = False
           chord[0][1].played = True
           chord[-1][1].played = True
-        
+
     if twochord == 2:
       self.twoChord += skipped
-      
+
     return True
 
   def controlsMatchNotes3(self, controls, notes, hopo = False):
@@ -2569,7 +2568,7 @@ class Guitar:
           requiredKeys = [min(requiredKeys), max(requiredKeys)]
         else:
           twochord = 0
-          
+
       if (self.controlsMatchNote3(controls, chord, requiredKeys, hopo)):
         if twochord != 2:
           for time, note in chord:
@@ -2589,7 +2588,7 @@ class Guitar:
     else:
       self.missedNotes = []
       self.missedNoteNums = []
-    
+
     for chord in self.missedNotes:
       for time, note in chord:
         if self.debugMode:
@@ -2598,7 +2597,7 @@ class Guitar:
         note.played = False
     if twochord == 2:
       self.twoChord += skipped
-      
+
     return True
 
   #MFH - special function for HOPO intentions checking
@@ -2635,7 +2634,7 @@ class Guitar:
           self.requiredKeys = [min(self.requiredKeys), max(self.requiredKeys)]
         else:
           twochord = 0
-          
+
       if (self.controlsMatchNote3(controls, chord, self.requiredKeys, False)):
         return True
       else:
@@ -2644,7 +2643,7 @@ class Guitar:
 
 
 
-  def uniqify(self, seq, idfun=None): 
+  def uniqify(self, seq, idfun=None):
     # order preserving
     if idfun is None:
         def idfun(x): return x
@@ -2659,7 +2658,7 @@ class Guitar:
         seen[marker] = 1
         result.append(item)
     return result
-  
+
   def controlsMatchNote3(self, controls, chordTuple, requiredKeys, hopo):
     if len(chordTuple) > 1:
     #Chords must match exactly
@@ -2691,7 +2690,7 @@ class Guitar:
       if note.tappable > 1:
         return True
     return False
-  
+
   def startPick(self, song, pos, controls, hopo = False):
     if hopo == True:
       res = startPick2(song, pos, controls, hopo)
@@ -2700,9 +2699,9 @@ class Guitar:
       return False
     if not song.readyToGo:
       return False
-    
+
     self.playedNotes = []
-    
+
     self.matchingNotes = self.getRequiredNotes(song, pos)
 
     if self.controlsMatchNotes(controls, self.matchingNotes):
@@ -2723,9 +2722,9 @@ class Guitar:
       return False
     if not song.readyToGo:
       return False
-    
+
     self.playedNotes = []
-    
+
     self.matchingNotes = self.getRequiredNotes2(song, pos, hopo)
 
     if self.controlsMatchNotes2(controls, self.matchingNotes, hopo):
@@ -2750,7 +2749,7 @@ class Guitar:
         self.playedNotes.append([time, note])
         if self.guitarSolo:
           self.currentGuitarSoloHitNotes += 1
-        
+
       self.hopoLast     = note.number
       return True
     return False
@@ -2760,25 +2759,25 @@ class Guitar:
       return False
     if not song.readyToGo:
       return False
-    
+
     self.lastPlayedNotes = self.playedNotes
     self.playedNotes = []
-    
+
     self.matchingNotes = self.getRequiredNotesMFH(song, pos)
 
     self.controlsMatchNotes3(controls, self.matchingNotes, hopo)
-    
+
     #myfingershurt
-    
+
     for time, note in self.matchingNotes:
       if note.played != True:
         continue
-      
+
       if shaders.turnon:
         shaders.var["fret"][self.player][note.number]=shaders.time()
         shaders.var["fretpos"][self.player][note.number]=pos
-        
-      
+
+
       self.pickStartPos = pos
       self.pickStartPos = max(self.pickStartPos, time)
       if hopo:
@@ -2802,9 +2801,9 @@ class Guitar:
       self.playedNotes.append([time, note])
       if self.guitarSolo:
         self.currentGuitarSoloHitNotes += 1
-        
 
-     
+
+
     #myfingershurt: be sure to catch when a chord is played
     if len(self.playedNotes) > 1:
       lastPlayedNote = None
@@ -2816,7 +2815,7 @@ class Guitar:
           else:
             self.LastStrumWasChord = False
         lastPlayedNote = note
-    
+
     elif len(self.playedNotes) > 0: #ensure at least that a note was played here
       self.LastStrumWasChord = False
 
@@ -2840,7 +2839,7 @@ class Guitar:
     numHits = 0
     #if not song:
     #  return numHits
-    
+
     if not controls.getState(self.actions[0]) and not controls.getState(self.actions[1]):
       return 0
 
@@ -2858,14 +2857,14 @@ class Guitar:
       if time + note.length > pos + self.noteReleaseMargin:
         self.playedNotes = []
         return False
-      
+
     self.playedNotes = []
     return True
-    
+
   def getPickLength(self, pos):
     if not self.playedNotes:
       return 0.0
-    
+
     # The pick length is limited by the played notes
     pickLength = pos - self.pickStartPos
     for time, note in self.playedNotes:
@@ -2878,12 +2877,12 @@ class Guitar:
     self.coOpRescueTime  = pos
     self.starPower  = 0
     Log.debug("Rescued at " + str(pos))
-  
+
   def run(self, ticks, pos, controls):
-  
+
     if not self.paused:
       self.time += ticks
-    
+
     #MFH - Determine which frame to display for starpower notes
     if self.starspin:
       self.indexCount = self.indexCount + 1
@@ -2892,11 +2891,11 @@ class Guitar:
       self.starSpinFrameIndex = (self.indexCount * self.starSpinFrames - (self.indexCount * self.starSpinFrames) % self.Animspeed) / self.Animspeed
       if self.starSpinFrameIndex > self.starSpinFrames - 1:
         self.starSpinFrameIndex = 0
-        
-    
+
+
     #myfingershurt: must not decrease SP if paused.
     if self.starPowerActive == True and self.paused == False:
-      self.starPower -= ticks/self.starPowerDecreaseDivisor 
+      self.starPower -= ticks/self.starPowerDecreaseDivisor
       if self.starPower <= 0:
         self.starPower = 0
         self.starPowerActive = False
@@ -2905,7 +2904,7 @@ class Guitar:
           #self.engine.data.starDeActivateSound.setVolume(self.sfxVolume)
           self.engine.data.starDeActivateSound.play()
 
-    
+
     # update frets
     if self.editorMode:
       if (controls.getState(self.actions[0]) or controls.getState(self.actions[1])):
@@ -2917,7 +2916,7 @@ class Guitar:
         activeFrets = []
     else:
       activeFrets = [note.number for time, note in self.playedNotes]
-    
+
     for n in range(self.strings):
       if controls.getState(self.keys[n]) or controls.getState(self.keys[n+5]) or (self.editorMode and self.selectedString == n):
         self.fretWeight[n] = 0.5
@@ -2927,14 +2926,14 @@ class Guitar:
         self.fretActivity[n] = min(self.fretActivity[n] + ticks / 32.0, 1.0)
       else:
         self.fretActivity[n] = max(self.fretActivity[n] - ticks / 64.0, 0.0)
-      
+
       #MFH - THIS is where note sustains should be determined... NOT in renderNotes / renderFrets / renderFlames  -.-
       if self.fretActivity[n]:
         self.hit[n] = True
       else:
         self.hit[n] = False
 
-    
+
     if self.vbpmLogicType == 0:   #MFH - VBPM (old)
       if self.currentBpm != self.targetBpm:
         diff = self.targetBpm - self.currentBpm
