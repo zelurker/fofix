@@ -59,6 +59,12 @@ import Player
 from Shader import shaders
 from Song import difficulties, parts
 
+gameEngine = None
+
+def getEngine():
+    global gameEngine
+    return gameEngine
+
 class ConfigOption:
   def __init__(self, id, text):
     self.id   = id
@@ -453,10 +459,17 @@ class SystemEventHandler(SystemEventListener):
   def quit(self):
     self.engine.quit()
 
+  def musicFinished(self):
+    for task in self.engine.tasks:
+      if task.__class__.__name__ == "GuitarSceneClient":
+        task.musicFinished();
+
 class GameEngine(Engine):
   """The main game engine."""
   def __init__(self, config = None):
+    global gameEngine
 
+    gameEngine = self
     #self.logClassInits = Config.get("game", "log_class_inits")
     #if self.logClassInits == 1:
     #  Log.debug("GameEngine class init (GameEngine.py)...")
