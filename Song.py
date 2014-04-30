@@ -3991,6 +3991,10 @@ def loadSong(engine, name, library = DEFAULT_LIBRARY, seekable = False, playback
       guitarFile = None
       rhythmFile = ""
       
+
+  if not os.path.isfile(songFile):
+    songFile   = engine.resource.fileName(library, name, "vocals.ogg")
+
   if not os.path.isfile(songFile):
     songFile   = guitarFile
     guitarFile = None
