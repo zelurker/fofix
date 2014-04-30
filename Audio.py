@@ -22,11 +22,14 @@
 #####################################################################
 
 import pygame
+MusicFinished = pygame.USEREVENT
 import Log
 import time
 import struct
 from Task import Task
 import Config
+import glob
+import pdb
 
 #stump: check for pitch bending support
 try:
@@ -99,126 +102,348 @@ class Audio:
   def unpause(self):
     pygame.mixer.unpause()
 
-class Music(object):
+class OneSound(object):
   def __init__(self, fileName):
-    pygame.mixer.music.load(fileName)
-    self.pausePos = 0.0
-    self.isPause = False
-    self.toUnpause = False
-    self.buffersize = Config.get("audio","buffersize")
-
-  @staticmethod
-  def setEndEvent(event = None):
-    if event:
-      pygame.mixer.music.set_endevent(event)
-    else:
-      pygame.mixer.music.set_endevent()   #MFH - to set NO event.
-
-  def play(self, loops = -1, pos = 0.0):
-    pygame.mixer.music.play(loops, pos)
-
-  def stop(self):
-    pygame.mixer.music.stop()
-
-  def rewind(self):
-    pygame.mixer.music.rewind()
-
-  def pause(self):
-    pygame.mixer.music.pause()
-    self.pausePos = pygame.mixer.music.get_pos()
-    self.isPause = True
-
-  def unpause(self):
-    self.isPause = False
-    pygame.mixer.music.unpause()
-
-  def setVolume(self, volume):
-    pygame.mixer.music.set_volume(volume)
-    
-  #stump: pitch bending
-  # SDL_mixer doesn't support callback processing of the music stream.
-  # Thus, as a workaround, we must bend the whole output.
-  def setPitchBend(self, factor):
-    pygame.pitchbend.start(pygame.pitchbend.ALL)
-    pygame.pitchbend.setFactor(pygame.pitchbend.ALL, factor)
-  
-  def stopPitchBend(self):
-    pygame.pitchbend.stop(pygame.pitchbend.ALL)
-
-  def fadeout(self, time):
-    pygame.mixer.music.fadeout(time)
-
-  def isPlaying(self):
-    #MFH - gotta catch case when mixer not initialized yet...
-    try:
-      busy = pygame.mixer.music.get_busy()
-    except Exception, e:
-      busy = True      
-    #return pygame.mixer.music.get_busy()
-    return busy
-
-  def getPosition(self):
-    if self.isPause:
-      self.toUnpause = True
-      return self.pausePos
-    elif self.toUnpause:
-      if pygame.mixer.music.get_pos() < (self.pausePos + 60 + (self.buffersize/32)): #this should technically be buffersize*1000/samplerate; 32 keeps it integer, 60 allows for processing time
-        self.toUnpause = False
-        return pygame.mixer.music.get_pos()
-      else:
-        return self.pausePos
-    else:
-      return pygame.mixer.music.get_pos()
-
-class Channel(object):
-  def __init__(self, id):
-    self.channel = pygame.mixer.Channel(id)
-    self.id = id
-
-  def __del__(self):
-    if pitchBendSupported:
-      pygame.pitchbend.stop(self.id)
-
-  def play(self, sound):
-    self.channel.play(sound.sound)
-
-  def stop(self):
-    self.channel.stop()
-    if pitchBendSupported:
-      pygame.pitchbend.stop(self.id)
-
-  def setVolume(self, volume):
-    self.channel.set_volume(volume)
-
-  def fadeout(self, time):
-    self.channel.fadeout(time)
-
-  #stump: pitch bending
-  def setPitchBend(self, factor):
-    pygame.pitchbend.start(self.id)
-    pygame.pitchbend.setFactor(self.id, factor)
-
-  def stopPitchBend(self):
-    pygame.pitchbend.stop(self.id)
-
-class Sound(object):
-  def __init__(self, fileName):
-    self.sound   = pygame.mixer.Sound(fileName)
+    self.file = fileName
+    self.sound = None
+    self.volume = None
+    self.event = None
+    self.channel = None
 
   def isPlaying(self):  #MFH - adding function to check if sound is playing
     return self.sound.get_num_channels()
 
-  def play(self, loops = 0):
-    self.sound.play(loops)
+  def setEndEvent(self,event = None):
+    self.event = event
+    if self.channel:
+      self.channel.set_endevent(event)
+
+  def play(self):
+    self.sound   = pygame.mixer.Sound(self.file)
+    self.playTime = time.time()
+    if self.volume:
+      self.sound.set_volume(self.volume)
+    self.channel = self.sound.play()
+    if self.event:
+        self.channel.set_endevent(self.event)
 
   def stop(self):
-    self.sound.stop()
+    if self.sound:
+      self.sound.stop()
+    self.sound = None
+    self.channel = None
 
   def setVolume(self, volume):
-    self.sound.set_volume(volume)
+    self.volume = volume
+    if self.sound:
+      self.sound.set_volume(volume)
 
   def fadeout(self, time):
-    self.sound.fadeout(time)
+    if self.sound:
+      self.sound.fadeout(time)
+
+class Sound(object):
+  def __init__(self,  fileName, engine = None):
+    files = fileName.split(";")
+    self.fileName = fileName
+    self.sounds = []
+    self.channel = self.event = None
+    self.pausePos = 0.0
+    self.playTime = 0
+    self.isPause = False
+    self.Playing = False
+    for file in files:
+        for f in glob.glob(file):
+            duration = 0
+            if f.lower().endswith(".ogg"):
+              file = ogg.vorbis.VorbisFile(f)
+              duration = file.time_total()
+            # Both classes below are compatible and can both play ogg files
+            # the difference is that OneSound is specialized on small
+            # sounds, and the Streaming one on big audio tracks which need
+            # to be played synchronously. So it's better to reserve the
+            # streaming one on the tracks of more than 30s, just to save
+            # memory.
+            if duration > 30:
+              print "streaming ",f
+              self.sounds.append(StreamingOggSound(f, engine))
+            else:
+              self.sounds.append(OneSound(f))
+
+  def play(self):
+      self.playTime = time.time()
+      print "starting ",self.fileName
+      self.Playing = True
+      for sound in self.sounds:
+          sound.play()
+
+  def pause(self):
+    pygame.mixer.pause()
+    self.pausePos = self.getPosition()
+    self.isPause = True
+
+  def unpause(self):
+    self.pausePos /= 1000 # return to time
+    self.pausePos += self.playTime
+    self.playTime += time.time() - self.pausePos
+    self.isPause = False
+    pygame.mixer.unpause()
+
+  def getPosition(self):
+    # There is no way to tell precisely where we are in the song because of
+    # the buffers used to playback (no way to know where we are in the
+    # buffer and the buffers are big). So the way around the problem is
+    # just to calculate the time since the playback started and return it.
+    # It's adjusted if there was a pause.
+    if not self.Playing:
+        return 0
+    if self.isPause:
+        return self.pausePos
+    t = (time.time() - self.playTime)*1000 # number of ms !
+    return t
+
+  def isPlaying(self):
+    if not self.isPause:
+        # if the song ends on a fadeout, or reaches its end, the stop
+        # command never arrives here
+        # which was dumb, the code was updated to use the event instead, it
+        # should never call this again, but I keep it just in case !
+        found = False
+        for sound in self.sounds:
+            if sound.channel and sound.channel.get_busy():
+                found = True
+                break
+        if not found:
+          print "updated Playing to false"
+          self.Playing = False
+    return self.Playing
+
+  def stop(self):
+      self.Playing = False
+      print "stopped ",self.fileName
+      for sound in self.sounds:
+          sound.stop()
+
+  def setEndEvent(self,event = None):
+    self.sounds[0].setEndEvent(event)
+
+  def setVolume(self, volume):
+    for sound in self.sounds:
+      sound.setVolume(volume)
+
+  def fadeout(self, time):
+    print "fadeout ",time
+    for sound in self.sounds:
+      sound.fadeout(time)
+
+import GameEngine
+
+if ogg:
+  class OggStream(object):
+    def __init__(self, inputFileName):
+      self.file = ogg.vorbis.VorbisFile(inputFileName)
+
+    def read(self, bytes = 4096):
+      (data, bytes, bit) = self.file.read(bytes)
+      return data[:bytes]
+
+    def info(self):
+        return self.file.info()
+
+  class StreamingOggSound(OneSound, Task):
+
+      # This class inherits from OneSound, but is totally different :
+      # - it doesn't decode the whole ogg in 1 time, but uses Task to
+      # decode it chunk by chunk which saves a vast amount of memory
+      # so it requires engine to be able to add its task when starting
+      # playback
+      # As the name implies, it's streaming, so it pre-decodes 8 buffers
+      # when initialized even before starting playback just to be sure to
+      # be able to start to play immediately.
+
+    def __init__(self, fileName,engine):
+      Task.__init__(self)
+      if not engine:
+        engine = GameEngine.getEngine()
+      self.engine       = engine
+      self.fileName     = fileName
+      self.channel      = None
+      self.playing      = False
+      self.bufferSize   = 1024 * 64
+      self.bufferCount  = 8
+      self.volume       = 1.0
+      self.event = None
+
+        #myfingershurt: buffer is 2D array (one D for each channel) of 16-bit UNSIGNED integers / samples
+        #  2*1024*64 = 131072 samples per channel
+      self.buffer       = zeros((2 * self.bufferSize, 2))
+
+      self.decodingRate = 4
+      self._reset()
+
+    def getPosition(self):
+        # Tricky : we can get the pos from the ogg stream, but then there is
+        # the problem of the buffers... it will be rather unprecise !
+        return 0
+
+    def _reset(self):
+
+      self.stream        = OggStream(self.fileName)
+      self.fadeoutTime = None
+      self.info = self.stream.info()
+      self.buffersIn     = [pygame.sndarray.make_sound(zeros((self.bufferSize,2 ))) for i in range(self.bufferCount + 1)]
+      self.buffersOut    = []
+      self.buffersBusy   = []
+      self.bufferPos     = 0
+      self.done          = False
+
+      while len(self.buffersOut) < self.bufferCount and not self.done:
+        #myfingershurt: while there are less than 8 sets of 65k sample 2 channel buffers in the buffersOut list,
+        # continue to decode and fill them.
+        self._produceSoundBuffers()
+
+    def __del__(self):
+      self.engine.removeTask(self)
+
+    def streamIsPlaying(self):  #MFH - adding function to check if sound is playing
+      return self.playing
+
+
+    def isPlaying(self):
+        return self.playing
+
+    def setEndEvent(self,event = None):
+      self.event = event
+      # if self.channel:
+      #   self.channel.set_endevent(event)
+
+    def play(self):
+      if self.playing:
+        return
+
+        #myfingershurt: 2D buffer (L,R) of 16-bit unsigned integer samples, each channel 65536 samples long
+        #.... buffersIn = a list of 9 of these.
+      self.engine.addTask(self, synchronized = False)
+      self.playing = True
+      self.channel = pygame.mixer.find_channel()
+      self.channel.set_volume(self.volume)
+
+      nb = 0
+      while len(self.buffersOut) < self.bufferCount and not self.done:
+        #myfingershurt: while there are less than 8 sets of 65k sample 2 channel buffers in the buffersOut list,
+        # continue to decode and fill them.
+        nb = nb+1
+        self._produceSoundBuffers()
+
+
+      #once all 8 output buffers are filled, play the first one.
+      self.channel.play(self.buffersOut.pop())
+
+    def stop(self):
+      self.playing = False
+      if self.channel:
+        self.channel.stop()
+        if self.event:
+            print "sending endevent"
+            pygame.event.post(pygame.event.Event(self.event,{}))
+      self.engine.removeTask(self)
+      self._reset()
+
+    def setVolume(self, volume):
+      self.volume = volume
+      if self.channel:
+        self.channel.set_volume(self.volume)
+
+    #stump: pitch bending
+    def setPitchBend(self, factor):
+      self.channel.setPitchBend(factor)
+
+    def stopPitchBend(self):
+      self.channel.stopPitchBend()
+
+    def fadeout(self, ms):
+      if self.channel:
+        self.fadeoutTime = time.time() + ms/1000
+        # The channel alone is not enough here, because buffers are just
+        # queued, so after the fadeout time it just continues playing what
+        # arrives...
+        self.channel.fadeout(ms)
+
+    def _decodeStream(self):
+      # No available buffers to fill?
+      if not self.buffersIn or self.done:
+        return
+
+      data = self.stream.read()
+
+      if not data:
+        self.done = True
+      else:
+        if self.info.channels == 2:
+          data = struct.unpack("%dh" % (len(data) / 2), data)
+          samples = len(data) / 2
+          self.buffer[self.bufferPos:self.bufferPos + samples, 0] = data[0::2]
+          self.buffer[self.bufferPos:self.bufferPos + samples, 1] = data[1::2]
+          self.bufferPos += samples
+        elif self.info.channels == 1:
+          samples = len(data)/2
+          data = struct.unpack("%dh" % (samples), data)
+          self.buffer[self.bufferPos:self.bufferPos + samples,0] = data
+          self.buffer[self.bufferPos:self.bufferPos + samples,1] = data
+          self.bufferPos += samples
+        else:
+            raise "Number of channels ? %d" % (self.info.channels)
+
+      # If we have at least one full buffer decode, claim a buffer and copy the
+      # data over to it.
+      if self.bufferPos >= self.bufferSize or (self.done and self.bufferPos):
+        # Claim the sound buffer and copy the data
+        if self.bufferPos < self.bufferSize:
+          self.buffer[self.bufferPos:]  = 0
+        soundBuffer = self.buffersIn.pop()
+        pygame.sndarray.samples(soundBuffer)[:] = self.buffer[0:self.bufferSize]
+
+        # Discard the copied sound data
+        n = max(0, self.bufferPos - self.bufferSize)
+        self.buffer[0:n] = self.buffer[self.bufferSize:self.bufferSize+n]
+        self.bufferPos   = n
+
+        return soundBuffer
+
+    def _produceSoundBuffers(self):
+      # Decode enough that we have at least one full sound buffer
+      # ready in the queue if possible
+      while not self.done:
+        for i in xrange(self.decodingRate):
+          soundBuffer = self._decodeStream()
+          if soundBuffer:
+            self.buffersOut.insert(0, soundBuffer)
+        if self.buffersOut:
+          break
+
+    def run(self, ticks):
+      if not self.playing:
+        return
+
+      if self.fadeoutTime and time.time() >= self.fadeoutTime:
+          self.stop()
+          return
+      #myfingershurt: this is now done directly when called.
+      #self.channel.setVolume(self.volume)
+
+      if len(self.buffersOut) < self.bufferCount:
+        self._produceSoundBuffers()
+
+      if not self.channel.get_queue() and self.buffersOut:
+        # Queue one decoded sound buffer and mark the previously played buffer as free
+        soundBuffer = self.buffersOut.pop()
+        self.buffersBusy.insert(0, soundBuffer)
+        self.channel.queue(soundBuffer)
+        if len(self.buffersBusy) > 2:
+          self.buffersIn.insert(0, self.buffersBusy.pop())
+
+      if not self.buffersOut and self.done and not self.channel.get_busy():
+        self.stop()
 
 # Debian has no Python Numeric module anymore
 if tuple(int(i) for i in pygame.__version__[:5].split('.')) < (1, 9, 0):
@@ -230,7 +455,7 @@ if tuple(int(i) for i in pygame.__version__[:5].split('.')) < (1, 9, 0):
 else:
   import numpy
   def zeros(size):
-    return numpy.zeros(size, dtype='h')
+    return numpy.zeros(size, dtype="h")
 
 #stump: mic passthrough
 class MicrophonePassthroughStream(Sound, Task):
@@ -271,200 +496,3 @@ class MicrophonePassthroughStream(Sound, Task):
       self.channel.queue(snd)
     self.channel.set_volume(self.volume)
 
-if ogg:
-  class OggStream(object):
-    def __init__(self, inputFileName):
-      self.file = ogg.vorbis.VorbisFile(inputFileName)
-
-    def read(self, bytes = 4096):
-      (data, bytes, bit) = self.file.read(bytes)
-      return data[:bytes]
-
-  class StreamingOggSound(Sound, Task):
-    def __init__(self, engine, channel, fileName):
-      Task.__init__(self)
-      self.engine       = engine
-      self.fileName     = fileName
-      self.channel      = channel
-      self.playing      = False
-      self.bufferSize   = 1024 * 64
-      self.bufferCount  = 8
-      self.volume       = 1.0
-
-        #myfingershurt: buffer is 2D array (one D for each channel) of 16-bit UNSIGNED integers / samples
-        #  2*1024*64 = 131072 samples per channel
-      self.buffer       = zeros((2 * self.bufferSize, 2))
-
-      self.decodingRate = 4
-      self._reset()
-
-    def _reset(self):
-      self.stream        = OggStream(self.fileName)
-
-        #myfingershurt: 2D buffer (L,R) of 16-bit unsigned integer samples, each channel 65536 samples long
-        #.... buffersIn = a list of 9 of these.
-      self.buffersIn     = [pygame.sndarray.make_sound(zeros((self.bufferSize, 2))) for i in range(self.bufferCount + 1)]
-
-      self.buffersOut    = []
-      self.buffersBusy   = []
-      self.bufferPos     = 0
-      self.done          = False
-      self.lastQueueTime = time.time()
-
-      while len(self.buffersOut) < self.bufferCount and not self.done:
-        #myfingershurt: while there are less than 8 sets of 65k sample 2 channel buffers in the buffersOut list,
-        # continue to decode and fill them.
-        self._produceSoundBuffers()
-
-    def __del__(self):
-      self.engine.removeTask(self)
-
-    def streamIsPlaying(self):  #MFH - adding function to check if sound is playing
-      return self.playing
-
-
-    def play(self):
-      if self.playing:
-        return
-
-      self.engine.addTask(self, synchronized = False)
-      self.playing = True
-
-      while len(self.buffersOut) < self.bufferCount and not self.done:
-        #myfingershurt: while there are less than 8 sets of 65k sample 2 channel buffers in the buffersOut list,
-        # continue to decode and fill them.
-        self._produceSoundBuffers()
-
-      
-      #once all 8 output buffers are filled, play the first one.
-      self.channel.channel.play(self.buffersOut.pop())
-
-    def stop(self):
-      self.playing = False
-      self.channel.stop()
-      self.engine.removeTask(self)
-      self._reset()
-
-    def setVolume(self, volume):
-      self.volume = volume
-      #myfingershurt: apply volume changes IMMEDIATELY:
-      self.channel.setVolume(self.volume)
-
-    #stump: pitch bending
-    def setPitchBend(self, factor):
-      self.channel.setPitchBend(factor)
-
-    def stopPitchBend(self):
-      self.channel.stopPitchBend()
-
-    def fadeout(self, time):
-      self.stop()
-
-    def _decodeStream(self):
-      # No available buffers to fill?
-      if not self.buffersIn or self.done:
-        return
-
-      data = self.stream.read()
-
-      if not data:
-        self.done = True
-      else:
-        data = struct.unpack("%dh" % (len(data) / 2), data)
-        samples = len(data) / 2
-        self.buffer[self.bufferPos:self.bufferPos + samples, 0] = data[0::2]
-        self.buffer[self.bufferPos:self.bufferPos + samples, 1] = data[1::2]
-        self.bufferPos += samples
-
-      # If we have at least one full buffer decode, claim a buffer and copy the
-      # data over to it.
-      if self.bufferPos >= self.bufferSize or (self.done and self.bufferPos):
-        # Claim the sound buffer and copy the data
-        if self.bufferPos < self.bufferSize:
-          self.buffer[self.bufferPos:]  = 0
-        soundBuffer = self.buffersIn.pop()
-        pygame.sndarray.samples(soundBuffer)[:] = self.buffer[0:self.bufferSize]
-
-        # Discard the copied sound data
-        n = max(0, self.bufferPos - self.bufferSize)
-        self.buffer[0:n] = self.buffer[self.bufferSize:self.bufferSize+n]
-        self.bufferPos   = n
-
-        return soundBuffer
-
-    def _produceSoundBuffers(self):
-      # Decode enough that we have at least one full sound buffer
-      # ready in the queue if possible
-      while not self.done:
-        for i in xrange(self.decodingRate):
-          soundBuffer = self._decodeStream()
-          if soundBuffer:
-            self.buffersOut.insert(0, soundBuffer)
-        if self.buffersOut:
-          break
-
-    def run(self, ticks):
-      if not self.playing:
-        return
-
-      #myfingershurt: this is now done directly when called.
-      #self.channel.setVolume(self.volume)
-
-      if len(self.buffersOut) < self.bufferCount:
-        self._produceSoundBuffers()
-
-      if not self.channel.channel.get_queue() and self.buffersOut:
-        # Queue one decoded sound buffer and mark the previously played buffer as free
-        soundBuffer = self.buffersOut.pop()
-        self.buffersBusy.insert(0, soundBuffer)
-        self.lastQueueTime = time.time()
-        self.channel.channel.queue(soundBuffer)
-        if len(self.buffersBusy) > 2:
-          self.buffersIn.insert(0, self.buffersBusy.pop())
-      
-      if not self.buffersOut and self.done and time.time() - self.lastQueueTime > 4:
-        self.stop()
-
-class StreamingSound(Sound, Task):
-  def __init__(self, engine, channel, fileName):
-    Task.__init__(self)
-    Sound.__init__(self, fileName)
-    self.channel = channel
-
-  def __new__(cls, engine, channel, fileName):
-    frequency, format, stereo = pygame.mixer.get_init()
-    if fileName.lower().endswith(".ogg"):
-      
-      return StreamingOggSound(engine, channel, fileName)   #MFH - forced allow of non-matching sample rates
-
-#-      if frequency == 44100 and format == -16 and stereo:
-#-        return StreamingOggSound(engine, channel, fileName)
-#-      else:
-#-        Log.warn("Audio settings must match stereo 16 bits at 44100 Hz in order to stream OGG files.")
-#-    return super(StreamingSound, cls).__new__(cls, engine, channel, fileName)
-
-  def play(self):
-    self.channel.play(self)
-
-  def stop(self):
-    Sound.stop(self)
-    self.channel.stop()
-
-  def setVolume(self, volume):
-    Sound.setVolume(self, volume)
-    self.channel.setVolume(volume)
-
-  def streamIsPlaying(self):  #MFH - adding function to check if sound is playing
-    return Sound.get_num_channels()
-
-
-  def fadeout(self, time):
-    Sound.fadeout(self, time)
-    self.channel.fadeout(time)
-
-  #stump: pitch bending
-  def setPitchBend(self, factor):
-    self.channel.setPitchBend(factor)
-
-  def stopPitchBend(self):
-    self.channel.stopPitchBend()

@@ -21,9 +21,11 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+
 import midi
 import Log
 import Audio
+from Audio import MusicFinished
 import Config
 import os
 import re
@@ -2708,7 +2710,12 @@ class Song(object):
     # load the tracks
     #if self.engine.audioSpeedFactor == 1:    #MFH - only use the music track   
     if songTrackName:
-      self.music       = Audio.Music(songTrackName)
+      if songTrackName.lower().endswith("song.ogg"):
+        dir = os.path.dirname(songTrackName)
+        songTrackName = engine.resource.fileName( dir, "song.ogg")+";"+engine.resource.fileName(dir, "vocals.ogg")
+      print "song ",songTrackName
+      self.music       = Audio.Sound(songTrackName)
+      self.music.setEndEvent(MusicFinished)
 
     self.guitarTrack = None
     self.rhythmTrack = None
@@ -2722,26 +2729,27 @@ class Song(object):
 
     try:
       if guitarTrackName:
-        self.guitarTrack = Audio.StreamingSound(self.engine, self.engine.audio.getChannel(1), guitarTrackName)
+        self.guitarTrack = Audio.Sound( guitarTrackName, self.engine)
     except Exception, e:
       Log.warn("Unable to load guitar track: %s" % e)
 
     try:
       if rhythmTrackName:
-        self.rhythmTrack = Audio.StreamingSound(self.engine, self.engine.audio.getChannel(2), rhythmTrackName)
+        self.rhythmTrack = Audio.Sound(rhythmTrackName,self.engine)
     except Exception, e:
       Log.warn("Unable to load rhythm track: %s" % e)
 
     
     try:
       if drumTrackName:
-        self.drumTrack = Audio.StreamingSound(self.engine, self.engine.audio.getChannel(3), drumTrackName)
+        drumTrackName = engine.resource.fileName(drumTrackName, "drums.ogg")+";"+engine.resource.fileName(drumTrackName, "drums_?.ogg")
+        self.drumTrack = Audio.Sound( drumTrackName, self.engine)
     except Exception, e:
       Log.warn("Unable to load drum track: %s" % e)
       
     try:
       if crowdTrackName:
-        self.crowdTrack = Audio.StreamingSound(self.engine, self.engine.audio.getChannel(4), crowdTrackName)
+        self.crowdTrack = Audio.Sound( crowdTrackName, self.engine)
     except Exception, e:
       Log.warn("Unable to load crowd track: %s" % e)
 
@@ -2814,13 +2822,13 @@ class Song(object):
     #RF-mod No longer needed?
     
     if self.engine.audioSpeedFactor == 1:  #MFH - shut this track up if slowing audio down!    
-      self.music.play(0, start / 1000.0)
+      self.music.play() # 0, start / 1000.0)
       if self.singleTrackSong:
         self.music.setVolume(self.activeVolume)
       else:
         self.music.setVolume(self.backVolume)
     else:
-      self.music.play(int(math.ceil(1.0/self.engine.audioSpeedFactor)), start / 1000.0)  #tell music to loop 2 times for 1/2 speed, 4 times for 1/4 speed (so it doesn't end early) (it wants an int, though)
+      self.music.play() # int(math.ceil(1.0/self.engine.audioSpeedFactor)), start / 1000.0)  #tell music to loop 2 times for 1/2 speed, 4 times for 1/4 speed (so it doesn't end early) (it wants an int, though)
       self.music.setVolume(0.0)   
     
     if self.guitarTrack:
@@ -2840,11 +2848,11 @@ class Song(object):
 
   def pause(self):
     self.music.pause()
-    self.engine.audio.pause()
+    # self.engine.audio.pause()
 
   def unpause(self):
     self.music.unpause()
-    self.engine.audio.unpause()
+    # self.engine.audio.unpause()
 
   def setInstrumentVolume(self, volume, part):
     if self.singleTrackSong:
@@ -2968,7 +2976,7 @@ class Song(object):
       
     if self.music:  #MFH
       self.music.stop()
-      self.music.rewind()
+      # self.music.rewind()
 
     if self.guitarTrack:
       self.guitarTrack.stop()
@@ -3993,7 +4001,12 @@ def loadSong(engine, name, library = DEFAULT_LIBRARY, seekable = False, playback
       #rhythmFile = alternateRhythmFile
 
   if not os.path.isfile(drumFile):
+    drumFile = engine.resource.fileName(library, name, "drums_1.ogg")
+  if not os.path.isfile(drumFile):
     drumFile = None
+  else:
+    # Completes with the right filename in Song
+    drumFile = engine.resource.fileName(library, name)
   
   if not os.path.isfile(crowdFile):
     crowdFile = None

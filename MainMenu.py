@@ -153,9 +153,9 @@ class MainMenu(BackgroundLayer):
       self.menumusic = True
       engine.menuMusic = True
 
-      self.song = Audio.Music(self.engine.resource.fileName(sound))
+      self.song = Audio.Sound(self.engine.resource.fileName(sound))
       self.song.setVolume(self.engine.config.get("audio", "menu_volume"))
-      self.song.play(0)  #no loop
+      self.song.play()  #no loop
     else:
       self.menumusic = False
 
@@ -343,10 +343,10 @@ class MainMenu(BackgroundLayer):
         self.engine.menuMusic = True
     
         #self.song = Audio.Sound(self.engine.resource.fileName(sound))
-        self.song = Audio.Music(self.engine.resource.fileName(sound))
+        self.song = Audio.Sound(self.engine.resource.fileName(sound))
         self.song.setVolume(self.engine.config.get("audio", "menu_volume"))
         #self.song.play(-1)
-        self.song.play(0)  #no loop
+        self.song.play()  #no loop
       else:
         self.menumusic = False
         self.engine.menuMusic = False

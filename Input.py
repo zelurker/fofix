@@ -25,6 +25,7 @@
 import pygame
 import Log
 import Audio
+from Audio import MusicFinished
 
 ports = None
 midi = []
@@ -46,7 +47,7 @@ except ImportError:
 #haveMidi = False  #this line disables the rtmidi module for computers with 0 midi ports...has to be this way for now to avoid crashes.
 
 if haveMidi:
-  
+
   #MFH - check for and test MIDI output ports by playing a note
   try:
     Log.debug("Checking MIDI output ports for a wavetable or synth for sound generation...")
@@ -60,14 +61,14 @@ if haveMidi:
         midiOutList.append( rtmidi.RtMidiOut() )
         midiOutPortName = midiOutList[midiOutPortNumber].getPortName(midiOutPortNumber)
         Log.debug("MIDI Output port %d found: %s" % (midiOutPortNumber,midiOutPortName) )
-        
+
         #Log.debug("Testing MIDI Output port %d (%s)..." % (midiOutPortNumber,midiOutPortName) )
         #midiOutList[midiOutPortNumber].openPort(midiOutPortNumber)
         #midiOutList[midiOutPortNumber].sendMessage(144, 64, 90)
         ##midiOutList[midiOutPortNumber].closePort(midiOutPortNumber)
 
 
-        
+
         midiOutPortNumber += 1
   except Exception, e:
     Log.error(str(e))
@@ -129,40 +130,38 @@ import Config   #MFH
 class KeyListener:
   def keyPressed(self, key, unicode):
     pass
-    
+
   def keyReleased(self, key):
     pass
-  
+
   def lostFocus(self):
     pass
-  
+
   def exitRequested(self):
     pass
 
 class MouseListener:
   def mouseButtonPressed(self, button, pos):
     pass
-    
+
   def mouseButtonReleased(self, button, pos):
     pass
-    
+
   def mouseMoved(self, pos, rel):
     pass
-    
+
 class SystemEventListener:
   def screenResized(self, size):
     pass
-    
+
   def restartRequested(self):
     pass
-    
+
   def musicFinished(self):
     pass
-    
+
   def quit(self):
     pass
-
-MusicFinished = pygame.USEREVENT
 
 try:
   reversed
@@ -178,7 +177,7 @@ class Input(Task):
     self.logClassInits = Config.get("game", "log_class_inits")
     if self.logClassInits == 1:
       Log.debug("Input class init (Input.py)...")
-  
+
     Task.__init__(self)
     self.mouse                = pygame.mouse
     self.mouseListeners       = []
@@ -191,7 +190,7 @@ class Input(Task):
     self.type1                = self.controls.type[0]
     self.keyCheckerMode       = Config.get("game","key_checker_mode")
     self.disableKeyRepeat()
-    
+
     self.gameGuitars = 0
     self.gameDrums   = 0
     self.gameMics    = 0
@@ -206,8 +205,8 @@ class Input(Task):
     self.joysticks = [pygame.joystick.Joystick(id) for id in range(pygame.joystick.get_count())]
     for j in self.joysticks:
       j.init()
-      self.joystickAxes[j.get_id()] = [0] * j.get_numaxes() 
-      self.joystickHats[j.get_id()] = [(0, 0)] * j.get_numhats() 
+      self.joystickAxes[j.get_id()] = [0] * j.get_numaxes()
+      self.joystickHats[j.get_id()] = [(0, 0)] * j.get_numhats()
     joyNum = len(self.joysticks)
     Log.debug("%d joysticks found." % (joyNum))
     oldJoyNum = Config.get("game", "joysticks")
@@ -216,7 +215,7 @@ class Input(Task):
     Config.set("game", "joysticks", joyNum)
 
     # Enable music events
-    Audio.Music.setEndEvent(MusicFinished)
+    # Audio.setEndEvent(MusicFinished)
     #Audio.Music.setEndEvent()   #MFH - no event required?
 
     # Custom key names
@@ -252,25 +251,25 @@ class Input(Task):
         self.gameMics += 1
       elif self.controls.type[i] in Player.GUITARTYPES:
         self.gameGuitars += 1
-  
+
   def getAnalogKill(self, player):
     return self.controls.analogKill[self.activeGameControls[player]]
-  
+
   def getAnalogSP(self, player):
     return self.controls.analogSP[self.activeGameControls[player]]
-  
+
   def getAnalogSPThresh(self, player):
     return self.controls.analogSPThresh[self.activeGameControls[player]]
-  
+
   def getAnalogSPSense(self, player):
     return self.controls.analogSPSense[self.activeGameControls[player]]
-  
+
   def getAnalogSlide(self, player):
     return self.controls.analogSlide[self.activeGameControls[player]]
-  
+
   def getAnalogFX(self, player):
     return self.controls.analogFX[self.activeGameControls[player]]
-  
+
   def getTwoChord(self, player):
     return self.controls.twoChord[self.activeGameControls[player]]
 
@@ -305,18 +304,18 @@ class Input(Task):
   def addSystemEventListener(self, listener):
     if not listener in self.systemListeners:
       self.systemListeners.append(listener)
-      
+
   def removeSystemEventListener(self, listener):
     if listener in self.systemListeners:
       self.systemListeners.remove(listener)
-      
+
   def broadcastEvent(self, listeners, function, *args):
     for l in reversed(listeners):
       if getattr(l, function)(*args):
         return True
     else:
       return False
-    
+
   def broadcastSystemEvent(self, name, *args):
     return self.broadcastEvent(self.systemListeners, name, *args)
 
@@ -332,11 +331,11 @@ class Input(Task):
 
   def encodeJoystickAxis(self, joystick, axis, end):
     return 0x20000 + (joystick << 8) + (axis << 4) + end
-  
+
   def encodeJoystickHat(self, joystick, hat, pos):
     v = int((pos[1] + 1) * 3 + (pos[0] + 1))
-    return 0x30000 + (joystick << 8) + (hat << 4) + v 
-  
+    return 0x30000 + (joystick << 8) + (hat << 4) + v
+
   def decodeJoystickButton(self, id):
     id -= 0x10000
     return (id >> 8, id & 0xff)
@@ -358,7 +357,7 @@ class Input(Task):
       return (True, joy, axis)
     else:
       return (False, 0, 0)
-  
+
   def getJoysticksUsed(self, keys):
     midis = []
     joys  = []
@@ -380,7 +379,7 @@ class Input(Task):
         if joy not in joys:
           joys.append(joy)
       return [joys, midis]
-  
+
   def getKeyName(self, id):
     if id >= 0x40000:
       midi, but = self.decodeMidiButton(id)
@@ -494,7 +493,7 @@ class Input(Task):
           #if midimsg[0] == 153:
           noteOn = False
           noteOff = False
-          
+
           if (midimsg[0] >= 0x90) and (midimsg[0] <= 0x9F):   #note ON range
             if midimsg[2] > 0:  #velocity > 0, confirmed note on
               noteOn = True
@@ -506,7 +505,7 @@ class Input(Task):
           if noteOn:
             if not self.broadcastEvent(self.priorityKeyListeners, "keyPressed", id, u'\x00'):
               self.broadcastEvent(self.keyListeners, "keyPressed", id, u'\x00')
-          
+
           elif noteOff:
             if not self.broadcastEvent(self.priorityKeyListeners, "keyReleased", id):
               self.broadcastEvent(self.keyListeners, "keyReleased", id)
@@ -519,7 +518,7 @@ class Input(Task):
       Log.warn("Conflicting player controls, resetting to defaults")
       self.controls.restoreDefaultKeyMappings()
       self.reloadControls()
-  
+
   # glorandwarf: sets the new key mapping and checks for a conflict
   def setNewKeyMapping(self, section, option, key, control):
     return Player.setNewKeyMapping(section, option, key, control)
