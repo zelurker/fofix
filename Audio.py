@@ -30,6 +30,7 @@ from Task import Task
 import Config
 import glob
 import pdb
+from scipy import signal
 
 #stump: check for pitch bending support
 try:
@@ -291,6 +292,7 @@ if ogg:
       self.stream        = OggStream(self.fileName)
       self.fadeoutTime = None
       self.info = self.stream.info()
+      (self.freq,self.format,self.channels) = pygame.mixer.get_init()
       self.buffersIn     = [pygame.sndarray.make_sound(zeros((self.bufferSize,2 ))) for i in range(self.bufferCount + 1)]
       self.buffersOut    = []
       self.buffersBusy   = []
@@ -382,12 +384,22 @@ if ogg:
         if self.info.channels == 2:
           data = struct.unpack("%dh" % (len(data) / 2), data)
           samples = len(data) / 2
-          self.buffer[self.bufferPos:self.bufferPos + samples, 0] = data[0::2]
-          self.buffer[self.bufferPos:self.bufferPos + samples, 1] = data[1::2]
+	  if self.freq != self.info.rate:
+	      samples = samples*self.freq/self.info.rate
+	      datal = signal.resample(data[0::2],samples)
+	      datar = signal.resample(data[1::2],samples)
+	      self.buffer[self.bufferPos:self.bufferPos + samples, 0] = datal
+	      self.buffer[self.bufferPos:self.bufferPos + samples, 1] = datar
+	  else:
+	      self.buffer[self.bufferPos:self.bufferPos + samples, 0] = data[0::2]
+	      self.buffer[self.bufferPos:self.bufferPos + samples, 1] = data[1::2]
           self.bufferPos += samples
         elif self.info.channels == 1:
           samples = len(data)/2
           data = struct.unpack("%dh" % (samples), data)
+	  if self.freq != self.info.rate:
+	      samples = samples*self.freq/self.info.rate
+	      data = signal.resample(data,samples)
           self.buffer[self.bufferPos:self.bufferPos + samples,0] = data
           self.buffer[self.bufferPos:self.bufferPos + samples,1] = data
           self.bufferPos += samples
