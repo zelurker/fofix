@@ -69,7 +69,7 @@ class Loader(Thread):
 
       #...or maybe not at all...
       self.setPriority(priority = game_priority)
-      
+
       #wont work without ctypes
       #self.enableScreenSaver(0)
 
@@ -84,9 +84,9 @@ class Loader(Thread):
     """ Set The Priority of a Windows Process.  Priority is a value between 0-5 where
         2 is normal priority.  Default sets the priority of the current
         python process but can take any valid process ID. """
-        
+
     import win32api, win32process, win32con
-    
+
     priorityClasses = [win32process.IDLE_PRIORITY_CLASS,
                        win32process.BELOW_NORMAL_PRIORITY_CLASS,
                        win32process.NORMAL_PRIORITY_CLASS,
@@ -103,7 +103,7 @@ class Loader(Thread):
 #    import ctypes
 #    SPI_SETSCREENSAVEACTIVE = 17
 #    ctypes.windll.user32.SystemParametersInfoA(SPI_SETSCREENSAVEACTIVE, on, None, 0)
-    
+
   def cancel(self):
     self.canceled = True
 
@@ -121,10 +121,10 @@ class Loader(Thread):
       if self.onCancel:
         self.onCancel()
       return
-    
+
     if self.logLoadings == 1:
       Log.notice("Loaded %s.%s in %.3f seconds" % (self.target.__class__.__name__, self.name, self.time))
-    
+
     if self.exception:
       raise self.exception[0], self.exception[1], self.exception[2]
     if self.target and self.name:
@@ -164,8 +164,8 @@ class Resource(Task):
     self.baseLibrary = Config.get("game", "base_library")
     if self.baseLibrary and os.path.isdir(self.baseLibrary):
       self.songPath = [self.baseLibrary]
-  
-      
+
+
 
   def addDataPath(self, path):
     if not path in self.dataPaths:
@@ -176,7 +176,7 @@ class Resource(Task):
       self.dataPaths.remove(path)
 
   def fileName(self, *name, **args):
-    
+
     #myfingershurt: the following should be global, and only done at startup.  Not every damn time a file is loaded.
     #songPath = []
     #baseLibrary = Config.get("game", "base_library")
@@ -184,19 +184,18 @@ class Resource(Task):
     #  songPath = [baseLibrary]
     baseLibrary = self.baseLibrary
     songPath = self.songPath
-      
+
     if not args.get("writable", False):
       for dataPath in self.dataPaths + songPath:
         readOnlyPath = os.path.join(dataPath, *name)
-        # If the requested file is in the read-write path and not in the
-        # read-only path, use the existing read-write one.
-        if os.path.isfile(readOnlyPath):
+        if os.path.exists(readOnlyPath):
           return readOnlyPath
-        elif os.path.isdir(readOnlyPath):
-          return readOnlyPath
-        readWritePath = os.path.join(getWritableResourcePath(), *name)
-        if os.path.isfile(readWritePath):
-          return readWritePath
+      # If the requested file is in the read-write path and not in the
+      # read-only path, use the existing read-write one.
+      readWritePath = os.path.join(getWritableResourcePath(), *name)
+      if os.path.isfile(readWritePath):
+        return readWritePath
+      # Not found : return the path anyway
       return readOnlyPath
     else:
       for dataPath in [self.dataPaths[-1]] + songPath:
@@ -231,10 +230,10 @@ class Resource(Task):
           self.makeWritable(readWritePath)
         return readWritePath
       return readOnlyPath
-    
+
   def makeWritable(self, path):
     os.chmod(path, stat.S_IWRITE | stat.S_IREAD | stat.S_IEXEC)
-  
+
   def load(self, target = None, name = None, function = lambda: None, synch = False, onLoad = None, onCancel = None):
 
     if self.logLoadings == 1:
