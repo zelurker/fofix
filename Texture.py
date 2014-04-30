@@ -31,6 +31,7 @@ import StringIO
 from OpenGL.GL import *
 from OpenGL.GLU import *
 import os.path
+import gc
 
 class TextureException(Exception):
   pass
@@ -99,6 +100,34 @@ class Texture:
         self.loadRaw(image.size, string, GL_RGB, 3)
       except:
         raise TextureException("Unsupported image mode '%s'" % image.mode)
+    del image
+    del string
+    gc.collect()
+
+  def loadImageData(self,image):
+    """Load the texture from a PIL image"""
+    # Calling loadImage without parameter seems to vastly decrease the
+    # memory leak when using a theme with big bitmaps !!!
+    if image.mode == "RGBA":
+      string = image.tostring('raw', 'RGBA', 0, -1)
+      self.loadRaw(image.size, string, GL_RGBA, 4)
+    elif image.mode == "RGB":
+      string = image.tostring('raw', 'RGB', 0, -1)
+      self.loadRaw(image.size, string, GL_RGB, 3)
+    elif image.mode == "L":
+      string = image.tostring('raw', 'L', 0, -1)
+      self.loadRaw(image.size, string, GL_LUMINANCE, 1)
+    else:
+      try:
+        image = image.convert('RGB')
+        Log.warn("Unsupported image mode '%s' converted to 'RGB'. May have unexpected results." % image.mode)
+        string = image.tostring('raw', 'RGB', 0, -1)
+        self.loadRaw(image.size, string, GL_RGB, 3)
+      except:
+        raise TextureException("Unsupported image mode '%s'" % image.mode)
+    del image
+    del string
+    gc.collect()
 
   def nextPowerOfTwo(self, n):
     m = 1

@@ -531,7 +531,7 @@ class ImgDrawing:
         self.ImgData = open(ImgData).read()
     elif isinstance(ImgData, Image.Image): #stump: let a PIL image be passed in
       self.texture = Texture()
-      self.texture.loadImage(ImgData)
+      self.texture.loadImageData(ImgData)
 
     # Make sure we have a valid texture
     if not self.texture:
