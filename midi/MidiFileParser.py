@@ -132,7 +132,6 @@ class MidiFileParser:
                 # It should allways be there, but better safe than sorry
                 if raw_in.readBew(move_cursor=0) == END_OFF_EXCLUSIVE:
                     eo_sysex = raw_in.readBew()
-                dispatch.sysex_event(sysex_data)
                 # the sysex code has not been properly tested, and might be fishy!
 
 
@@ -196,5 +195,3 @@ if __name__ == '__main__':
     midi_in = MidiFileParser(RawInstreamFile(test_file), MidiToText())
     midi_in.parseMThdChunk()
     midi_in.parseMTrkChunks()
-
-€ýb€ýc€ýb€ýc
