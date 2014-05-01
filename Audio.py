@@ -294,6 +294,16 @@ if ogg:
       self.fadeoutTime = None
       self.info = self.stream.info()
       (self.freq,self.format,self.channels) = pygame.mixer.get_init()
+      if self.info.rate*self.speed != self.freq:
+          # try to re-open the mixer with this file's frequency
+          # the idea is to try to minimize the resampling work which is cpu
+          # intensive, it should work if different frequencies are not
+          # mixed on the same song
+          self.engine.audio.close()    #MFH - ensure no audio is playing during the switch!
+          self.engine.audio.pre_open(frequency = int(self.info.rate*self.speed), bits = self.engine.bits, stereo = self.engine.stereo, bufferSize = self.engine.bufferSize)
+          self.engine.audio.open(frequency = int(self.info.rate*self.speed), bits = self.engine.bits, stereo = self.engine.stereo, bufferSize = self.engine.bufferSize)
+          (self.freq,self.format,self.channels) = pygame.mixer.get_init()
+
       self.buffersIn     = [pygame.sndarray.make_sound(zeros((self.bufferSize,2 ))) for i in range(self.bufferCount + 1)]
       self.buffersOut    = []
       self.buffersBusy   = []
@@ -382,7 +392,7 @@ if ogg:
         if self.info.channels == 2:
           data = struct.unpack("%dh" % (len(data) / 2), data)
           samples = len(data) / 2
-	  if self.freq != self.info.rate or self.speed != 1:
+          if self.freq != self.info.rate*self.speed:
 	      samples = int(samples*self.freq/(self.info.rate*self.speed))
 	      datal = signal.resample(data[0::2],samples)
 	      datar = signal.resample(data[1::2],samples)
@@ -395,7 +405,7 @@ if ogg:
         elif self.info.channels == 1:
           samples = len(data)/2
           data = struct.unpack("%dh" % (samples), data)
-	  if self.freq != self.info.rate or self.speed != 1:
+          if self.freq != self.info.rate*self.speed:
 	      samples = int(samples*self.freq/(self.info.rate*self.speed))
 	      data = signal.resample(data,samples)
           self.buffer[self.bufferPos:self.bufferPos + samples,0] = data
