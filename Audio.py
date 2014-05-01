@@ -345,9 +345,6 @@ if ogg:
       self.playing = False
       if self.channel:
         self.channel.stop()
-        if self.event:
-            print "sending endevent"
-            pygame.event.post(pygame.event.Event(self.event,{}))
       self.engine.removeTask(self)
       self._reset()
 
@@ -438,8 +435,10 @@ if ogg:
         return
 
       if self.fadeoutTime and time.time() >= self.fadeoutTime:
-          self.stop()
-          return
+        if self.event:
+            pygame.event.post(pygame.event.Event(self.event,{}))
+        self.stop()
+        return
       #myfingershurt: this is now done directly when called.
       #self.channel.setVolume(self.volume)
 
@@ -455,6 +454,9 @@ if ogg:
           self.buffersIn.insert(0, self.buffersBusy.pop())
 
       if not self.buffersOut and self.done and not self.channel.get_busy():
+        if self.event:
+            # Send the event only when the sound ends normally
+            pygame.event.post(pygame.event.Event(self.event,{}))
         self.stop()
 
 # Debian has no Python Numeric module anymore
