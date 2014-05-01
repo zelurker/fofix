@@ -144,7 +144,7 @@ class OneSound(object):
       self.sound.fadeout(time)
 
 class Sound(object):
-  def __init__(self,  fileName, engine = None):
+  def __init__(self,  fileName, engine = None, speed = 1):
     files = fileName.split(";")
     self.fileName = fileName
     self.sounds = []
@@ -153,6 +153,7 @@ class Sound(object):
     self.playTime = 0
     self.isPause = False
     self.Playing = False
+    self.speed = speed
     for file in files:
         for f in glob.glob(file):
             duration = 0
@@ -167,7 +168,7 @@ class Sound(object):
             # memory.
             if duration > 30:
               print "streaming ",f
-              self.sounds.append(StreamingOggSound(f, engine))
+              self.sounds.append(StreamingOggSound(f, engine,speed=self.speed))
             else:
               self.sounds.append(OneSound(f))
 
@@ -184,7 +185,7 @@ class Sound(object):
     self.isPause = True
 
   def unpause(self):
-    self.pausePos /= 1000 # return to time
+    self.pausePos /= 1000*self.speed # return to time
     self.pausePos += self.playTime
     self.playTime += time.time() - self.pausePos
     self.isPause = False
@@ -200,7 +201,7 @@ class Sound(object):
         return 0
     if self.isPause:
         return self.pausePos
-    t = (time.time() - self.playTime)*1000 # number of ms !
+    t = (time.time() - self.playTime)*1000*self.speed # number of ms !
     return t
 
   def isPlaying(self):
@@ -262,7 +263,7 @@ if ogg:
       # when initialized even before starting playback just to be sure to
       # be able to start to play immediately.
 
-    def __init__(self, fileName,engine):
+    def __init__(self, fileName,engine,speed = 1):
       Task.__init__(self)
       if not engine:
         engine = GameEngine.getEngine()
@@ -274,6 +275,7 @@ if ogg:
       self.bufferCount  = 8
       self.volume       = 1.0
       self.event = None
+      self.speed = speed
 
         #myfingershurt: buffer is 2D array (one D for each channel) of 16-bit UNSIGNED integers / samples
         #  2*1024*64 = 131072 samples per channel
@@ -283,8 +285,7 @@ if ogg:
       self._reset()
 
     def getPosition(self):
-        # Tricky : we can get the pos from the ogg stream, but then there is
-        # the problem of the buffers... it will be rather unprecise !
+        # not used - see Sound.getPosition instead
         return 0
 
     def _reset(self):
@@ -381,8 +382,8 @@ if ogg:
         if self.info.channels == 2:
           data = struct.unpack("%dh" % (len(data) / 2), data)
           samples = len(data) / 2
-	  if self.freq != self.info.rate:
-	      samples = samples*self.freq/self.info.rate
+	  if self.freq != self.info.rate or self.speed != 1:
+	      samples = int(samples*self.freq/(self.info.rate*self.speed))
 	      datal = signal.resample(data[0::2],samples)
 	      datar = signal.resample(data[1::2],samples)
 	      self.buffer[self.bufferPos:self.bufferPos + samples, 0] = datal
@@ -394,8 +395,8 @@ if ogg:
         elif self.info.channels == 1:
           samples = len(data)/2
           data = struct.unpack("%dh" % (samples), data)
-	  if self.freq != self.info.rate:
-	      samples = samples*self.freq/self.info.rate
+	  if self.freq != self.info.rate or self.speed != 1:
+	      samples = int(samples*self.freq/(self.info.rate*self.speed))
 	      data = signal.resample(data,samples)
           self.buffer[self.bufferPos:self.bufferPos + samples,0] = data
           self.buffer[self.bufferPos:self.bufferPos + samples,1] = data

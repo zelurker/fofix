@@ -69,13 +69,13 @@ class ConfigOption:
   def __init__(self, id, text):
     self.id   = id
     self.text = text
-  
+
   def __str__(self):
     return self.text
-  
+
   def __repr__(self):
     return self.text
-  
+
   def __cmp__(self, other):
     try:
       return cmp(self.id, other.id)
@@ -169,8 +169,8 @@ Config.define("performance", "max_players", int, 2, text = _("Max Players"), opt
 #myfingershurt:
 Config.define("game",  "stage_rotate_delay",        int,   800,   text = _("Slideshow Delay"), options = dict([(n, n) for n in range(0, 10, 1)] + [(n, n) for n in range(10, 50, 10)] + [(n, n) for n in range(50, 2001, 50)]), tipText = _("Sets how long, in milliseconds, to wait between each frame in a stage slideshow."))
 Config.define("game",  "stage_animate_delay",        int,   3,   text = _("Animation Delay"), options = dict([(n, n) for n in range(0, 10, 1)] + [(n, n) for n in range(10, 50, 10)] + [(n, n) for n in range(50, 2001, 50)]), tipText = _("Sets how long, in milliseconds, to wait between each frame in a stage animation."))
-Config.define("game",   "rotate_stages",           int,  0,  text = _("Stage Slideshow"),  options = {0: _("Off"), 1: _("Random"), 2: _("In Order"), 3: _("BackNForth")}, tipText = _("Sets the method used to rotate frames in a stage slideshow.")) 
-Config.define("game",   "stage_animate",           int,  0,  text = _("Stage Animation"),  options = {0: _("Off"), 1: _("Random"), 2: _("In Order"), 3: _("BackNForth")}, tipText = _("Sets the method used to rotate frames in a stage animation.")) 
+Config.define("game",   "rotate_stages",           int,  0,  text = _("Stage Slideshow"),  options = {0: _("Off"), 1: _("Random"), 2: _("In Order"), 3: _("BackNForth")}, tipText = _("Sets the method used to rotate frames in a stage slideshow."))
+Config.define("game",   "stage_animate",           int,  0,  text = _("Stage Animation"),  options = {0: _("Off"), 1: _("Random"), 2: _("In Order"), 3: _("BackNForth")}, tipText = _("Sets the method used to rotate frames in a stage animation."))
 Config.define("game",   "stage_mode",           int,  0,  text = _("Stage Selection"),  options = {0: _("Random"), 1: _("Default"), 2: _("Blank")}, tipText = _("Set the background for your stage. Default will use the default background, and Blank puts you in a dark room. Probably a lot like the one you're in now."))
 Config.define("game",   "song_stage",           int,  1,  text = _("Song Stage"),  options = {0: _("Off"), 1: _("On") }, tipText = _("Fretters can include a stage to be used with their songs. If this is enabled, you can see it.")) #MFH
 Config.define("game",   "lyric_mode",           int,   2,   text = _("Script Lyric Display"), options = sortOptionsByKey({0: _("Off"), 1: _("By Song"), 2: _("Always"), 3: _("Dual Lyric Prevention")}), tipText = _("Sets whether lyrics from a script.txt file are displayed. 'By Song' lets the fretter decide. 'Always' always displays script lyrics, if available, and 'Dual Lyric Prevention' will disable script lyrics if there are MIDI lyrics. (This is affected by the 'Performance' quickset)"))#racer
@@ -193,7 +193,7 @@ Config.define("game",   "star_claps",          bool, False,  text = _("Starpower
 Config.define("audio", "disable_preview",      bool, True,  text = _("Song Previews"), options = {False: _("Automatic"), True: _("Yellow Fret (#3)")}, tipText = _("If set to 'Automatic', songs will automatically start previewing when you select them. Otherwise you must press the third fret."))
 Config.define("game", "uploadurl_w67_starpower",    str,   "http://www.wembley1967.com/chart/uploadsp.php") # evilynux - new one starting 20080902
 Config.define("game", "rb_sp_neck_glow",      bool, False,  text = _("RB SP Neck Glow"), options = {False: _("Off"), True: _("On")}, tipText = _("Sets a neck glow effect during SP in RB-type themes."))
-Config.define("game",   "sp_notes_while_active",  int,  2,  text = _("SP Refill Mode"),  options = sortOptionsByKey({0: _("None"), 1: _("By Theme"), 2: _("By MIDI Type"), 3: _("Always")}), tipText = _("Sets whether you can earn more starpower while using it. In 'By MIDI Type', only MIDIs that mark RB-style sections will use this. (This is set by the 'Gameplay' quickset)")) 
+Config.define("game",   "sp_notes_while_active",  int,  2,  text = _("SP Refill Mode"),  options = sortOptionsByKey({0: _("None"), 1: _("By Theme"), 2: _("By MIDI Type"), 3: _("Always")}), tipText = _("Sets whether you can earn more starpower while using it. In 'By MIDI Type', only MIDIs that mark RB-style sections will use this. (This is set by the 'Gameplay' quickset)"))
 
 #MFH wuz here.  Yeah.
 Config.define("game", "kill_debug",      bool, False,  text = _("Effects Debug"), options = {False: _("Off"), True: _("On")}, tipText = _("If enabled, will show on-screen the raw data of your killswitch/whammy."))
@@ -280,15 +280,15 @@ Config.define("game", "beat_claps",          bool, False,  text = _("Practice Be
 Config.define("game", "HSMovement",      int,   1,   text = _("Change Score Display"),    options = {0: _("Auto"), 1: _("Blue Fret (#4)")}, tipText = _("Sets whether to change the setlist high score difficulty automatically or with the fourth fret.")) #racer
 
 #Q
-Config.define("game", "battle_Whammy",      int,   1,   text = _("Whammy"),    options = {0: _("Off"), 1: _("On")}, tipText = _("Makes opponent miss notes until the whammy bar is pushed a few times")) 
-Config.define("game", "battle_Diff_Up",      int,   1,   text = _("Difficulty Up"),    options = {0: _("Off"), 1: _("On")}, tipText = _("Ups opponent's difficulty for a while (if not playing on Expert)")) 
-Config.define("game", "battle_String_Break",      int,   1,   text = _("String Break"),    options = {0: _("Off"), 1: _("On")}, tipText = _("Breaks a string, causing your opponent to miss notes on that fret until they push the fret button several times.")) 
-Config.define("game", "battle_Double",      int,   1,   text = _("Double Notes"),    options = {0: _("Off"), 1: _("On")}, tipText = _("Makes single notes into chords, and chords into even bigger ones.")) 
-Config.define("game", "battle_Death_Drain",      int,   2,   text = _("Death Drain"),    options = {0: _("Off"), 1: _("On"), 2: _("Sudden Death Only")}, tipText = _("Drains your opponents life until they die. 'Sudden Death Only' keeps this from appearing until you reach sudden death mode.")) 
-Config.define("game", "battle_Amp_Overload",      int,   1,   text = _("Amp Overload"),    options = {0: _("Off"), 1: _("On")}, tipText = _("Makes opponent's amp flip out, making notes disappear and reappear randomly.")) 
-Config.define("game", "battle_Switch_Controls",      int,   1,   text = _("Switch Controls"),    options = {0: _("Off"), 1: _("On")}, tipText = _("Switches opponent to (or from) lefty mode for a bit!")) 
-Config.define("game", "battle_Steal",      int,   1,   text = _("Steal Object"),    options = {0: _("Off"), 1: _("On")}, tipText = _("Steals an object your opponent has.")) 
-Config.define("game", "battle_Tune",      int,   1,   text = _("Guitar Tune"),    options = {0: _("Off"), 1: _("On")}, tipText = _("Makes opponent miss all notes until they play a scale.")) 
+Config.define("game", "battle_Whammy",      int,   1,   text = _("Whammy"),    options = {0: _("Off"), 1: _("On")}, tipText = _("Makes opponent miss notes until the whammy bar is pushed a few times"))
+Config.define("game", "battle_Diff_Up",      int,   1,   text = _("Difficulty Up"),    options = {0: _("Off"), 1: _("On")}, tipText = _("Ups opponent's difficulty for a while (if not playing on Expert)"))
+Config.define("game", "battle_String_Break",      int,   1,   text = _("String Break"),    options = {0: _("Off"), 1: _("On")}, tipText = _("Breaks a string, causing your opponent to miss notes on that fret until they push the fret button several times."))
+Config.define("game", "battle_Double",      int,   1,   text = _("Double Notes"),    options = {0: _("Off"), 1: _("On")}, tipText = _("Makes single notes into chords, and chords into even bigger ones."))
+Config.define("game", "battle_Death_Drain",      int,   2,   text = _("Death Drain"),    options = {0: _("Off"), 1: _("On"), 2: _("Sudden Death Only")}, tipText = _("Drains your opponents life until they die. 'Sudden Death Only' keeps this from appearing until you reach sudden death mode."))
+Config.define("game", "battle_Amp_Overload",      int,   1,   text = _("Amp Overload"),    options = {0: _("Off"), 1: _("On")}, tipText = _("Makes opponent's amp flip out, making notes disappear and reappear randomly."))
+Config.define("game", "battle_Switch_Controls",      int,   1,   text = _("Switch Controls"),    options = {0: _("Off"), 1: _("On")}, tipText = _("Switches opponent to (or from) lefty mode for a bit!"))
+Config.define("game", "battle_Steal",      int,   1,   text = _("Steal Object"),    options = {0: _("Off"), 1: _("On")}, tipText = _("Steals an object your opponent has."))
+Config.define("game", "battle_Tune",      int,   1,   text = _("Guitar Tune"),    options = {0: _("Off"), 1: _("On")}, tipText = _("Makes opponent miss all notes until they play a scale."))
 
 #blazingamer
 Config.define("game", "congrats",       bool, True,     text = _("Score SFX"),             options = {True: _("On"), False: _("Off")}, tipText = _("Sets whether or not to have Jurgen taunt (or, I suppose, congratulate) you at the end of a song."))#blazingamer
@@ -423,7 +423,7 @@ class FullScreenSwitcher(KeyListener):
   def __init__(self, engine):
     self.engine = engine
     self.altStatus = False
-  
+
   def keyPressed(self, key, unicode):
     if key == pygame.K_LALT:
       self.altStatus = True
@@ -441,7 +441,7 @@ class FullScreenSwitcher(KeyListener):
   def keyReleased(self, key):
     if key == pygame.K_LALT:
       self.altStatus = False
-      
+
 class SystemEventHandler(SystemEventListener):
   """
   A system event listener that takes care of restarting the game when needed
@@ -452,10 +452,10 @@ class SystemEventHandler(SystemEventListener):
 
   def screenResized(self, size):
     self.engine.resizeScreen(size[0], size[1])
-    
+
   def restartRequested(self):
     self.engine.restart()
-    
+
   def quit(self):
     self.engine.quit()
 
@@ -475,9 +475,9 @@ class GameEngine(Engine):
     #  Log.debug("GameEngine class init (GameEngine.py)...")
     Log.debug("GameEngine class init (GameEngine.py)...")
     self.mainMenu = None    #placeholder for main menu object - to prevent reinstantiation
-    
+
     self.createdGuitarScene = False   #MFH - so we only create ONE guitarscene...!
-    
+
     self.versionString = version  #stump: other version stuff moved to allow full version string to be retrieved without instantiating GameEngine
     self.uploadVersion = "%s-3.100" % Version.appNameSexy() #akedrou - the version passed to the upload site.
 
@@ -492,12 +492,12 @@ class GameEngine(Engine):
 
     if not config:
       config = Config.load()
-      
+
     self.config  = config
-    
+
     fps          = self.config.get("video", "fps")
     Engine.__init__(self, fps = fps)
-    
+
     self.title             = self.versionString
     self.restartRequested  = False
     self.handlingException = False
@@ -529,18 +529,18 @@ class GameEngine(Engine):
     self.quicksetPerf      = self.config.get("quickset", "performance")
     self.scrollRate        = self.config.get("game", "scroll_rate")
     self.scrollDelay       = self.config.get("game", "scroll_delay")
-    
+
     Log.debug("Initializing audio.")
     frequency    = self.config.get("audio", "frequency")
     bits         = self.config.get("audio", "bits")
     stereo       = self.config.get("audio", "stereo")
     bufferSize   = self.config.get("audio", "buffersize")
-    
+
     self.frequency = frequency    #MFH - store this for later reference!
     self.bits = bits
     self.stereo = stereo
     self.bufferSize = bufferSize
-    
+
     self.cmdPlay           = 0
     self.cmdDiff           = None
     self.cmdPart           = None
@@ -548,13 +548,13 @@ class GameEngine(Engine):
     #self.audio.pre_open(frequency = frequency, bits = bits, stereo = stereo, bufferSize = bufferSize)
     #self.audio.open(frequency = frequency, bits = bits, stereo = stereo, bufferSize = bufferSize)
     #pygame.init()
-    
+
     #MFH - TODO - Audio speed divisor needs to be changed to audio speed factor, so can support 0.75x (3/4 speed)
-    
-    
+
+
     self.audioSpeedFactor = 0
-    self.setSpeedFactor(1)   #MFH - handles initialization at full speed    
-    
+    self.setSpeedFactor(1)   #MFH - handles initialization at full speed
+
     Log.debug("Initializing video.")
     #myfingershurt: ensuring windowed mode starts up in center of the screen instead of cascading positions:
     os.environ['SDL_VIDEO_WINDOW_POS'] = 'center'
@@ -566,11 +566,11 @@ class GameEngine(Engine):
     fullscreen    = self.config.get("video", "fullscreen")
     multisamples  = self.config.get("video", "multisamples")
     self.video.setMode((width, height), fullscreen = fullscreen, multisamples = multisamples)
-    
+
     if self.video.default:
       self.config.set("video", "fullscreen", False)
       self.config.set("video", "resolution", "800x600")
-    
+
     if self.config.get("video", "shader_use"):
       shaders.set(os.path.join(Version.dataPath(), "shaders"))
 
@@ -602,14 +602,14 @@ class GameEngine(Engine):
     self.mainloop  = self.loading
     self.menuMusic = False
 
-    
+
     # Load game modifications
     Mod.init(self)
     self.addTask(self.input, synchronized = False)
-    
+
     #self.addTask(self.view)
     self.addTask(self.view, synchronized = False)
-    
+
     self.addTask(self.resource, synchronized = False)
 
     self.data = Data(self.resource, self.svg)
@@ -622,10 +622,10 @@ class GameEngine(Engine):
     ##MFH: Animated stage folder selection option
     #<themename>\Stages still contains the backgrounds for when stage rotation is off, and practice.png
     #subfolders under Stages\ will each be treated as a separate animated stage set
-    
+
     self.stageFolders = []
     currentTheme = themename
-    
+
     stagespath = os.path.join(Version.dataPath(), "themes", currentTheme, "stages")
     if os.path.exists(stagespath):
       self.stageFolders = []
@@ -657,13 +657,13 @@ class GameEngine(Engine):
       if i > 1:   #only add Random setting if more than one animated stage exists
         aniStageOptions.update({"Random":_("Random")})
       Config.define("game", "animated_stage_folder", str, defaultAniStage, text = _("Animated Stage"), options = aniStageOptions )
-      
+
       #MFH: here, need to track and check a new ini entry for last theme - so when theme changes we can re-default animated stage to first found
       lastTheme = self.config.get("game","last_theme")
       if lastTheme == "" or lastTheme != currentTheme:   #MFH - no last theme, and theme just changed:
         self.config.set("game","animated_stage_folder",defaultAniStage)   #force defaultAniStage
       self.config.set("game","last_theme",currentTheme)
-      
+
       selectedAnimatedStage = self.config.get("game", "animated_stage_folder")
       if selectedAnimatedStage != "Normal" and selectedAnimatedStage != "Random":
         if not os.path.exists(os.path.join(stagespath,selectedAnimatedStage)):
@@ -674,16 +674,16 @@ class GameEngine(Engine):
       Log.warn("No stages\ folder found, forcing None setting for Animated Stage.")
       self.config.set("game","animated_stage_folder", "None") #MFH: force "None" when Stages folder can't be found
 
-    
+
     # Load default theme
     try:
       theme = Config.load(self.resource.fileName("themes", themename, "theme.ini"))
     except IOError:
       theme = Config.load(self.resource.fileName("theme.ini"))
     Theme.open(theme, self.getPath(os.path.join("themes",self.data.themeLabel,"menu")))
-  
 
-    
+
+
     self.input.addKeyListener(FullScreenSwitcher(self), priority = True)
     self.input.addSystemEventListener(SystemEventHandler(self))
 
@@ -691,7 +691,7 @@ class GameEngine(Engine):
     self.startupLayer       = None
     self.loadingScreenShown = False
     self.graphicMenuShown   = False
-    
+
     # evilynux - Printing on the console with a frozen binary may cause a crash.
     if hasattr(sys, "frozen"):
       self.print_fps_in_console = False
@@ -699,7 +699,7 @@ class GameEngine(Engine):
       self.print_fps_in_console = True
 
     Log.debug("Ready.")
-    
+
 
   def setSpeedFactor(self, factor):     #MFH - allows for slowing down streaming audio tracks
     #MFH - test to see if re-initializing the mixer here at 22050 Hz after loading the sounds at 44100 Hz results in half speed playback
@@ -707,7 +707,7 @@ class GameEngine(Engine):
     #  self.audio.close()
     #except:
     #  pass
-    
+
     if self.audioSpeedFactor != factor:   #MFH - don't re-init to the same divisor.
       try:
         self.audio.close()    #MFH - ensure no audio is playing during the switch!
@@ -718,7 +718,7 @@ class GameEngine(Engine):
         Log.debug("Initializing pygame.mixer & audio system at " + str(self.frequency*factor) + " Hz." )
       except Exception, e:
         Log.error("Failed to initialize or re-initialize pygame.mixer & audio system - crash imminent!")
-  
+
   # evilynux - This stops the crowd cheers if they're still playing (issue 317).
   def quit(self):
     self.audio.close()
@@ -736,7 +736,7 @@ class GameEngine(Engine):
 
   def isDebugModeEnabled(self):
     return bool(self.debugLayer)
-    
+
   def setDebugModeEnabled(self, enabled):
     """
     Show or hide the debug layer.
@@ -747,7 +747,7 @@ class GameEngine(Engine):
       self.debugLayer = DebugLayer(self)
     else:
       self.debugLayer = None
-    
+
   def toggleFullscreen(self):
     """
     Toggle between fullscreen and windowed mode.
@@ -761,7 +761,7 @@ class GameEngine(Engine):
       return True
     self.config.set("video", "fullscreen", self.video.fullscreen)
     return True
-    
+
   def restart(self):
     """Restart the game."""
     if not self.restartRequested:
@@ -771,7 +771,7 @@ class GameEngine(Engine):
       # evilynux - With self.audio.close(), calling self.quit() results in
       #            a crash. Calling the parent directly as a workaround.
       Engine.quit(self)
-    
+
   def resizeScreen(self, width, height):
     """
     Resize the game screen.
@@ -781,7 +781,7 @@ class GameEngine(Engine):
     """
     self.view.setGeometry((0, 0, width, height))
     self.svg.setGeometry((0, 0, width, height))
-    
+
   def isServerRunning(self):
     return bool(self.server)
 
@@ -827,7 +827,7 @@ class GameEngine(Engine):
   def loadImgDrawing(self, target, name, fileName, textureSize = None):
     """
     Load an SVG drawing synchronously.
-    
+
     @param target:      An object that will own the drawing
     @param name:        The name of the attribute the drawing will be assigned to
     @param fileName:    The name of the file in the data directory
@@ -882,7 +882,7 @@ class GameEngine(Engine):
   #blazingamer - cleans up the work for rendering an image
   #volshebnyi - now images can be resized to fit to screen
   def drawImage(self, image, scale, coord, rot = 0, color = (1,1,1,1), rect = (0,1,0,1), stretched = 0, lOffset = 0.0, rOffset = 0.0):
-    
+
     image.transform.reset()
     image.transform.rotate(rot)
     if stretched == 0: #don't sctretch
@@ -904,11 +904,11 @@ class GameEngine(Engine):
   def draw3Dtex(self, image, vertex, texcoord, coord = None, scale = None, rot = None, color = (1,1,1), multiples = False, alpha = False, depth = False, vertscale = 0):
 
 #####how to set items#####
-  
+
 
 ##    tex = self.xxx
 ##    tells the system which image/resource should be mapped to the plane
-##  
+##
 ##    rot = (degrees, x-axis, y-axis, z-axis)
 ##    a digit in the axis is how many times you want to rotate degrees around that axis
 ##
@@ -938,7 +938,7 @@ class GameEngine(Engine):
 ##    depth = True/False
 ##    sets the depth by which the object is rendered
 ##    only really used by keys and notes
-##      
+##
 ##    vertscale = #
 ##    changes the yscale when setting vertex points
 ##    only really used by notes
@@ -956,13 +956,13 @@ class GameEngine(Engine):
                          [color[0],color[1],color[2], 1],
                          [color[0],color[1],color[2], 1],
                          [color[0],color[1],color[2], 1]], dtype=float32)
-    
-    glEnable(GL_TEXTURE_2D)  
+
+    glEnable(GL_TEXTURE_2D)
     image.texture.bind()
-    
+
     if multiples == True:
       glPushMatrix()
-      
+
     if coord != None:
       glTranslate(coord[0], coord[1], coord[2])
     if rot != None:
@@ -985,7 +985,7 @@ class GameEngine(Engine):
          [texcoord[0], texcoord[3]],
          [texcoord[2], texcoord[3]]], dtype=float32)
 
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY)    
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY)
     glEnableClientState(GL_VERTEX_ARRAY)
     glEnableClientState(GL_COLOR_ARRAY)
     glTexCoordPointerf(textriangVtx)
@@ -995,21 +995,21 @@ class GameEngine(Engine):
     glDisableClientState(GL_VERTEX_ARRAY)
     glDisableClientState(GL_TEXTURE_COORD_ARRAY)
     glDisableClientState(GL_COLOR_ARRAY)
-    
+
     if depth == True:
       glDepthMask(0)
-      
+
     if multiples == True:
       glPopMatrix()
 
     glDisable(GL_TEXTURE_2D)
-    
+
     if alpha == True:
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)                   
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   #glorandwarf: renamed to retrieve the path of the file
   def fileExists(self, fileName):
     return self.data.fileExists(fileName)
-  
+
   def getPath(self, fileName):
     return self.data.getPath(fileName)
 
@@ -1017,7 +1017,7 @@ class GameEngine(Engine):
     """Loading state loop."""
     done = Engine.run(self)
     self.clearScreen()
-    
+
     if self.data.essentialResourcesLoaded():
       if not self.loadingScreenShown:
         self.loadingScreenShown = True
@@ -1054,7 +1054,7 @@ class GameEngine(Engine):
           self.fpsEstimate = self.frames*(1000.0/self.elapsedTime)
           if self.print_fps_in_console == True:
             print("%.2f fps" % self.fpsEstimate)
-          self.frames = 0 
+          self.frames = 0
       return done
     except:
       Log.error("Loading error: ")

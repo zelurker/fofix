@@ -2627,7 +2627,8 @@ class NoteTrack(Track):   #MFH - special Track type for note events, with markin
 
 
 class Song(object):
-  def __init__(self, engine, infoFileName, songTrackName, guitarTrackName, rhythmTrackName, noteFileName, scriptFileName = None, partlist = [parts[GUITAR_PART]], drumTrackName = None, crowdTrackName = None):
+  def __init__(self, engine, infoFileName, songTrackName, guitarTrackName, rhythmTrackName, noteFileName, scriptFileName = None, partlist = [parts[GUITAR_PART]], drumTrackName = None, crowdTrackName = None,speed = 1):
+    print "song creation received speed ",speed
     self.engine        = engine
     
     self.logClassInits = self.engine.config.get("game", "log_class_inits")
@@ -2714,7 +2715,7 @@ class Song(object):
         dir = os.path.dirname(songTrackName)
         songTrackName = engine.resource.fileName( dir, "song.ogg")+";"+engine.resource.fileName(dir, "vocals.ogg")
       print "song ",songTrackName
-      self.music       = Audio.Sound(songTrackName)
+      self.music       = Audio.Sound(songTrackName,speed=speed)
       self.music.setEndEvent(MusicFinished)
 
     self.guitarTrack = None
@@ -2729,13 +2730,13 @@ class Song(object):
 
     try:
       if guitarTrackName:
-        self.guitarTrack = Audio.Sound( guitarTrackName, self.engine)
+        self.guitarTrack = Audio.Sound( guitarTrackName, self.engine,speed=speed)
     except Exception, e:
       Log.warn("Unable to load guitar track: %s" % e)
 
     try:
       if rhythmTrackName:
-        self.rhythmTrack = Audio.Sound(rhythmTrackName,self.engine)
+        self.rhythmTrack = Audio.Sound(rhythmTrackName,self.engine,speed=speed)
     except Exception, e:
       Log.warn("Unable to load rhythm track: %s" % e)
 
@@ -2743,13 +2744,13 @@ class Song(object):
     try:
       if drumTrackName:
         drumTrackName = engine.resource.fileName(drumTrackName, "drums.ogg")+";"+engine.resource.fileName(drumTrackName, "drums_?.ogg")
-        self.drumTrack = Audio.Sound( drumTrackName, self.engine)
+        self.drumTrack = Audio.Sound( drumTrackName, self.engine,speed=speed)
     except Exception, e:
       Log.warn("Unable to load drum track: %s" % e)
       
     try:
       if crowdTrackName:
-        self.crowdTrack = Audio.Sound( crowdTrackName, self.engine)
+        self.crowdTrack = Audio.Sound( crowdTrackName, self.engine,speed=speed)
     except Exception, e:
       Log.warn("Unable to load crowd track: %s" % e)
 
@@ -4046,12 +4047,11 @@ def loadSong(engine, name, library = DEFAULT_LIBRARY, seekable = False, playback
     slowDownFactor = practiceSpeed
   else:
     slowDownFactor = engine.config.get("audio", "speed_factor")
-  engine.setSpeedFactor(slowDownFactor)    #MFH 
     
 
   #MFH - check for slowdown mode here.  If slowdown, and single track song (or practice mode), 
   #  duplicate single track to a streamingAudio track so the slowed down version can be heard.
-  if engine.audioSpeedFactor != 1:
+  if slowDownFactor != 1:
     crowdFile = None
     #count tracks:
     audioTrackCount = 0
@@ -4091,7 +4091,7 @@ def loadSong(engine, name, library = DEFAULT_LIBRARY, seekable = False, playback
     previewFile = None
     drumFile = None
       
-  song       = Song(engine, infoFile, songFile, guitarFile, rhythmFile, noteFile, scriptFile, part, drumFile, crowdFile)
+  song       = Song(engine, infoFile, songFile, guitarFile, rhythmFile, noteFile, scriptFile, part, drumFile, crowdFile,slowDownFactor)
   return song
 
 def loadSongInfo(engine, name, library = DEFAULT_LIBRARY):
