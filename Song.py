@@ -2713,8 +2713,7 @@ class Song(object):
     if songTrackName:
       if songTrackName.lower().endswith("song.ogg"):
         dir = os.path.dirname(songTrackName)
-        songTrackName = engine.resource.fileName( dir, "song.ogg")+";"+engine.resource.fileName(dir, "vocals.ogg")
-      print "song ",songTrackName
+        songTrackName = engine.resource.fileName( dir, "song.ogg")+";"+engine.resource.fileName(dir, "vocals*.ogg")+";"+engine.resource.fileName(dir, "keys.ogg")
       self.music       = Audio.Sound(songTrackName,speed=speed)
       self.music.setEndEvent(MusicFinished)
 
