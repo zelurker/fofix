@@ -62,7 +62,7 @@ class Data(object):
     self.logClassInits = Config.get("game", "log_class_inits")
     if self.logClassInits == 1:
       Log.debug("Data class init (Data.py)...")
-    
+
     self.resource = resource
     self.svg      = svg
 
@@ -101,7 +101,7 @@ class Data(object):
       themename = defaultTheme
       self.themeLabel = themename
 
-    
+
     if not os.path.exists(os.path.join(Version.dataPath(), "themes", themename, "vocals")):
       self.vocalPath = "vocals"
     else:
@@ -129,7 +129,7 @@ class Data(object):
     #MFH - but we do need these star1-4 images anyway.  Leaving them loaded here in the Data object.
     self.loadImgDrawing(self, "star1",   os.path.join("themes",themename,"star1.png"), textureSize = (128, 128))
     self.loadImgDrawing(self, "star2",   os.path.join("themes",themename,"star2.png"), textureSize = (128, 128))
-    
+
     #MFH - let's not rely on errors here if we don't have to...
     if self.fileExists(os.path.join("themes",themename,"star3.png")):
       self.loadImgDrawing(self, "star3",   os.path.join("themes",themename,"star3.png"), textureSize = (128, 128))
@@ -139,7 +139,7 @@ class Data(object):
       self.loadImgDrawing(self, "star4",   os.path.join("themes",themename,"star4.png"), textureSize = (128, 128))
     else:
       self.star4 = self.star2
-      
+
 
     if self.fileExists(os.path.join("themes",themename,"starperfect.png")):
       self.loadImgDrawing(self, "starPerfect",   os.path.join("themes",themename,"starperfect.png"), textureSize = (128, 128))
@@ -161,7 +161,7 @@ class Data(object):
         #self.starFC = None
         self.starFC = self.starPerfect
         self.fcStars = False
-      
+
     #self.loadImgDrawing(self, "left",    "left.png",  textureSize = (128, 128))
     #self.loadImgDrawing(self, "right",   "right.png", textureSize = (128, 128))
 
@@ -279,7 +279,7 @@ class Data(object):
     resource.load(self, "songListFont",      font8, onLoad = self.customizeFont, synch = True)
     resource.load(self, "shadowfont",      font9, onLoad = self.customizeFont, synch = True)
     resource.load(self, "loadingFont",    font6, onLoad = self.customizeFont, synch = True)
-    
+
     self.fontDict = {"font": self.font, "bigFont": self.bigFont, "pauseFont": self.pauseFont, "scoreFont": self.scoreFont, \
                      "streakFont": self.streakFont, "songFont": self.songFont, "streakFont2": self.streakFont2, \
                      "songListFont": self.songListFont, "shadowfont": self.shadowfont, "loadingFont": self.loadingFont}
@@ -312,7 +312,7 @@ class Data(object):
       Log.debug("Bass drum sound not found, loading another sound.")
       self.loadSoundEffect(self, "bassDrumSound", os.path.join("sounds","clapsound.ogg"))
       self.bassDrumSoundFound = False
-     
+
 #Faaa Drum sound
     if self.fileExists(os.path.join("sounds","tom01.ogg")):
       self.loadSoundEffect(self, "T1DrumSound", os.path.join("sounds","tom01.ogg"))
@@ -320,14 +320,14 @@ class Data(object):
     else:
       Log.debug("Drum sound tom01 not found, loading another sound.")
       self.loadSoundEffect(self, "T1DrumSound", os.path.join("sounds","clapsound.ogg"))
-      self.T1DrumSoundFound = False	 
+      self.T1DrumSoundFound = False
     if self.fileExists(os.path.join("sounds","tom02.ogg")):
       self.loadSoundEffect(self, "T2DrumSound", os.path.join("sounds","tom02.ogg"))
       self.T2DrumSoundFound = True
     else:
       Log.debug("Drum sound tom02 not found, loading another sound.")
       self.loadSoundEffect(self, "T2DrumSound", os.path.join("sounds","clapsound.ogg"))
-      self.T2DrumSoundFound = False	
+      self.T2DrumSoundFound = False
     if self.fileExists(os.path.join("sounds","tom03.ogg")):
       self.loadSoundEffect(self, "T3DrumSound", os.path.join("sounds","tom03.ogg"))
       self.T3DrumSoundFound = True
@@ -347,10 +347,10 @@ class Data(object):
     resource.load(self, "screwUpsounds", self.loadScrewUpsounds)
     resource.load(self, "screwUpsoundsBass", self.loadScrewUpsoundsBass)
     resource.load(self, "screwUpsoundsDrums", self.loadScrewUpsoundsDrums)    #myfingershurt: drum screw up sounds
-    
+
     resource.load(self, "acceptSounds", self.loadAcceptSounds)    #myfingershurt
     resource.load(self, "cancelSounds", self.loadBackSounds)    #myfingershurt
-    
+
     resource.load(self, "symcsounds", self.loadScrewUpsounds)
     self.loadSoundEffect(self, "selectSound1", os.path.join("themes",themename,"sounds","select1.ogg"))
     self.loadSoundEffect(self, "selectSound2", os.path.join("themes",themename,"sounds","select2.ogg"))
@@ -363,7 +363,7 @@ class Data(object):
     else: #MFH: Fallback on general failsound.ogg
       self.loadSoundEffect(self, "failSound", os.path.join("sounds","failsound.ogg"))
       Log.warn(themename + "\sounds\ failsound.ogg not found -- using general failsound.ogg instead.")
-      
+
     #myfingershurt: integrating Capo's starpower clap sounds
     self.loadSoundEffect(self, "clapSound", os.path.join("sounds","clapsound.ogg"))
 
@@ -373,7 +373,7 @@ class Data(object):
       self.loadSoundEffect(self, "starReadySound", os.path.join("themes",themename,"sounds","starpower.ogg"))
       Log.warn(themename + "\sounds\starpowerready.ogg not found -- using starpower.ogg instead.")
 
-    #MFH - fallback on sounds\crowdcheers.ogg, and then starpower.ogg.  Note if the fallback crowdcheers was used or not.    
+    #MFH - fallback on sounds\crowdcheers.ogg, and then starpower.ogg.  Note if the fallback crowdcheers was used or not.
     if self.fileExists(os.path.join("themes",themename,"sounds","crowdcheers.ogg")):
       self.loadSoundEffect(self, "crowdSound", os.path.join("themes",themename,"sounds","crowdcheers.ogg"), crowd = True)
       self.cheerSoundFound = 2
@@ -391,7 +391,7 @@ class Data(object):
     else: #MFH: Fallback on starpower.ogg
       self.loadSoundEffect(self, "starActivateSound", os.path.join("themes",themename,"sounds","starpower.ogg"))
       Log.warn(themename + "\sounds\staractivate.ogg not found -- using starpower.ogg instead.")
-      
+
     if self.fileExists(os.path.join("themes",themename,"sounds","battleused.ogg")):
       self.loadSoundEffect(self, "battleUsedSound", os.path.join("themes",themename,"sounds","battleused.ogg"))
     elif self.fileExists(os.path.join("themes",themename,"sounds","staractivate.ogg")):
@@ -409,7 +409,7 @@ class Data(object):
       self.loadSoundEffect(self, "starDeActivateSound", os.path.join("themes",themename,"sounds","starpower.ogg"))
       self.starDeActivateSoundFound = False
       Log.warn(themename + "\sounds\stardeactivate.ogg not found -- sound disabled.")
-    
+
     if self.fileExists(os.path.join("themes",themename,"sounds","rescue.ogg")):
       self.loadSoundEffect(self, "rescueSound", os.path.join("themes",themename,"sounds","rescue.ogg"))
     elif self.fileExists(os.path.join("themes",themename,"sounds","staractivate.ogg")):
@@ -418,7 +418,7 @@ class Data(object):
     else:
       self.loadSoundEffect(self, "rescueSound", os.path.join("themes",themename,"sounds","starpower.ogg"))
       Log.warn(themename + "\sounds\rescue.ogg not found -- using starpower.ogg instead.")
-    
+
     if self.fileExists(os.path.join("themes",themename,"sounds","coopfail.ogg")):
       self.loadSoundEffect(self, "coOpFailSound",os.path.join("themes",themename,"sounds","coopfail.ogg"))
     elif self.fileExists(os.path.join("themes",themename,"sounds","stardeactivate.ogg")):
@@ -438,7 +438,7 @@ class Data(object):
       self.loadSoundEffect(self, "rockSound", os.path.join("themes",themename,"sounds","rocksound.ogg"))
     else:
       self.loadSoundEffect(self, "rockSound", os.path.join("sounds","rocksound.ogg"))
-    
+
     #if self.theme == 0 or self.theme == 1:#GH2 or GH3
     #  #self.loadSoundEffect(self, "acceptSound",  os.path.join("themes",themename,"sounds","in.ogg"))
     #  self.loadSoundEffect(self, "cancelSounds",  os.path.join("themes",themename,"sounds","out.ogg"))
@@ -446,7 +446,7 @@ class Data(object):
     #  #self.loadSoundEffect(self, "acceptSound",  os.path.join("themes",themename,"sounds","action.ogg"))
     #  self.loadSoundEffect(self, "cancelSounds",  os.path.join("themes",themename,"sounds","out.ogg"))
 
-  
+
   def SetAllScrewUpSoundFxObjectVolumes(self, volume):   #MFH - single function to go through all screwup sound objects and set object volume to the given volume
     for s in self.screwUpsounds:
       s.setVolume(volume)
@@ -454,7 +454,7 @@ class Data(object):
       s.setVolume(volume)
     for s in self.screwUpsoundsDrums:
       s.setVolume(volume)
-  
+
   def SetAllSoundFxObjectVolumes(self, volume = None):   #MFH - single function to go through all sound objects (and iterate through all sound lists) and set object volume to the given volume
     #MFH TODO - set every sound object's volume here...
     if volume is None:
@@ -487,7 +487,7 @@ class Data(object):
     self.selectSound1.setVolume(volume)
     self.selectSound2.setVolume(volume)
     self.selectSound3.setVolume(volume)
-    
+
 
   def loadSoundEffect(self, target, name, fileName, crowd = False):
     volume   = self.sfxVolume
@@ -531,7 +531,7 @@ class Data(object):
         return [Sound(self.resource.fileName(os.path.join("themes",self.themeLabel,"sounds","in.ogg")))]
       elif self.theme == 2:
         return [Sound(self.resource.fileName(os.path.join("themes",self.themeLabel,"sounds","action.ogg")))]
-    
+
   def loadScrewUpsounds(self):
     soundPathTheme = os.path.join("themes",self.themeLabel,"sounds")
     soundPathData = "sounds"
@@ -564,10 +564,10 @@ class Data(object):
       soundPath = soundPathData
       numSounds = self.determineNumSounds(soundPath, soundPrefix)
     return self.getSoundObjectList(soundPath, soundPrefix, numSounds)
-  
+
   def loadSyncsounds(self):
     return [Sound(self.resource.fileName("sync%d.ogg" % i)) for i in range(1, 2)]
-  
+
   def loadImgDrawing(self, target, name, fileName, textureSize = None):
     """
     Load an SVG drawing synchronously.
@@ -580,11 +580,14 @@ class Data(object):
     @return:            L{ImgDrawing} instance
     """
     fileName = self.resource.fileName(fileName)
-    drawing  = self.resource.load(target, name, lambda: ImgDrawing(self.svg, fileName), synch = True)
-    if textureSize:
-      drawing.convertToTexture(textureSize[0], textureSize[1])
+    if os.path.exists(fileName):
+      drawing  = self.resource.load(target, name, lambda: ImgDrawing(self.svg, fileName), synch = True)
+      if textureSize:
+        drawing.convertToTexture(textureSize[0], textureSize[1])
+    else:
+        raise IOError(fileName)
     return drawing
-  
+
   #glorandwarf: changed name to getPath
   def getPath(self, fileName):
     return self.resource.fileName(fileName)
@@ -594,7 +597,7 @@ class Data(object):
     fileName = self.resource.fileName(fileName)
     return os.path.exists(fileName)
 
-      
+
   #MFH - no more custom font glyphs
   def customizeFont(self, font):
     pass
@@ -645,7 +648,7 @@ class Data(object):
   screwUpSound = property(getScrewUpSound)
   screwUpSoundBass = property(getScrewUpSoundBass)
   screwUpSoundDrums = property(getScrewUpSoundDrums)    #myfingershurt: drum screw up sounds
-  
+
   def essentialResourcesLoaded(self):
     """return: True if essential resources such as the font have been loaded."""
     return bool(self.font and self.bigFont)

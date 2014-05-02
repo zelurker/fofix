@@ -1566,7 +1566,11 @@ class GuitarSceneClient(GuitarScene, SceneClient):
       self.engine.loadImgDrawing(self, "oFull", os.path.join("themes",themename,"spfull.png"))
 
       #Pause Screen
-      self.engine.loadImgDrawing(self, "pauseScreen", os.path.join("themes",themename,"pause.png"))
+      try:
+        self.engine.loadImgDrawing(self, "pauseScreen", os.path.join("themes",themename,"pause.png"))
+      except IOError:
+          self.pauseScreen = None
+          pass
       self.engine.loadImgDrawing(self, "failScreen", os.path.join("themes",themename,"fail.png"))
       #Rockmeter
       self.engine.loadImgDrawing(self, "rockmeter", os.path.join("themes",themename,"rockmeter.png"))
@@ -1760,7 +1764,11 @@ class GuitarSceneClient(GuitarScene, SceneClient):
 
 
       #Pause Screen
-      self.engine.loadImgDrawing(self, "pauseScreen", os.path.join("themes",themename,"pause.png"))
+      try:
+        self.engine.loadImgDrawing(self, "pauseScreen", os.path.join("themes",themename,"pause.png"))
+      except IOError:
+          self.pauseScreen = None
+          pass
       try:
         self.engine.loadImgDrawing(self, "failScreen", os.path.join("themes",themename,"fail.png"))
       except IOError:
@@ -8041,7 +8049,8 @@ class GuitarSceneClient(GuitarScene, SceneClient):
               if self.pause:
                 self.engine.view.setViewport(1,0)
                 if self.engine.graphicMenuShown == False:
-                  self.engine.drawImage(self.pauseScreen, scale = (self.pause_bkg[2], -self.pause_bkg[3]), coord = (w*self.pause_bkg[0],h*self.pause_bkg[1]), stretched = 3)
+                  if self.pauseScreen:
+                    self.engine.drawImage(self.pauseScreen, scale = (self.pause_bkg[2], -self.pause_bkg[3]), coord = (w*self.pause_bkg[0],h*self.pause_bkg[1]), stretched = 3)
 
               if self.finalFailed and self.song:
                 self.engine.view.setViewport(1,0)
@@ -8519,7 +8528,8 @@ class GuitarSceneClient(GuitarScene, SceneClient):
               if self.pause:
                 self.engine.view.setViewport(1,0)
                 if self.engine.graphicMenuShown == False:
-                  self.engine.drawImage(self.pauseScreen, scale = (self.pause_bkg[2], -self.pause_bkg[3]), coord = (w*self.pause_bkg[0],h*self.pause_bkg[1]), stretched = 3)
+                  if self.pauseScreen:
+                    self.engine.drawImage(self.pauseScreen, scale = (self.pause_bkg[2], -self.pause_bkg[3]), coord = (w*self.pause_bkg[0],h*self.pause_bkg[1]), stretched = 3)
 
               if self.finalFailed and self.song:
                 self.engine.view.setViewport(1,0)
