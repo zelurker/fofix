@@ -120,7 +120,25 @@ class OneSound(object):
       self.channel.set_endevent(event)
 
   def play(self):
+    stream        = OggStream(self.file)
+    self.info = stream.info()
+    (self.freq,self.format,self.channels) = pygame.mixer.get_init()
     self.sound   = pygame.mixer.Sound(self.file)
+    if self.info.rate != self.freq:
+        # Code still experimental, not tested on mono samples, it won't work
+        # as is in mono...
+        # obliged to use array() here and not samples() because the sound is
+        # shrinking. With samples, the old sound can be heard at the end !
+        snd_array = pygame.sndarray.array(self.sound)
+        snd_t=tuple(snd_array.reshape(1,-1)[0])
+        samples = len(snd_t)/2
+        samples = int(samples*self.freq/(self.info.rate))
+        datal = signal.resample(snd_t[0::2],samples)
+        datar = signal.resample(snd_t[1::2],samples)
+        snd_array[0:samples, 0] = datal
+        snd_array[0:samples, 1] = datar
+        self.sound = pygame.sndarray.make_sound(snd_array)
+
     self.playTime = time.time()
     if self.volume:
       self.sound.set_volume(self.volume)
