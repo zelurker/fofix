@@ -31,6 +31,13 @@ import Config
 import glob
 import pdb
 from scipy import signal
+import numpy as np
+try:
+  from scikits.samplerate import resample
+  resampleOk = True
+except ImportError:
+    Log.warn("resample not supported for small sounds")
+    resampleOk = False
 
 #stump: check for pitch bending support
 try:
@@ -110,6 +117,9 @@ class OneSound(object):
     self.volume = None
     self.event = None
     self.channel = None
+    stream        = OggStream(self.file)
+    self.info = stream.info()
+    self.freq = self.info.rate
 
   def isPlaying(self):  #MFH - adding function to check if sound is playing
     return self.sound.get_num_channels()
@@ -120,29 +130,36 @@ class OneSound(object):
       self.channel.set_endevent(event)
 
   def play(self):
-    stream        = OggStream(self.file)
-    self.info = stream.info()
-    (self.freq,self.format,self.channels) = pygame.mixer.get_init()
-    self.sound   = pygame.mixer.Sound(self.file)
-    if self.info.rate != self.freq:
-        # Code still experimental, not tested on mono samples, it won't work
-        # as is in mono...
-        # obliged to use array() here and not samples() because the sound is
-        # shrinking. With samples, the old sound can be heard at the end !
-        snd_array = pygame.sndarray.array(self.sound)
-        snd_t=tuple(snd_array.reshape(1,-1)[0])
-        samples = len(snd_t)/2
-        samples = int(samples*self.freq/(self.info.rate))
-        datal = signal.resample(snd_t[0::2],samples)
-        datar = signal.resample(snd_t[1::2],samples)
-        snd_array[0:samples, 0] = datal
-        snd_array[0:samples, 1] = datar
-        self.sound = pygame.sndarray.make_sound(snd_array)
+    if not self.sound:
+      self.sound   = pygame.mixer.Sound(self.file)
+      self.freq = self.info.rate
+    if resampleOk:
+        (freq,format,channels) = pygame.mixer.get_init()
+        if freq != self.freq:
+          print "reload sound ",self.file
+          self.freq = self.info.rate
+          self.sound   = pygame.mixer.Sound(self.file)
+        if self.freq != freq:
+            snd_array = pygame.sndarray.array(self.sound)
+            samples = len(snd_array)/2
+            samples = int(samples*freq*1.0/(self.info.rate))
+            print "start resampling ",self.file," from ",self.info.rate," to ",freq," len ",len(snd_array)/2," visée ",samples
+    #        if samples != len(snd_array):
+    #          snd_array = np.resize(snd_array,(samples,2))
+            snd_array = resample(snd_array, freq*1.0/self.info.rate, "sinc_fastest").astype(snd_array.dtype)
+            # datal = signal.resample(snd_array[0::2],samples).astype(snd_array.dtype)
+            # datar = signal.resample(snd_array[1::2],samples).astype(snd_array.dtype)
+            # snd_array = np.resize(snd_array,(len(datal)*2,2))
+            # snd_array[0::2] = datal
+            # snd_array[1::2] = datar
+            # print "end resampling ",snd_array
+            self.sound = pygame.sndarray.make_sound(snd_array)
+            self.freq = freq
 
-    self.playTime = time.time()
     if self.volume:
       self.sound.set_volume(self.volume)
     self.channel = self.sound.play()
+    self.playTime = time.time()
     if self.event:
         self.channel.set_endevent(self.event)
 
@@ -184,18 +201,17 @@ class Sound(object):
             # to be played synchronously. So it's better to reserve the
             # streaming one on the tracks of more than 30s, just to save
             # memory.
-            if duration > 30:
+            if duration > 12:
               print "streaming ",f
               self.sounds.append(StreamingOggSound(f, engine,speed=self.speed))
             else:
               self.sounds.append(OneSound(f))
 
   def play(self):
-      self.playTime = time.time()
-      print "starting ",self.fileName
       self.Playing = True
       for sound in self.sounds:
           sound.play()
+      self.playTime = time.time()
 
   def pause(self):
     pygame.mixer.pause()
@@ -318,6 +334,7 @@ if ogg:
           # intensive, it should work if different frequencies are not
           # mixed on the same song
           self.engine.audio.close()    #MFH - ensure no audio is playing during the switch!
+          print "reopen mixer at ",int(self.info.rate*self.speed)
           self.engine.audio.pre_open(frequency = int(self.info.rate*self.speed), bits = self.engine.bits, stereo = self.engine.stereo, bufferSize = self.engine.bufferSize)
           self.engine.audio.open(frequency = int(self.info.rate*self.speed), bits = self.engine.bits, stereo = self.engine.stereo, bufferSize = self.engine.bufferSize)
           (self.freq,self.format,self.channels) = pygame.mixer.get_init()
@@ -409,10 +426,11 @@ if ogg:
       else:
         if self.info.channels == 2:
           data = struct.unpack("%dh" % (len(data) / 2), data)
+          # data = np.frombuffer(data, dtype=np.int16)
           samples = len(data) / 2
           if self.freq != self.info.rate*self.speed:
 	      samples = int(samples*self.freq/(self.info.rate*self.speed))
-	      datal = signal.resample(data[0::2],samples)
+              datal = signal.resample(data[0::2],samples)
 	      datar = signal.resample(data[1::2],samples)
 	      self.buffer[self.bufferPos:self.bufferPos + samples, 0] = datal
 	      self.buffer[self.bufferPos:self.bufferPos + samples, 1] = datar
