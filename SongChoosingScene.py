@@ -225,11 +225,7 @@ class SongChoosingSceneClient(SongChoosingScene, SceneClient):
                   slowDownDivisor = values[i]
                   break
 
-            if self.player.practiceMode and slowDownDivisor == 1:
-              #self.engine.resource.load(self, "song", lambda: Song.loadSong(self.engine, songName, library = self.libraryName, notesOnly = True, part = [player.part for player in self.playerList]), onLoad = self.songLoaded)
-
-
-              #startTime = Dialogs.chooseItem(self.engine, info.sections, "%s \n %s" % (info.name, _("Start Section:")))
+            if self.player.practiceMode:
 
               sectionLabels = [sLabel for sLabel,sPos in info.sections]
 
@@ -261,12 +257,6 @@ class SongChoosingSceneClient(SongChoosingScene, SceneClient):
               #self.player.startPos = 0.0
 
               break;
-            #if not self.player.practiceMode:
-              #selected = True  #this causes "gig" mode to start song with all defaults
-              #escape = True  #this causes "gig" mode to exit out to the song selection
-              #escaped = True  #this does nothing :(
-              #break;
-
 
             guitars = []
             drums = []
@@ -385,10 +375,6 @@ class SongChoosingSceneClient(SongChoosingScene, SceneClient):
                 self.playerList[0].difficulty = info.partDifficulties[autoPart][0]
               selected = True
               break
-
-          #useless practice mode nesting
-          #if selected or escape:
-          #  break
 
           if (not selected) or escape:
             continue

@@ -121,6 +121,10 @@ class OneSound(object):
     self.info = stream.info()
     self.freq = self.info.rate
 
+  def setPos(self,pos):
+      # here just for inheritance, not used on these
+      pass
+
   def isPlaying(self):  #MFH - adding function to check if sound is playing
     return self.sound.get_num_channels()
 
@@ -207,6 +211,10 @@ class Sound(object):
             else:
               self.sounds.append(OneSound(f))
 
+  def setPos(self,pos):
+      for sound in self.sounds:
+          sound.setPos(pos)
+
   def play(self):
       self.Playing = True
       for sound in self.sounds:
@@ -286,6 +294,9 @@ if ogg:
     def info(self):
         return self.file.info()
 
+    def time_seek(self,pos):
+        return self.file.time_seek(pos)
+
   class StreamingOggSound(OneSound, Task):
 
       # This class inherits from OneSound, but is totally different :
@@ -344,7 +355,11 @@ if ogg:
       self.buffersBusy   = []
       self.bufferPos     = 0
       self.done          = False
+      # do not call prebuffer here in case the caller wants to set the position
+      # 1st, which will happen for normal song tracks
+      # self.prebuffer()
 
+    def prebuffer(self):
       while len(self.buffersOut) < self.bufferCount and not self.done:
         #myfingershurt: while there are less than 8 sets of 65k sample 2 channel buffers in the buffersOut list,
         # continue to decode and fill them.
@@ -356,6 +371,12 @@ if ogg:
     def streamIsPlaying(self):  #MFH - adding function to check if sound is playing
       return self.playing
 
+    def setPos(self,pos):
+        self.stream.time_seek(pos)
+        self.buffersOut = []
+        if self.channel:
+            self.channel.stop() # clear the queue !
+        self.prebuffer()
 
     def isPlaying(self):
         return self.playing
@@ -371,18 +392,13 @@ if ogg:
 
         #myfingershurt: 2D buffer (L,R) of 16-bit unsigned integer samples, each channel 65536 samples long
         #.... buffersIn = a list of 9 of these.
+
       self.engine.addTask(self, synchronized = False)
       self.playing = True
       self.channel = pygame.mixer.find_channel()
       self.channel.set_volume(self.volume)
 
-      nb = 0
-      while len(self.buffersOut) < self.bufferCount and not self.done:
-        #myfingershurt: while there are less than 8 sets of 65k sample 2 channel buffers in the buffersOut list,
-        # continue to decode and fill them.
-        nb = nb+1
-        self._produceSoundBuffers()
-
+      self.prebuffer()
 
       #once all 8 output buffers are filled, play the first one.
       self.channel.play(self.buffersOut.pop())
