@@ -30,7 +30,7 @@ from Task import Task
 import Config
 import glob
 import pdb
-from scipy import signal
+# from scipy import signal
 import numpy as np
 try:
   from scikits.samplerate import resample
@@ -324,7 +324,7 @@ if ogg:
 
         #myfingershurt: buffer is 2D array (one D for each channel) of 16-bit UNSIGNED integers / samples
         #  2*1024*64 = 131072 samples per channel
-      self.buffer       = zeros((2 * self.bufferSize, 2))
+      self.buffer       = np.zeros((2 * self.bufferSize, 2),dtype=np.int16)
 
       self.decodingRate = 4
       self._reset()
@@ -441,25 +441,26 @@ if ogg:
         self.done = True
       else:
         if self.info.channels == 2:
-          data = struct.unpack("%dh" % (len(data) / 2), data)
-          # data = np.frombuffer(data, dtype=np.int16)
+          # data = struct.unpack("%dh" % (len(data) / 2), data)
+          data = np.frombuffer(data, dtype=np.int16)
           samples = len(data) / 2
-          if self.freq != self.info.rate*self.speed:
-	      samples = int(samples*self.freq/(self.info.rate*self.speed))
-              datal = signal.resample(data[0::2],samples)
-	      datar = signal.resample(data[1::2],samples)
-	      self.buffer[self.bufferPos:self.bufferPos + samples, 0] = datal
-	      self.buffer[self.bufferPos:self.bufferPos + samples, 1] = datar
-	  else:
-	      self.buffer[self.bufferPos:self.bufferPos + samples, 0] = data[0::2]
-	      self.buffer[self.bufferPos:self.bufferPos + samples, 1] = data[1::2]
+#          if self.freq != self.info.rate*self.speed:
+#	      samples = int(samples*self.freq/(self.info.rate*self.speed))
+#              datal = signal.resample(data[0::2],samples)
+#	      datar = signal.resample(data[1::2],samples)
+#	      self.buffer[self.bufferPos:self.bufferPos + samples, 0] = datal
+#	      self.buffer[self.bufferPos:self.bufferPos + samples, 1] = datar
+#	  else:
+	  self.buffer[self.bufferPos:self.bufferPos + samples, 0] = data[0::2]
+	  self.buffer[self.bufferPos:self.bufferPos + samples, 1] = data[1::2]
           self.bufferPos += samples
         elif self.info.channels == 1:
           samples = len(data)/2
-          data = struct.unpack("%dh" % (samples), data)
-          if self.freq != self.info.rate*self.speed:
-	      samples = int(samples*self.freq/(self.info.rate*self.speed))
-	      data = signal.resample(data,samples)
+          # data = struct.unpack("%dh" % (samples), data)
+          data = np.frombuffer(data, dtype=np.int16)
+#          if self.freq != self.info.rate*self.speed:
+#	      samples = int(samples*self.freq/(self.info.rate*self.speed))
+#	      data = signal.resample(data,samples)
           self.buffer[self.bufferPos:self.bufferPos + samples,0] = data
           self.buffer[self.bufferPos:self.bufferPos + samples,1] = data
           self.bufferPos += samples
