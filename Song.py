@@ -32,6 +32,8 @@ import re
 import shutil
 import math
 import Config
+import GameEngine
+import Resource
 #stump: when we completely drop 2.4 support, change this to just "import hashlib"
 try:
   import hashlib
@@ -285,6 +287,13 @@ class SongInfo(object):
       if self.logUneditedMidis == 1:
         Log.debug("notes-unedited.mid not found, using notes.mid - " + self.name)
     self.noteFileName = os.path.join(os.path.dirname(self.fileName), notefile)
+    if not os.path.exists(self.noteFileName):
+        # It doesn't exist, which means that it was produced from a writable
+        # path, we need to get the read-only path in this case...
+        engine = GameEngine.getEngine()
+        path = Resource.getWritableResourcePath()
+        if self.noteFileName[:len(path)] == path:
+            self.noteFileName = engine.resource.fileName(self.noteFileName[len(path)+1:])
 
     # stump: Check the cache for the presence of this song.
     if canCache and self.allowCacheUsage:

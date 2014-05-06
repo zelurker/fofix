@@ -138,11 +138,12 @@ class Loader(Thread):
     return self.result
 
 class Resource(Task):
-  def __init__(self, dataPath = os.path.join("..", "data")):
+  def __init__(self, engine, dataPath = os.path.join("..", "data")):
     self.resultQueue = Queue()
     self.dataPaths = [dataPath]
     self.loaderSemaphore = BoundedSemaphore(value = 1)
     self.loaders = []
+    self.engine = engine
 
     #myfingershurt: the following should be global, and only done at startup.  Not every damn time a file is loaded.
     self.songPath = []
@@ -214,6 +215,17 @@ class Resource(Task):
           raise
         # If the resource exists in the read-only path, make a copy to the
         # read-write path.
+        base_lib = self.engine.config.get("game", "base_library")
+        if name[0][:len(base_lib)] == base_lib:
+            # Python doesn't allow changing tuple [0] directly, so I convert
+            # to an array, then to a tuple !
+            # Except that, this code is for extracting the lib path
+            # from the full path, so that it can be appended to the read/write path
+            # it's a big mess, I guess this thing should have been thought differently
+            # but anyway it's better to fix it for now...
+            tab = list(name)
+            tab[0] = tab[0][len(base_lib)+1:]
+            name = tuple(tab)
         readWritePath = os.path.join(getWritableResourcePath(), *name)
         if not os.path.isfile(readWritePath) and os.path.isfile(readOnlyPath):
           Log.notice("Copying '%s' to writable data directory." % "/".join(name))

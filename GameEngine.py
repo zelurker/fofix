@@ -596,7 +596,7 @@ class GameEngine(Engine):
     self.view      = View(self, geometry)
     self.resizeScreen(w, h)
 
-    self.resource  = Resource(Version.dataPath())
+    self.resource  = Resource(self,Version.dataPath())
     self.server    = None
     self.sessions  = []
     self.mainloop  = self.loading
