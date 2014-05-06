@@ -3398,7 +3398,11 @@ class MidiReader(midi.MidiOutStream):
 
   def note_on(self, channel, note, velocity):
     if self.partnumber == None:
-      return
+      # Same thing here, can't return to be able to
+      # read some very primitive songs from fof
+      # like sectoid, escape from chaos land from 2006
+      self.partnumber = 0
+      # return
     self.velocity[note] = velocity
     self.heldNotes[(self.get_current_track(), channel, note)] = self.abs_time()
 
@@ -3832,10 +3836,16 @@ class MidiPartsDiffReader(midi.MidiOutStream):
 
   def start_of_track(self, n_track=0):
     if self.forceGuitar:
-      if not self.firstTrack:
-        if not parts[GUITAR_PART] in self.parts:
+        # If forcing guitar, we assume there can be only
+        # the guitar track so there is no sense taking
+        # only the 1st one (doesn't work with sectoid/escape from chaos land)
+      # if not self.firstTrack:
+        # if not parts[GUITAR_PART] in self.parts:
           part = parts[GUITAR_PART]
-          self.parts.append(part)
+          if not self.firstTrack:
+            self.parts.append(part)
+          else:
+            self.parts[0] = part
           self.nextPart = None
           self.currentPart = part.id
           self.notesFound  = [0, 0, 0, 0]
@@ -3844,9 +3854,9 @@ class MidiPartsDiffReader(midi.MidiOutStream):
             tempText = "No recognized tracks found. Using first track, and identifying it as "
             tempText2 = "GUITAR_PART"
             Log.debug(tempText + tempText2)
-        self.firstTrack = True
-      else:
-        Log.notice("This song has multiple tracks, none properly named. Behavior may be erratic.")
+          self.firstTrack = True
+      # else:
+#        Log.notice("This song has multiple tracks, none properly named. Behavior may be erratic.")
 
   def sequence_name(self, text):
 
@@ -3921,6 +3931,8 @@ class MidiPartsDiffReader(midi.MidiOutStream):
     self.nextPart = None
 
   def note_on(self, channel, note, velocity):
+    if self.currentPart == -1:
+        self.start_of_track()
     if self.currentPart == -1:
       return
     if note == overDriveMarkingNote:
