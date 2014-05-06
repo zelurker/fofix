@@ -3361,7 +3361,11 @@ class MidiReader(midi.MidiOutStream):
 
     tempText = "Found sequence_name in MIDI: " + text + ", recognized as "
     tempText2 = ""
-    if (text == "PART GUITAR" or text == "T1 GEMS" or text == "Click" or text == "MIDI out") and parts[GUITAR_PART] in self.song.parts:
+    if (text == "PART GUITAR" or text == "T1 GEMS" or text == "Click" or
+            text == "MIDI out" or
+            text == "Sampler (MIDI)" or # this one is sectoid 2006
+            text == "notes" # songs by muldjord (debian / fof package)
+            ) and parts[GUITAR_PART] in self.song.parts:
       self.partnumber = parts[GUITAR_PART]
       if self.logSections == 1:
         tempText2 = "GUITAR_PART"
@@ -3390,6 +3394,7 @@ class MidiReader(midi.MidiOutStream):
       else:
         self.useVocalTrack = False
     else:
+      # print "unrecognized part ",text
       self.vocalTrack = False
     #for rock band unaltered rip compatibility
     #-elif text == "PART DRUMS" and parts[DRUM_PART] in self.song.parts:
@@ -3407,11 +3412,7 @@ class MidiReader(midi.MidiOutStream):
 
   def note_on(self, channel, note, velocity):
     if self.partnumber == None:
-      # Same thing here, can't return to be able to
-      # read some very primitive songs from fof
-      # like sectoid, escape from chaos land from 2006
-      self.partnumber = 0
-      # return
+      return
     self.velocity[note] = velocity
     self.heldNotes[(self.get_current_track(), channel, note)] = self.abs_time()
 
