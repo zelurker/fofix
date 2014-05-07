@@ -2631,10 +2631,10 @@ class GuitarSceneClient(GuitarScene, SceneClient):
       #myfingershurt: ensuring the miss volume gets refreshed:
       self.song.refreshVolumes()
       self.song.setAllTrackVolumes(1)
-      if self.crowdsCheering == True:
-        self.song.setCrowdVolume(1)
-      else:
-        self.song.setCrowdVolume(0.0)
+      # if self.crowdsCheering == True:
+      self.song.setCrowdVolume(1)
+      # else:
+      #  self.song.setCrowdVolume(0.0)
 
   def songLoaded(self, song):
     for i, player in enumerate(self.playerList):

@@ -3969,7 +3969,7 @@ class MidiPartsDiffReader(midi.MidiOutStream):
 def loadSong(engine, name, library = DEFAULT_LIBRARY, seekable = False, playbackOnly = False, notesOnly = False, part = [parts[GUITAR_PART]], practiceMode = False, practiceSpeed = 1.0):
 
   Log.debug("loadSong function call (song.py)...")
-  crowdsEnabled = engine.config.get("audio", "crowd_tracks_enabled")
+  # crowdsEnabled = engine.config.get("audio", "crowd_tracks_enabled")
 
   #RF-mod (not needed?)
   guitarFile = engine.resource.fileName(library, name, "guitar.ogg")
@@ -4043,8 +4043,8 @@ def loadSong(engine, name, library = DEFAULT_LIBRARY, seekable = False, playback
       #crowdFile = songCrowdFile
       #Log.warn("crowd.ogg file not found. Using song+crowd.ogg instead! Volumes may be off.")
 
-  if crowdsEnabled == 0:
-    crowdFile = None
+  # if crowdsEnabled == 0:
+  #   crowdFile = None
 
 
   if songFile != None and guitarFile != None:
