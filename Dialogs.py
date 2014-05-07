@@ -53,6 +53,7 @@ import Player
 import Guitar
 import random
 from Shader import shaders
+import Resource
 
 #myfingershurt: drums :)
 import Drum
@@ -1062,27 +1063,12 @@ class SongChooser(Layer, KeyListener):
     #MFH: filter out song name prefixes "1." "2." etc 
     #   but -- also must NOT get stuck here on ellipsises (such as RBDLC - Metallica - ...And Justice For All)
     for i, item in enumerate(self.items):
-      if isinstance(item, Song.SongInfo):
+#      if isinstance(item, Song.SongInfo):
 
 
-        self.removeSongOrderPrefixFromItem(item)
-#-        if not item.name.startswith("."):
-#-          splitName = item.name.split(".",1)
-#-          #Log.debug("Dialogs.songListLoaded: Separating song name from prefix: " + str(splitName) )
-#-          if self.isInt(splitName[0]) and len(splitName) > 1:
-#-            item.name = splitName[1]
-#-            #while len(splitName) > 1: #now remove any remaining leading spaces
-#-            splitName[0] = ""
-#-            while splitName[0] == "":
-#-              splitName = item.name.split(" ",1)
-#-              if len(splitName) > 1:
-#-                if splitName[0] == "":
-#-                  item.name = splitName[1]
-#-                  #Log.debug("Dialogs.songListLoaded: Removing song name prefix, new name = " + splitName[1])
-#-        else:
-#-          Log.debug("Song name starting with a period filtered from prefix removal logic: " + item.name)
+#        self.removeSongOrderPrefixFromItem(item)
 
-      elif isinstance(item, Song.TitleInfo) or isinstance(item, Song.SortTitleInfo):
+      if isinstance(item, Song.TitleInfo) or isinstance(item, Song.SortTitleInfo):
         self.tiersArePresent = True 
 
     # if the first item is a title, start on the second one
@@ -1135,10 +1121,23 @@ class SongChooser(Layer, KeyListener):
         if (item.getLocked()):
           self.itemLabels[i] = "Locked"
           return
-        elif self.songCoverType:
-          label = self.engine.resource.fileName(item.libraryNam, item.songName,    "label.png")
-        else:
-          label = self.engine.resource.fileName(item.libraryNam, item.songName,    "album.png")
+        else: # self.songCoverType:
+          dir = os.path.dirname(item.noteFileName)
+          rw = Resource.getWritableResourcePath()
+          if dir[:len(rw)] == rw:
+            dir = self.engine.resource.fileName(dir[len(rw)+1:])
+          label1 = self.engine.resource.fileName(dir,    "label.png")
+          label2 = self.engine.resource.fileName(dir,    "album.png")
+          if self.songCoverType:
+              if os.path.exists(label1):
+                  label = label1
+              else:
+                  label = label2
+          else:
+              if os.path.exists(label2):
+                  label = label2
+              else:
+                  label = label1
 
       elif isinstance(item, Song.LibraryInfo):
         label = self.engine.resource.fileName(item.libraryName, "label.png")
@@ -1150,10 +1149,8 @@ class SongChooser(Layer, KeyListener):
         return
       if os.path.exists(label):
         #MFH - load as 2D drawing and not a texture when in CD/List mode:
-        if self.display == 2 and not self.listRotation:
+        if (self.display == 2 and not self.listRotation) or self.display==3:
           #self.engine.loadImgDrawing(self, "itemLabels[i]",  label)
-          self.itemLabels[i] = ImgDrawing(self.engine.data.svg, label)
-        elif self.display == 3:
           self.itemLabels[i] = ImgDrawing(self.engine.data.svg, label)
         else:
           self.itemLabels[i] = Texture(label)
@@ -1168,11 +1165,11 @@ class SongChooser(Layer, KeyListener):
 
     #myfingershurt: only if CD list
     if self.display != 1:
-      if self.selectedIndex > 1:
-        self.loadItemLabel(self.selectedIndex - 1)
+      #if self.selectedIndex > 1:
+      #  self.loadItemLabel(self.selectedIndex - 1)
       self.loadItemLabel(self.selectedIndex)
-      if self.selectedIndex < len(self.items) - 1:
-        self.loadItemLabel(self.selectedIndex + 1)
+#      if self.selectedIndex < len(self.items) - 1:
+#        self.loadItemLabel(self.selectedIndex + 1)
     
   def keyPressed(self, key, unicode): #racer: drum nav.
     if not self.items or self.accepted:

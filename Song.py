@@ -51,17 +51,6 @@ import string
 import cPickle  #stump: Cerealizer and sqlite3 don't seem to like each other that much...
 from Language import _
 
-#stump: turns out the sqlite3 module didn't appear until Python 2.5...
-try:
-  import sqlite3
-  canCache = True
-except ImportError:
-  try:
-    import pysqlite2.dbapi2 as sqlite3  # close enough
-    canCache = True
-  except ImportError:
-    canCache = False
-
 DEFAULT_BPM = 120.0
 DEFAULT_LIBRARY         = "songs"
 
@@ -188,53 +177,6 @@ difficulties = {
 
 defaultSections = ["Start","1/4","1/2","3/4"]
 
-
-
-# stump: manage cache files
-class CacheManager(object):
-  SCHEMA_VERSION = 5  #stump: current cache format version number
-  def __init__(self):
-    self.caches = {}
-  def getCache(self, infoFileName):
-    '''Given the path of a song.ini, return a SQLite connection to the
-    associated cache.'''
-    cachePath = os.path.dirname(os.path.dirname(infoFileName))
-    if self.caches.has_key(cachePath):
-      return self.caches[cachePath]
-    # The cache must be opened or created.
-    oldcwd = os.getcwd()
-    try:
-      os.chdir(cachePath)  #stump: work around bug in SQLite unicode path name handling
-      try:
-        conn = sqlite3.Connection('.fofix-cache')
-      except sqlite3.OperationalError:
-        conn = None
-        return conn
-    finally:
-      os.chdir(oldcwd)
-    # Check that the cache is completely initialized.
-    try:
-      v = conn.execute("SELECT `value` FROM `config` WHERE `key` = 'version'").fetchone()[0]
-      mustReinitialize = (int(v) != self.SCHEMA_VERSION)
-    except:
-      mustReinitialize = True
-    if mustReinitialize:
-      # Clean out the database, then make our tables.
-      for tbl in conn.execute("SELECT `name` FROM `sqlite_master` WHERE `type` = 'table'").fetchall():
-        conn.execute('DROP TABLE `%s`' % tbl)
-      conn.commit()
-      conn.execute('VACUUM')
-      #stump: if you need to change the database schema, do it here, then bump the version number, a small bit above here.
-      conn.execute('CREATE TABLE `config` (`key` STRING UNIQUE, `value` STRING)')
-      conn.execute('CREATE TABLE `songinfo` (`hash` STRING UNIQUE, `info` STRING)')
-      conn.execute('INSERT INTO `config` (`key`, `value`) VALUES (?, ?)', ('version', self.SCHEMA_VERSION))
-      conn.commit()
-    self.caches[cachePath] = conn
-    return conn
-cacheManager = CacheManager()  # singleton instance
-del CacheManager
-
-
 class SongInfo(object):
   def __init__(self, infoFileName, songLibrary = DEFAULT_LIBRARY, allowCacheUsage = False):
     self.songName      = os.path.basename(os.path.dirname(infoFileName))
@@ -295,32 +237,29 @@ class SongInfo(object):
         if self.noteFileName[:len(path)] == path:
             self.noteFileName = engine.resource.fileName(self.noteFileName[len(path)+1:])
 
-    # stump: Check the cache for the presence of this song.
-    if canCache and self.allowCacheUsage:
-      self.stateHash = hashlib.sha1(open(self.noteFileName, 'rb').read() + open(self.fileName, 'rb').read()).hexdigest()
-      cache = cacheManager.getCache(self.fileName)
-      if cache != None:
-        try:    #MFH - it crashes here on previews!
-          result = cache.execute('SELECT `info` FROM `songinfo` WHERE `hash` = ?', [self.stateHash]).fetchone()
-        except Exception, e:
-          Log.error(str(e))
-          result = None
-
-        if result is not None:
-          try:
-            self.__dict__.update(cPickle.loads(str(result[0])))
-            return
-          except:
-            # The entry is there but could not be loaded.
-            # Nuke it and let it be rebuilt further down.
-            cache.execute('DELETE FROM `songinfo` WHERE `hash` = ?', [self.stateHash])
-
     # Read highscores and verify their hashes.
     # There ain't no security like security throught obscurity :)
     self.highScores = {}
+    self.handle_scores("scores","scores_ext")
 
-    scores = self._get("scores", str, "")
-    scores_ext = self._get("scores_ext", str, "")
+    self.highScoresRhythm = {}
+    self.handle_scores("scores_rhythm","scores_rhythm_ext")
+
+    self.highScoresBass = {}
+    self.handle_scores("scores_bass","scores_bass_ext")
+
+    self.highScoresLead = {}
+    self.handle_scores("scores_lead","scores_lead_ext")
+
+    self.highScoresDrum = {}
+    self.handle_scores("scores_drum","scores_drum_ext")
+
+    self.highScoresVocal = {}
+    self.handle_scores("scores_vocal","scores_vocal_ext")
+
+  def handle_scores(self,score1,score2):
+    scores = self._get(score1, str, "")
+    scores_ext = self._get(score2, str, "")
     if scores:
       scores = Cerealizer.loads(binascii.unhexlify(scores))
       if scores_ext:
@@ -353,234 +292,6 @@ class SongInfo(object):
               self.addHighscore(difficulty, score, stars, name, part = parts[GUITAR_PART])
           else:
             Log.warn("Weak hack attempt detected. Better luck next time.")
-
-    self.highScoresRhythm = {}
-
-    scores = self._get("scores_rhythm", str, "")
-    scores_ext = self._get("scores_rhythm_ext", str, "")
-    if scores:
-      scores = Cerealizer.loads(binascii.unhexlify(scores))
-      if scores_ext:
-        scores_ext = Cerealizer.loads(binascii.unhexlify(scores_ext))
-      for difficulty in scores.keys():
-        try:
-          difficulty = difficulties[difficulty]
-        except KeyError:
-          continue
-        #for score, stars, name, hash in scores[difficulty.id]:
-        #  if self.getScoreHash(difficulty, score, stars, name) == hash:
-        #    self.addHighscore(difficulty, score, stars, name, part = parts[RHYTHM_PART])
-        #  else:
-        #    Log.warn("Weak hack attempt detected. Better luck next time.")
-        for i, base_scores in enumerate(scores[difficulty.id]):
-          score, stars, name, hash = base_scores
-          if scores_ext != "":
-            #Someone may have mixed extended and non extended
-            try:
-              if len(scores_ext[difficulty.id][i]) < 9:
-                hash_ext, stars2, notesHit, notesTotal, noteStreak, modVersion, oldInfo, oldInfo2 =  scores_ext[difficulty.id][i]
-                handicapValue = 0
-                longHandicap = "None"
-                originalScore = 0
-              else:
-                hash_ext, stars2, notesHit, notesTotal, noteStreak, modVersion, handicapValue, longHandicap, originalScore =  scores_ext[difficulty.id][i]
-              scoreExt = (notesHit, notesTotal, noteStreak, modVersion, handicapValue, longHandicap, originalScore)
-            except:
-              hash_ext = 0
-              scoreExt = (0, 0, 0 , "RF-mod", 0, "None", 0)
-          if self.getScoreHash(difficulty, score, stars, name) == hash:
-            if scores_ext != "" and hash == hash_ext:
-              self.addHighscore(difficulty, score, stars, name, part = parts[RHYTHM_PART], scoreExt = scoreExt)
-            else:
-              self.addHighscore(difficulty, score, stars, name, part = parts[RHYTHM_PART])
-          else:
-            Log.warn("Weak hack attempt detected. Better luck next time.")
-
-    self.highScoresBass = {}
-
-    scores = self._get("scores_bass", str, "")
-    scores_ext = self._get("scores_bass_ext", str, "")
-    if scores:
-      scores = Cerealizer.loads(binascii.unhexlify(scores))
-      if scores_ext:
-        scores_ext = Cerealizer.loads(binascii.unhexlify(scores_ext))
-      for difficulty in scores.keys():
-        try:
-          difficulty = difficulties[difficulty]
-        except KeyError:
-          continue
-        #for score, stars, name, hash in scores[difficulty.id]:
-        #  if self.getScoreHash(difficulty, score, stars, name) == hash:
-        #    self.addHighscore(difficulty, score, stars, name, part = parts[BASS_PART])
-        #  else:
-        #    Log.warn("Weak hack attempt detected. Better luck next time.")
-        for i, base_scores in enumerate(scores[difficulty.id]):
-          score, stars, name, hash = base_scores
-          if scores_ext != "":
-            #Someone may have mixed extended and non extended
-            try:
-              if len(scores_ext[difficulty.id][i]) < 9:
-                hash_ext, stars2, notesHit, notesTotal, noteStreak, modVersion, oldInfo, oldInfo2 =  scores_ext[difficulty.id][i]
-                handicapValue = 0
-                longHandicap = "None"
-                originalScore = 0
-              else:
-                hash_ext, stars2, notesHit, notesTotal, noteStreak, modVersion, handicapValue, longHandicap, originalScore =  scores_ext[difficulty.id][i]
-              scoreExt = (notesHit, notesTotal, noteStreak, modVersion, handicapValue, longHandicap, originalScore)
-            except:
-              hash_ext = 0
-              scoreExt = (0, 0, 0 , "RF-mod", 0, "None", 0)
-          if self.getScoreHash(difficulty, score, stars, name) == hash:
-            if scores_ext != "" and hash == hash_ext:
-              self.addHighscore(difficulty, score, stars, name, part = parts[BASS_PART], scoreExt = scoreExt)
-            else:
-              self.addHighscore(difficulty, score, stars, name, part = parts[BASS_PART])
-          else:
-            Log.warn("Weak hack attempt detected. Better luck next time.")
-
-    self.highScoresLead = {}
-
-    scores = self._get("scores_lead", str, "")
-    scores_ext = self._get("scores_lead_ext", str, "")
-    if scores:
-      scores = Cerealizer.loads(binascii.unhexlify(scores))
-      if scores_ext:
-        scores_ext = Cerealizer.loads(binascii.unhexlify(scores_ext))
-      for difficulty in scores.keys():
-        try:
-          difficulty = difficulties[difficulty]
-        except KeyError:
-          continue
-        #for score, stars, name, hash in scores[difficulty.id]:
-        #  if self.getScoreHash(difficulty, score, stars, name) == hash:
-        #    self.addHighscore(difficulty, score, stars, name, part = parts[LEAD_PART])
-        #  else:
-        #    Log.warn("Weak hack attempt detected. Better luck next time.")
-        for i, base_scores in enumerate(scores[difficulty.id]):
-          score, stars, name, hash = base_scores
-          if scores_ext != "":
-            #Someone may have mixed extended and non extended
-            try:
-              if len(scores_ext[difficulty.id][i]) < 9:
-                hash_ext, stars2, notesHit, notesTotal, noteStreak, modVersion, oldInfo, oldInfo2 =  scores_ext[difficulty.id][i]
-                handicapValue = 0
-                longHandicap = "None"
-                originalScore = 0
-              else:
-                hash_ext, stars2, notesHit, notesTotal, noteStreak, modVersion, handicapValue, longHandicap, originalScore =  scores_ext[difficulty.id][i]
-              scoreExt = (notesHit, notesTotal, noteStreak, modVersion, handicapValue, longHandicap, originalScore)
-            except:
-              hash_ext = 0
-              scoreExt = (0, 0, 0 , "RF-mod", 0, "None", 0)
-          if self.getScoreHash(difficulty, score, stars, name) == hash:
-            if scores_ext != "" and hash == hash_ext:
-              self.addHighscore(difficulty, score, stars, name, part = parts[LEAD_PART], scoreExt = scoreExt)
-            else:
-              self.addHighscore(difficulty, score, stars, name, part = parts[LEAD_PART])
-          else:
-            Log.warn("Weak hack attempt detected. Better luck next time.")
-
-    #myfingershurt: drums :)
-    self.highScoresDrum = {}
-
-    scores = self._get("scores_drum", str, "")
-    scores_ext = self._get("scores_drum_ext", str, "")
-    if scores:
-      scores = Cerealizer.loads(binascii.unhexlify(scores))
-      if scores_ext:
-        scores_ext = Cerealizer.loads(binascii.unhexlify(scores_ext))
-      for difficulty in scores.keys():
-        try:
-          difficulty = difficulties[difficulty]
-        except KeyError:
-          continue
-        #for score, stars, name, hash in scores[difficulty.id]:
-        #  if self.getScoreHash(difficulty, score, stars, name) == hash:
-        #    self.addHighscore(difficulty, score, stars, name, part = parts[DRUM_PART])
-        #  else:
-        #    Log.warn("Weak hack attempt detected. Better luck next time.")
-        for i, base_scores in enumerate(scores[difficulty.id]):
-          score, stars, name, hash = base_scores
-          if scores_ext != "":
-            #Someone may have mixed extended and non extended
-            try:
-              if len(scores_ext[difficulty.id][i]) < 9:
-                hash_ext, stars2, notesHit, notesTotal, noteStreak, modVersion, oldInfo, oldInfo2 =  scores_ext[difficulty.id][i]
-                handicapValue = 0
-                longHandicap = "None"
-                originalScore = 0
-              else:
-                hash_ext, stars2, notesHit, notesTotal, noteStreak, modVersion, handicapValue, longHandicap, originalScore =  scores_ext[difficulty.id][i]
-              scoreExt = (notesHit, notesTotal, noteStreak, modVersion, handicapValue, longHandicap, originalScore)
-            except:
-              hash_ext = 0
-              scoreExt = (0, 0, 0 , "RF-mod", 0, "None", 0)
-          if self.getScoreHash(difficulty, score, stars, name) == hash:
-            if scores_ext != "" and hash == hash_ext:
-              self.addHighscore(difficulty, score, stars, name, part = parts[DRUM_PART], scoreExt = scoreExt)
-            else:
-              self.addHighscore(difficulty, score, stars, name, part = parts[DRUM_PART])
-          else:
-            Log.warn("Weak hack attempt detected. Better luck next time.")
-
-    #akedrou - vocals!
-    self.highScoresVocal = {}
-
-    scores = self._get("scores_vocal", str, "")
-    scores_ext = self._get("scores_vocal_ext", str, "")
-    if scores:
-      scores = Cerealizer.loads(binascii.unhexlify(scores))
-      if scores_ext:
-        scores_ext = Cerealizer.loads(binascii.unhexlify(scores_ext))
-      for difficulty in scores.keys():
-        try:
-          difficulty = difficulties[difficulty]
-        except KeyError:
-          continue
-        #for score, stars, name, hash in scores[difficulty.id]:
-        #  if self.getScoreHash(difficulty, score, stars, name) == hash:
-        #    self.addHighscore(difficulty, score, stars, name, part = parts[DRUM_PART])
-        #  else:
-        #    Log.warn("Weak hack attempt detected. Better luck next time.")
-        for i, base_scores in enumerate(scores[difficulty.id]):
-          score, stars, name, hash = base_scores
-          if scores_ext != "":
-            #Someone may have mixed extended and non extended
-            try:
-              if len(scores_ext[difficulty.id][i]) < 9:
-                hash_ext, stars2, notesHit, notesTotal, noteStreak, modVersion, oldInfo, oldInfo2 =  scores_ext[difficulty.id][i]
-                handicapValue = 0
-                longHandicap = "None"
-                originalScore = 0
-              else:
-                hash_ext, stars2, notesHit, notesTotal, noteStreak, modVersion, handicapValue, longHandicap, originalScore =  scores_ext[difficulty.id][i]
-              scoreExt = (notesHit, notesTotal, noteStreak, modVersion, handicapValue, longHandicap, originalScore)
-            except:
-              hash_ext = 0
-              scoreExt = (0, 0, 0 , "RF-mod", 0, "None", 0)
-          if self.getScoreHash(difficulty, score, stars, name) == hash:
-            if scores_ext != "" and hash == hash_ext:
-              self.addHighscore(difficulty, score, stars, name, part = parts[DRUM_PART], scoreExt = scoreExt)
-            else:
-              self.addHighscore(difficulty, score, stars, name, part = parts[DRUM_PART])
-          else:
-            Log.warn("Weak hack attempt detected. Better luck next time.")
-
-
-    if canCache and self.allowCacheUsage:  #stump: preload this stuff into the cache
-      self.getParts()
-      self.getSections()
-    self.writeCache()
-
-  # stump: Write this song's info into the cache.
-  def writeCache(self):
-    if canCache and self.allowCacheUsage:
-      self.stateHash = hashlib.sha1(open(self.noteFileName, 'rb').read() + open(self.fileName, 'rb').read()).hexdigest()
-      cache = cacheManager.getCache(self.fileName)
-      pkl = cPickle.dumps(self.__dict__)
-      if cache != None:
-        cache.execute('INSERT OR REPLACE INTO `songinfo` (`hash`, `info`) VALUES (?, ?)', [self.stateHash, pkl])
-
 
   def _set(self, attr, value):
     if not self.info.has_section("song"):
@@ -4043,8 +3754,8 @@ def loadSong(engine, name, library = DEFAULT_LIBRARY, seekable = False, playback
       #crowdFile = songCrowdFile
       #Log.warn("crowd.ogg file not found. Using song+crowd.ogg instead! Volumes may be off.")
 
-  # if crowdsEnabled == 0:
-  #   crowdFile = None
+#  if crowdsEnabled == 0:
+#    crowdFile = None
 
 
   if songFile != None and guitarFile != None:
@@ -4169,8 +3880,8 @@ def getDefaultLibrary(engine):
 def getAvailableLibraries(engine, library = DEFAULT_LIBRARY):
   Log.debug("Song.getAvailableLibraries function call...library = " + str(library) )
   # Search for libraries in both the read-write and read-only directories
-  songRoots    = [engine.resource.fileName(library),
-                  engine.resource.fileName(library, writable = True)]
+  songRoots    = [engine.resource.fileName(library)]
+#                  engine.resource.fileName(library, writable = True)]
   libraries    = []
   libraryRoots = []
 
@@ -4232,24 +3943,19 @@ def getAvailableSongs(engine, library = DEFAULT_LIBRARY, includeTutorials = Fals
       return []
     for name in os.listdir(songRoot):
       #if not os.path.isfile(os.path.join(songRoot, name, "notes.mid")):
-      if ( not os.path.isfile(os.path.join(songRoot, name, "notes.mid")) ) and ( not os.path.isfile(os.path.join(songRoot, name, "notes-unedited.mid")) ):
-        continue
-      if not os.path.isfile(os.path.join(songRoot, name, "song.ini")) or name.startswith("."):
-       #if not os.path.isfile(os.path.join(songRoot, name, "song.ini")):
+      if ((not os.path.isfile(os.path.join(songRoot, name, "notes.mid")) and
+          not os.path.isfile(os.path.join(songRoot, name, "notes-unedited.mid"))) or
+          name.startswith(".")):
+
         continue
       if not name in names:
         names.append(name)
-  songs = []
-  for name in names:
-    progressCallback(len(songs)/float(len(names)))
-    songs.append(SongInfo(engine.resource.fileName(library, name, "song.ini", writable = True), library, allowCacheUsage=True))
-  if len(songs) and canCache and Config.get("performance", "cache_song_metadata"):
-    cache = cacheManager.getCache(songs[0].fileName)
-    if cache != None:
-      #stump: clean up the cache
-      if cache.execute('DELETE FROM `songinfo` WHERE `hash` NOT IN (' + ','.join("'%s'" % s.stateHash for s in songs) + ')').rowcount > 0:
-        cache.execute('VACUUM')  # compact the database if anything was deleted on the previous line
-      cache.commit()  # commit any changes to the cache all at once
+
+  songs = [SongInfo(engine.resource.fileName(library, name, "song.ini", writable = True)) for name in names]
+#  songs = []
+#  for name in names:
+#    progressCallback(len(songs)/float(len(names)))
+#    songs.append(SongInfo(engine.resource.fileName(library, name, "song.ini", writable = True), library, allowCacheUsage=True))
   if not includeTutorials:
     songs = [song for song in songs if not song.tutorial]
   songs = [song for song in songs if not song.artist == '=FOLDER=']
@@ -4265,44 +3971,26 @@ def getAvailableSongs(engine, library = DEFAULT_LIBRARY, includeTutorials = Fals
         song.setLocked(False)
   instrument = engine.config.get("game", "songlist_instrument")
   theInstrumentDiff = instrumentDiff[instrument]
-  if direction == 0:
-    if order == 1:
-      songs.sort(lambda a, b: cmp(a.artist.lower(), b.artist.lower()))
-    elif order == 2:
-      songs.sort(lambda a, b: cmp(int(b.count+str(0)), int(a.count+str(0))))
-    elif order == 0:
-      songs.sort(lambda a, b: cmp(a.name.lower(), b.name.lower()))
-    elif order == 3:
-      songs.sort(lambda a, b: cmp(a.album.lower(), b.album.lower()))
-    elif order == 4:
-      songs.sort(lambda a, b: cmp(a.genre.lower(), b.genre.lower()))
-    elif order == 5:
-      songs.sort(lambda a, b: cmp(a.year.lower(), b.year.lower()))
-    elif order == 6:
-      songs.sort(lambda a, b: cmp(a.diffSong, b.diffSong))
-    elif order == 7:
-      songs.sort(lambda a, b: cmp(theInstrumentDiff(a), theInstrumentDiff(b)))
-    elif order == 8:
-      songs.sort(lambda a, b: cmp(a.icon.lower(), b.icon.lower()))
-  else:
-    if order == 1:
-      songs.sort(lambda a, b: cmp(b.artist.lower(), a.artist.lower()))
-    elif order == 2:
-      songs.sort(lambda a, b: cmp(int(a.count+str(0)), int(b.count+str(0))))
-    elif order == 0:
-      songs.sort(lambda a, b: cmp(b.name.lower(), a.name.lower()))
-    elif order == 3:
-      songs.sort(lambda a, b: cmp(b.album.lower(), a.album.lower()))
-    elif order == 4:
-      songs.sort(lambda a, b: cmp(b.genre.lower(), a.genre.lower()))
-    elif order == 5:
-      songs.sort(lambda a, b: cmp(b.year.lower(), a.year.lower()))
-    elif order == 6:
-      songs.sort(lambda a, b: cmp(b.diffSong, a.diffSong))
-    elif order == 7:
-      songs.sort(lambda a, b: cmp(theInstrumentDiff(b), theInstrumentDiff(a)))
-    elif order == 8:
-      songs.sort(lambda a, b: cmp(b.icon.lower(), a.icon.lower()))
+  if order == 1:
+    songs.sort(lambda a, b: cmp(a.artist.lower(), b.artist.lower()))
+  elif order == 2:
+    songs.sort(lambda a, b: cmp(int(b.count+str(0)), int(a.count+str(0))))
+  elif order == 0:
+    songs.sort(lambda a, b: cmp(a.name.lower(), b.name.lower()))
+  elif order == 3:
+    songs.sort(lambda a, b: cmp(a.album.lower(), b.album.lower()))
+  elif order == 4:
+    songs.sort(lambda a, b: cmp(a.genre.lower(), b.genre.lower()))
+  elif order == 5:
+    songs.sort(lambda a, b: cmp(a.year.lower(), b.year.lower()))
+  elif order == 6:
+    songs.sort(lambda a, b: cmp(a.diffSong, b.diffSong))
+  elif order == 7:
+    songs.sort(lambda a, b: cmp(theInstrumentDiff(a), theInstrumentDiff(b)))
+  elif order == 8:
+    songs.sort(lambda a, b: cmp(a.icon.lower(), b.icon.lower()))
+  if direction == 1:
+      songs.reverse()
   return songs
 
   #coolguy567's unlock system
@@ -4469,7 +4157,8 @@ def getAvailableSongsAndTitles(engine, library = DEFAULT_LIBRARY, includeTutoria
       titles = getSortingTitles(engine, items)
     items = items + titles
 
-  items.sort(lambda a, b: compareSongsAndTitles(engine, a, b))
+  if titles:
+    items.sort(lambda a, b: compareSongsAndTitles(engine, a, b))
 
 
   if quickPlayMode and len(items) != 0:
