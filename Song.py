@@ -428,8 +428,12 @@ class SongInfo(object):
         diff = diff.replace("Medium","difficulties[2]")
         diff = diff.replace("Easy","difficulties[3]")
 
-        self._partDifficulties = eval(diff)
-    else:
+        # Just in case the line was altered, or changed for whatever reason...
+        try:
+          self._partDifficulties = eval(diff)
+        except:
+          pass
+    if not self._partDifficulties:
         self.getParts()
         self._set("diff",self._partDifficulties)
         self.save()
