@@ -372,9 +372,6 @@ Config.define("audio",  "SFX_volume",         float, 0.7,    text = _("SFX Volum
 # evilynux - Preload glyph cache may require more VRAM. Disable it if you're low on VRAM e.g. less than 64MB
 #Config.define("performance","preload_glyph_cache", bool,  True,  text = "Preload Glyph Cache", options = {False: "No", True: "Yes"})
 
-#stump: allow metadata caching to be turned off
-Config.define("performance", "cache_song_metadata", bool, True, text=_("Cache Song Metadata"), options={False: _("No"), True: _("Yes")}, tipText = _("This will allow information about the songs to be stored for quick access later at the cost of a slow first time loading."))
-
 #stump: choice of pitch analysis engines
 Config.define('game', 'use_new_pitch_analyzer', bool, True, text=_('Pitch Analysis Code'), options={False: 'pypitch', True: 'PitchAnalyzer.py'}, tipText = _("Sets whether to use the 'pypitch' engine or the built-in PitchAnalyzer to analyze microphone information."))
 

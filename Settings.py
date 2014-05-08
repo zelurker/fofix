@@ -984,7 +984,6 @@ class SettingsMenu(Menu.Menu):
       ConfigChoice(engine, engine.config, "game", "songlist_extra_stats", autoApply = True), #evilynux
       ConfigChoice(engine, engine.config, "game", "HSMovement", autoApply = True), #racer
       ConfigChoice(engine, engine.config, "performance", "disable_libcount", autoApply = True, isQuickset = 1),
-      ConfigChoice(engine, engine.config, "performance", "cache_song_metadata", autoApply = True, isQuickset = 1), #stump
     ]
     self.listSettingsMenu = Menu.Menu(engine, self.listSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
 
@@ -1508,7 +1507,6 @@ def quickset(config):
     config.set("performance", "disable_libcount", True)
     config.set("performance", "killfx", 2)
     config.set("performance", "star_score_updates", 0)
-    config.set("performance", "cache_song_metadata", False)
     Log.debug("Quickset Performance - Fastest")
 
   elif perfSetNum == 2:
@@ -1535,7 +1533,6 @@ def quickset(config):
     config.set("performance", "disable_libcount", True)
     config.set("performance", "killfx", 0)
     config.set("performance", "star_score_updates", 0)
-    config.set("performance", "cache_song_metadata", True)
     Log.debug("Quickset Performance - Fast")
 
   elif perfSetNum == 3:
@@ -1560,7 +1557,6 @@ def quickset(config):
     config.set("performance", "disable_libcount", True)
     config.set("performance", "killfx", 0)
     config.set("performance", "star_score_updates", 1)
-    config.set("performance", "cache_song_metadata", True)
     Log.debug("Quickset Performance - Quality")
 
   elif perfSetNum == 4:
@@ -1586,7 +1582,6 @@ def quickset(config):
     config.set("performance", "disable_libcount", False)
     config.set("performance", "killfx", 0)
     config.set("performance", "star_score_updates", 1)
-    config.set("performance", "cache_song_metadata", True)
     Log.debug("Quickset Performance - Highest Quality")
 
   else:

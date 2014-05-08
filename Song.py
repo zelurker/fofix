@@ -186,10 +186,6 @@ class SongInfo(object):
     self._partDifficulties = {}
     self._parts        = None
     self._midiStyle    = None
-    if Config.get("performance", "cache_song_metadata"):
-      self.allowCacheUsage = allowCacheUsage  #stump
-    else:
-      self.allowCacheUsage = False
 
     self.locked = False
 
@@ -3969,10 +3965,6 @@ def getAvailableSongs(engine, library = DEFAULT_LIBRARY, includeTutorials = Fals
         names.append(name)
 
   songs = [SongInfo(engine.resource.fileName(library, name, "song.ini", writable = True)) for name in names]
-#  songs = []
-#  for name in names:
-#    progressCallback(len(songs)/float(len(names)))
-#    songs.append(SongInfo(engine.resource.fileName(library, name, "song.ini", writable = True), library, allowCacheUsage=True))
   if not includeTutorials:
     songs = [song for song in songs if not song.tutorial]
   songs = [song for song in songs if not song.artist == '=FOLDER=']
