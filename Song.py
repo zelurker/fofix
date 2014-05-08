@@ -417,9 +417,22 @@ class SongInfo(object):
 #    return self._difficulties
 
   def getPartDifficulties(self):
-    if len(self._partDifficulties) is not 0:
+    if self._partDifficulties:
       return self._partDifficulties
-    self.getParts()
+    # parsing this implies opening the midi file, which can take time
+    # so we cache this in the song.ini
+    if self._get("diff"):
+        diff = self._get("diff")
+        diff = diff.replace("Expert","difficulties[0]")
+        diff = diff.replace("Hard","difficulties[1]")
+        diff = diff.replace("Medium","difficulties[2]")
+        diff = diff.replace("Easy","difficulties[3]")
+
+        self._partDifficulties = eval(diff)
+    else:
+        self.getParts()
+        self._set("diff",self._partDifficulties)
+        self.save()
     return self._partDifficulties
 
   partDifficulties = property(getPartDifficulties)
