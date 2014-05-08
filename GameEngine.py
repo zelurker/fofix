@@ -242,7 +242,6 @@ Config.define("game",  "bg_neck_alpha",  float,    1.0,  text = _("Bass Groove N
 Config.define("game",  "fail_neck_alpha",  float,    1.0,  text = _("Fail Neck"),   options = dict([(n / 100.0, "%3d%s" % (n,"%")) for n in range(0, 110, 10)]), tipText = _("Set the transparency of the failing neck. 100% is fully visible."))
 Config.define("game",  "overlay_neck_alpha",  float,    1.0,  text = _("Overlay Neck"),   options = dict([(n / 100.0, "%3d%s" % (n,"%")) for n in range(0, 110, 10)]), tipText = _("Set the transparency of neck overlays. 100% is fully visible."))
 Config.define("game",  "necks_alpha",  float,    1.0,  text = _("All Necks"),   options = dict([(n / 100.0, "%3d%s" % (n,"%")) for n in range(0, 110, 10)]), tipText = _("Set the master transparency of all necks. 100% is fully visible."))
-Config.define("songlist",  "nil_show_next_score", int, 0, text = _("Show Any Available Score"), options = {0: _("Off"), 1: _("On")}, tipText = _("When set to 'On', this will look for any available score on the currently selected instrument for setlist score display, if one is not available at the chosen difficulty."))
 
 Config.define("game", "scroll_delay",             int, 500,  text = _("Scroll Delay"), options = dict([(n, n) for n in range(100, 2001, 100)]), tipText = _("Sets how long, in milliseconds, to wait before beginning to scroll."))
 Config.define("game", "scroll_rate",              int, 50,   text = _("Scroll Rate"),  options = dict([(n, 10-((n/10)-1)) for n in range(10, 101, 10)]), tipText = _("Sets how quickly menus will scroll."))

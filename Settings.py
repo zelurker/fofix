@@ -51,11 +51,11 @@ class ConfigChoice(Menu.Choice):
   def __init__(self, engine, config, section, option, autoApply = False, isQuickset = 0):
     self.engine    = engine
     self.config    = config
-    
+
     self.logClassInits = self.engine.config.get("game", "log_class_inits")
     if self.logClassInits == 1:
       Log.debug("ConfigChoice class init (Settings.py)...")
-    
+
     self.section    = section
     self.option     = option
     self.changed    = False
@@ -81,32 +81,32 @@ class ConfigChoice(Menu.Choice):
     else:
       raise RuntimeError("No usable options for %s.%s." % (section, option))
     Menu.Choice.__init__(self, text = o.text, callback = self.change, values = values, valueIndex = valueIndex, tipText = tipText)
-    
+
   def change(self, value):
     o = self.config.prototype[self.section][self.option]
-    
+
     if isinstance(o.options, dict):
       for k, v in o.options.items():
         if v == value:
           value = k
           break
-    
+
     self.changed = True
     self.value   = value
-    
+
     if self.isQuickset == 1: # performance quickset
       self.config.set("quickset","performance",0)
       self.engine.quicksetPerf = 0
     elif self.isQuickset == 2: # gameplay quickset
       self.config.set("quickset","gameplay",0)
-    
+
     if self.section == "quickset":
       if self.option == "performance":
         if self.value == self.engine.quicksetPerf or self.value == 0:
           self.engine.quicksetRestart = False
         else:
           self.engine.quicksetRestart = True
-    
+
     self.apply()  #stump: it wasn't correctly saving some "restart required" settings
     if not self.autoApply:
       self.engine.restartRequired = True
@@ -124,18 +124,18 @@ class ActiveConfigChoice(ConfigChoice):
     self.engine   = engine
     self.onChange = onChange
     self.volume   = volume
-    
+
     self.logClassInits = self.engine.config.get("game", "log_class_inits")
     if self.logClassInits == 1:
       Log.debug("ActiveConfigChoice class init (Settings.py)...")
-  
+
   def change(self, value):
     ConfigChoice.change(self, value)
     if self.volume:
       sound = self.engine.data.screwUpSound
       sound.setVolume(self.value)
       sound.play()
-  
+
   def apply(self):
     ConfigChoice.apply(self)
     self.onChange()
@@ -148,7 +148,7 @@ class VolumeConfigChoice(ConfigChoice):
     self.logClassInits = self.engine.config.get("game", "log_class_inits")
     if self.logClassInits == 1:
       Log.debug("VolumeConfigChoice class init (Settings.py)...")
-    
+
 
   def change(self, value):
     ConfigChoice.change(self, value)
@@ -174,13 +174,13 @@ class KeyConfigChoice(Menu.Choice):
     self.type    = self.config.get("controller", "type")
     self.name    = self.config.get("controller", "name")
     self.frets   = []
-    
+
     def keycode(k):
       try:
         return int(k)
       except:
         return getattr(pygame, k)
-    
+
     if self.shift:
       self.frets.append(keycode(self.config.get("controller", "key_1")))
       self.frets.append(keycode(self.config.get("controller", "key_2")))
@@ -191,7 +191,7 @@ class KeyConfigChoice(Menu.Choice):
     self.keyCheckerMode = self.config.get("game","key_checker_mode")
 
     self.option = self.option
-      
+
     Menu.Choice.__init__(self, text = "", callback = self.change)
 
   def getText(self, selected):
@@ -225,7 +225,7 @@ class KeyConfigChoice(Menu.Choice):
     else:
       keyname = pygame.key.name(keycode(v)).capitalize()
     return "%s: %s" % (text, keyname)
-    
+
   def change(self):
     o = self.config.prototype[self.section][self.option]
 
@@ -259,10 +259,10 @@ class KeyConfigChoice(Menu.Choice):
         key = Dialogs.getKey(self.engine, _("Press a key for '%s' or hold Escape to disable.") % text)
       else:
         key = Dialogs.getKey(self.engine, _("Press a key for '%s' or hold Escape to cancel.") % text)
-    
+
     if key:
       #------------------------------------------
-      
+
       #myfingershurt: key conflict checker operation mode
       #if self.keyCheckerMode == 2:    #enforce; do not allow conflicting key assignments, force reversion
         # glorandwarf: sets the new key mapping and checks for a conflict
@@ -277,7 +277,7 @@ class KeyConfigChoice(Menu.Choice):
           # key mapping would conflict, warn the user
           #Dialogs.showMessage(self.engine, _("A key conflict exists somewhere. You should fix it."))
         #self.engine.input.reloadControls()
-      
+
       #else:   #don't even check.
       temp = Player.setNewKeyMapping(self.engine, self.config, self.section, self.option, key)
       if self.name in self.engine.input.controls.controlList:
@@ -287,8 +287,8 @@ class KeyConfigChoice(Menu.Choice):
         temp = Player.setNewKeyMapping(self.engine, self.config, self.section, self.option, "None")
         if self.name in self.engine.input.controls.controlList:
           self.engine.input.reloadControls()
-      
-      
+
+
       #------------------------------------------
 
   def apply(self):
@@ -297,7 +297,7 @@ class KeyConfigChoice(Menu.Choice):
 def chooseControl(engine, mode = "edit", refresh = None):
   """
   Ask the user to choose a controller for editing or deletion.
-  
+
   @param engine:    Game engine
   @param mode:      "edit" or "delete" controller
   """
@@ -327,11 +327,11 @@ class ControlChooser(Menu.Menu):
     self.mode    = mode
     self.options = options
     self.default = self.engine.config.get("game", "control0")
-    
+
     self.logClassInits = self.engine.config.get("game", "log_class_inits")
     if self.logClassInits == 1:
       Log.debug("ControlChooser class init (Settings.py)...")
-    
+
     self.selected = None
     self.d        = None
     self.creating = False
@@ -340,12 +340,12 @@ class ControlChooser(Menu.Menu):
     Menu.Menu.__init__(self, self.engine, choices = [(c, self._callbackForItem(c)) for c in options])
     if self.default in options:
       self.selectItem(options.index(self.default))
-    
+
   def _callbackForItem(self, item):
     def cb():
       self.choose(item)
     return cb
-    
+
   def choose(self, item):
     self.selected = item
     if self.mode == 0:
@@ -353,7 +353,7 @@ class ControlChooser(Menu.Menu):
       self.engine.view.popLayer(self)
     else:
       self.delete(self.selected)
-  
+
   def delete(self, item):
     tsYes = _("Yes")
     q = Dialogs.chooseItem(self.engine, [tsYes, _("No")], _("Are you sure you want to delete this controller?"))
@@ -369,15 +369,15 @@ class ControlCreator(BackgroundLayer, KeyListener):
     self.logClassInits = self.engine.config.get("game", "log_class_inits")
     if self.logClassInits == 1:
       Log.debug("ControlCreator class init (Settings.py)...")
-    
+
     self.time   = 0.0
     self.badname     = ["defaultg", "defaultd", "defaultm"] #ensures that defaultm is included - duplicate is ok
     for i in Player.controllerDict.keys():
       self.badname.append(i.lower())
-    
+
     self.menu = None
     self.config = None
-  
+
   def shown(self):
     while (self.control.strip().lower() in self.badname or self.control.strip() == "") and not self.edit:
       self.control = Dialogs.getText(self.engine, _("Please name your controller"), self.control)
@@ -389,13 +389,13 @@ class ControlCreator(BackgroundLayer, KeyListener):
         break
     else:
       self.setupMenu()
-  
+
   def cancel(self):
     Player.loadControls()
     self.engine.input.reloadControls()
     self.engine.view.popLayer(self.menu)
     self.engine.view.popLayer(self)
-  
+
   def setupMenu(self):
     self.config = None
     if not os.path.isfile(os.path.join(Player.controlpath, self.control + ".ini")):
@@ -406,7 +406,7 @@ class ControlCreator(BackgroundLayer, KeyListener):
     if name != self.control:
       self.config.set("controller", "name", self.control)
     type = self.config.get("controller", "type")
-    
+
     if type != 5:
       if str(self.config.get("controller", "key_1")) == "None":
         self.config.set("controller", "key_1", self.config.getDefault("controller", "key_1"))
@@ -420,7 +420,7 @@ class ControlCreator(BackgroundLayer, KeyListener):
         self.config.set("controller", "key_action1", self.config.getDefault("controller", "key_action1"))
       if str(self.config.get("controller", "key_action2")) == "None":
         self.config.set("controller", "key_action2", self.config.getDefault("controller", "key_action2"))
-    
+
     if type == 0:
       self.config.set("controller", "key_1a", None)
       if str(self.config.get("controller", "key_5")) == "None":
@@ -468,7 +468,7 @@ class ControlCreator(BackgroundLayer, KeyListener):
         self.config.set("controller", "key_1a", self.config.getDefault("controller", "key_1a"))
       if str(self.config.get("controller", "key_kill")) == "None":
         self.config.set("controller", "key_kill", self.config.getDefault("controller", "key_kill"))
-      
+
       controlKeys = [
         ActiveConfigChoice(self.engine, self.config, "controller", "type", self.changeType),
         KeyConfigChoice(self.engine, self.config, "controller", "key_action1"),
@@ -498,7 +498,7 @@ class ControlCreator(BackgroundLayer, KeyListener):
       self.config.set("controller", "key_5", None)
       self.config.set("controller", "key_5a", None)
       self.config.set("controller", "key_kill", None)
-        
+
       controlKeys = [
         ActiveConfigChoice(self.engine, self.config, "controller", "type", self.changeType),
         KeyConfigChoice(self.engine, self.config, "controller", "key_2"),
@@ -564,7 +564,7 @@ class ControlCreator(BackgroundLayer, KeyListener):
         self.config.set("controller", "key_1a", self.config.getDefault("controller", "key_1a"))
       if str(self.config.get("controller", "key_kill")) == "None":
         self.config.set("controller", "key_kill", self.config.getDefault("controller", "key_kill"))
-      
+
       controlKeys = [
         ActiveConfigChoice(self.engine, self.config, "controller", "type", self.changeType),
         KeyConfigChoice(self.engine, self.config, "controller", "key_action1"),
@@ -621,11 +621,11 @@ class ControlCreator(BackgroundLayer, KeyListener):
       ]
     self.menu = Menu.Menu(self.engine, controlKeys, onCancel = self.cancel)
     self.engine.view.pushLayer(self.menu)
-  
+
   def changeType(self):
     self.engine.view.popLayer(self.menu)
     self.setupMenu()
-  
+
   def renameController(self):
     newControl = ""
     while newControl.strip().lower() in self.badname or newControl.strip() == "":
@@ -640,10 +640,10 @@ class ControlCreator(BackgroundLayer, KeyListener):
       self.control = newControl
       self.engine.view.popLayer(self.menu)
       self.setupMenu()
-  
+
   def run(self, ticks):
     self.time += ticks/50.0
-    
+
   def render(self, visibility, topMost):
     pass
 
@@ -655,9 +655,9 @@ class SettingsMenu(Menu.Menu):
     self.logClassInits = self.engine.config.get("game", "log_class_inits")
     if self.logClassInits == 1:
       Log.debug("SettingsMenu class init (Settings.py)...")
-    
+
     self.keyCheckerMode = Config.get("game", "key_checker_mode")
-    
+
     self.opt_text_x = Theme.opt_text_xPos
     self.opt_text_y = Theme.opt_text_yPos
 
@@ -698,7 +698,7 @@ class SettingsMenu(Menu.Menu):
       self.modSettingsMenu = Menu.Menu(self.engine, self.modSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
     else:
       self.modSettingsMenu = self.modSettings
-    
+
     self.stagesOptions = [
       ConfigChoice(self.engine, self.engine.config, "game", "stage_mode", autoApply = True),   #myfingershurt
       ConfigChoice(self.engine, self.engine.config, "game", "animated_stage_folder", autoApply = True),   #myfingershurt
@@ -710,14 +710,14 @@ class SettingsMenu(Menu.Menu):
       ConfigChoice(self.engine, self.engine.config, "game", "miss_pauses_anim", autoApply = True),
     ]
     self.stagesOptionsMenu = Menu.Menu(self.engine, self.stagesOptions, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     self.hopoSettings = [
        ConfigChoice(self.engine, self.engine.config, "game", "hopo_system", autoApply = True),      #myfingershurt
        ConfigChoice(self.engine, self.engine.config, "game", "song_hopo_freq", autoApply = True),      #myfingershurt
        ConfigChoice(self.engine, self.engine.config, "game", "hopo_after_chord", autoApply = True),      #myfingershurt
     ]
     self.hopoSettingsMenu = Menu.Menu(self.engine, self.hopoSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     self.lyricsSettings = [
        ConfigChoice(self.engine, self.engine.config, "game", "midi_lyric_mode", autoApply = True, isQuickset = 1),      #myfingershurt
        ConfigChoice(self.engine, self.engine.config, "game", "vocal_scroll", autoApply = True, isQuickset = 1),      #akedrou
@@ -728,10 +728,10 @@ class SettingsMenu(Menu.Menu):
        ConfigChoice(self.engine, self.engine.config, "game", "script_lyric_pos", autoApply = True),      #myfingershurt
     ]
     self.lyricsSettingsMenu = Menu.Menu(self.engine, self.lyricsSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     jurgenSettings = self.refreshJurgenSettings(init = True)
     self.jurgenSettingsMenu = Menu.Menu(self.engine, jurgenSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-           
+
     self.advancedGameSettings = [
       ConfigChoice(self.engine, self.engine.config, "performance", "star_score_updates", autoApply = True, isQuickset = 1),   #MFH
       ConfigChoice(self.engine, self.engine.config, "game", "bass_groove_enable", autoApply = True, isQuickset = 2),#myfingershurt
@@ -746,7 +746,7 @@ class SettingsMenu(Menu.Menu):
       ConfigChoice(self.engine, self.engine.config, "game", "lost_focus_pause", autoApply = True),
     ]
     self.advancedGameSettingsMenu = Menu.Menu(self.engine, self.advancedGameSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     self.battleObjectSettings = [
       ConfigChoice(engine, engine.config, "game", "battle_Whammy", autoApply = True),
       ConfigChoice(engine, engine.config, "game", "battle_Diff_Up", autoApply = True),
@@ -758,15 +758,15 @@ class SettingsMenu(Menu.Menu):
       ConfigChoice(engine, engine.config, "game", "battle_Steal", autoApply = True),
       ConfigChoice(engine, engine.config, "game", "battle_Tune", autoApply = True),
     ]
-    
+
     self.battleObjectSettingsMenu = Menu.Menu(self.engine, self.battleObjectSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     self.battleSettings = [
       (_("Battle Objects"), self.battleObjectSettingsMenu, _("Set which objects can appear in Battle Mode")),
     ]
-    
+
     self.battleSettingsMenu = Menu.Menu(self.engine, self.battleSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     self.basicSettings = [
       ConfigChoice(self.engine, self.engine.config, "game",  "language"),
       ConfigChoice(self.engine, self.engine.config, "game", "T_sound", autoApply = True), #Faaa Drum sound
@@ -795,19 +795,19 @@ class SettingsMenu(Menu.Menu):
 
     self.keySettings = self.refreshKeySettings(init = True)
     self.keySettingsMenu = Menu.Menu(self.engine, self.keySettings, onClose = self.controlCheck, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     self.neckTransparency = [      #volshebnyi
       ConfigChoice(self.engine, self.engine.config, "game", "necks_alpha", autoApply = True),
       ConfigChoice(self.engine, self.engine.config, "game", "neck_alpha", autoApply = True),
       ConfigChoice(self.engine, self.engine.config, "game", "solo_neck_alpha", autoApply = True),
       ConfigChoice(self.engine, self.engine.config, "game", "bg_neck_alpha", autoApply = True),
-      ConfigChoice(self.engine, self.engine.config, "game", "fail_neck_alpha", autoApply = True), 
-      ConfigChoice(self.engine, self.engine.config, "game", "overlay_neck_alpha", autoApply = True),  
+      ConfigChoice(self.engine, self.engine.config, "game", "fail_neck_alpha", autoApply = True),
+      ConfigChoice(self.engine, self.engine.config, "game", "overlay_neck_alpha", autoApply = True),
     ]
     self.neckTransparencyMenu = Menu.Menu(self.engine, self.neckTransparency, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-              
+
     self.shaderSettings = [      #volshebnyi
-      ConfigChoice(self.engine, self.engine.config, "video", "shader_use", autoApply = True), 
+      ConfigChoice(self.engine, self.engine.config, "video", "shader_use", autoApply = True),
       ConfigChoice(self.engine, self.engine.config, "video", "shader_neck", autoApply = True),
       ConfigChoice(self.engine, self.engine.config, "video", "shader_stage", autoApply = True),
       ConfigChoice(self.engine, self.engine.config, "video", "shader_sololight", autoApply = True),
@@ -816,7 +816,7 @@ class SettingsMenu(Menu.Menu):
       ConfigChoice(self.engine, self.engine.config, "video", "shader_cd", autoApply = True),
     ]
     self.shaderSettings = Menu.Menu(self.engine, self.shaderSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     self.advancedVideoSettings = [
       ConfigChoice(self.engine, self.engine.config, "engine", "highpriority", isQuickset = 1),
       ConfigChoice(self.engine, self.engine.config, "video",  "fps", isQuickset = 1),
@@ -831,7 +831,7 @@ class SettingsMenu(Menu.Menu):
       (_("More Effects"), self.shaderSettings, _("Change the settings of the shader system.")), #volshebnyi
     ]
     self.advancedVideoSettingsMenu = Menu.Menu(self.engine, self.advancedVideoSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     self.fretSettings = [
       ConfigChoice(self.engine, self.engine.config, "fretboard", "point_of_view", autoApply = True, isQuickset = 2),
       ConfigChoice(self.engine, self.engine.config, "game", "notedisappear", autoApply = True),
@@ -843,7 +843,7 @@ class SettingsMenu(Menu.Menu):
       ConfigChoice(self.engine, self.engine.config, "game", "guitar_solo_neck", autoApply = True),      #myfingershurt
       ConfigChoice(self.engine, self.engine.config, "fretboard", "ovrneckoverlay", autoApply = True),
       ConfigChoice(self.engine, self.engine.config, "game", "incoming_neck_mode", autoApply = True, isQuickset = 1),
-      #myfingershurt 
+      #myfingershurt
       (_("Change Neck Transparency"), self.neckTransparencyMenu, _("Change the transparency of the various in-game necks.")), #volshebnyi
     ]
     self.fretSettingsMenu = Menu.Menu(self.engine, self.fretSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
@@ -855,7 +855,7 @@ class SettingsMenu(Menu.Menu):
       ConfigChoice(self.engine, self.engine.config, "performance", "starspin", autoApply = True, isQuickset = 1),
     ]
     self.themeDisplayMenu = Menu.Menu(self.engine, self.themeDisplaySettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     self.inGameDisplaySettings = [
       (_("Theme Display Settings"), self.themeDisplayMenu, _("Change settings that only affect certain theme types.")),
       ConfigChoice(self.engine, self.engine.config, "game", "in_game_stars", autoApply = True, isQuickset = 2),#myfingershurt
@@ -869,11 +869,11 @@ class SettingsMenu(Menu.Menu):
       ConfigChoice(self.engine, self.engine.config, "game", "solo_frame", autoApply = True),      #myfingershurt
       ConfigChoice(self.engine, self.engine.config, "video", "disable_fretsfx", autoApply = True),
       ConfigChoice(self.engine, self.engine.config, "video", "hitglow_color", autoApply = True),
-      ConfigChoice(self.engine, self.engine.config, "game", "game_time", autoApply = True),  
+      ConfigChoice(self.engine, self.engine.config, "game", "game_time", autoApply = True),
       ConfigChoice(self.engine, self.engine.config, "video", "counting", autoApply = True, isQuickset = 2),
     ]
     self.inGameDisplayMenu = Menu.Menu(self.engine, self.inGameDisplaySettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-      
+
     modes = self.engine.video.getVideoModes()
     modes.reverse()
     Config.define("video",  "resolution", str,   "1024x768", text = _("Video Resolution"), options = ["%dx%d" % (m[0], m[1]) for m in modes], tipText = _("Set the resolution of the game. In windowed mode, higher values mean a larger screen."))
@@ -890,7 +890,7 @@ class SettingsMenu(Menu.Menu):
     ]
     self.videoSettingsMenu = Menu.Menu(self.engine, self.videoSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
 
-    
+
     self.volumeSettings = [
       VolumeConfigChoice(engine, engine.config, "audio",  "guitarvol", autoApply = True),
       VolumeConfigChoice(engine, engine.config, "audio",  "songvol", autoApply = True),
@@ -903,7 +903,7 @@ class SettingsMenu(Menu.Menu):
       ActiveConfigChoice(engine, engine.config, "audio",  "menu_volume", autoApply = True, onChange = self.engine.mainMenu.setMenuVolume),
     ]
     self.volumeSettingsMenu = Menu.Menu(engine, self.volumeSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     self.advancedAudioSettings = [
        ConfigChoice(engine, engine.config, "audio",  "frequency"),
        ConfigChoice(engine, engine.config, "audio",  "bits"),
@@ -922,11 +922,11 @@ class SettingsMenu(Menu.Menu):
       ConfigChoice(engine, engine.config, "game", "star_claps", autoApply = True),      #myfingershurt
       ConfigChoice(engine, engine.config, "game", "beat_claps", autoApply = True), #racer
       ConfigChoice(engine, engine.config, "audio",  "whammy_effect", autoApply = True),     #MFH
-      ConfigChoice(engine, engine.config, "audio", "enable_crowd_tracks", autoApply = True), 
+      ConfigChoice(engine, engine.config, "audio", "enable_crowd_tracks", autoApply = True),
       (_("Advanced Audio Settings"), self.advancedAudioSettingsMenu, _("Change advanced audio settings.")),
     ]
     self.audioSettingsMenu = Menu.Menu(engine, self.audioSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     #MFH - new menu
     self.logfileSettings = [
       ConfigChoice(engine, engine.config, "game", "log_ini_reads", autoApply = True),#myfingershurt
@@ -956,7 +956,7 @@ class SettingsMenu(Menu.Menu):
       ConfigChoice(engine, engine.config, "game", "use_new_pitch_analyzer", autoApply = True),  #stump
     ]
     self.debugSettingsMenu = Menu.Menu(engine, self.debugSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     self.quickSettings = [
       ConfigChoice(engine, engine.config, "quickset", "performance", autoApply = True),
       ConfigChoice(engine, engine.config, "quickset", "gameplay", autoApply = True),
@@ -983,13 +983,12 @@ class SettingsMenu(Menu.Menu):
       ConfigChoice(engine, engine.config, "game",  "whammy_changes_sort_order", autoApply = True), #stump
       ConfigChoice(engine, engine.config, "game", "songlist_extra_stats", autoApply = True), #evilynux
       ConfigChoice(engine, engine.config, "game", "HSMovement", autoApply = True), #racer
-      ConfigChoice(engine, engine.config, "performance", "disable_libcount", autoApply = True, isQuickset = 1), 
+      ConfigChoice(engine, engine.config, "performance", "disable_libcount", autoApply = True, isQuickset = 1),
       ConfigChoice(engine, engine.config, "performance", "cache_song_metadata", autoApply = True, isQuickset = 1), #stump
-      ConfigChoice(engine, engine.config, "songlist",  "nil_show_next_score", autoApply = True), #MFH
     ]
     self.listSettingsMenu = Menu.Menu(engine, self.listSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
-    
+
+
     advancedSettings = [
       ConfigChoice(engine, engine.config, "performance", "game_priority", autoApply = True, isQuickset = 1),
       ConfigChoice(engine, engine.config, "performance", "use_psyco"),
@@ -997,7 +996,7 @@ class SettingsMenu(Menu.Menu):
       (_("Log Settings"),    self.logfileSettingsMenu, _("Adds junk information to the logfile. Probably not useful in bug reports.")),
     ]
     self.advancedSettingsMenu = Menu.Menu(engine, advancedSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     self.cheats = [
       (_("AI Settings"), self.jurgenSettingsMenu, _("Change the settings of the AI")),
       ConfigChoice(engine, engine.config, "game", "gh2_sloppy", autoApply = True),
@@ -1011,7 +1010,7 @@ class SettingsMenu(Menu.Menu):
       (_("Mod settings"), self.modSettingsMenu, _("Enable or disable any mods you have installed.")),
     ]
     self.cheatMenu = Menu.Menu(engine, self.cheats, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     settings = [
       (_("Gameplay Settings"),   self.basicSettingsMenu, _("Settings that affect the rules of the game.")),
       (_("Control Settings"),     self.keySettingsMenu, _("Create, delete, and edit your controls.")),
@@ -1024,7 +1023,7 @@ class SettingsMenu(Menu.Menu):
       (_("Quickset"), self.quicksetMenu, _("A quick way to set many advanced settings.")),
       (_("Hide Advanced Options"), self.advancedSettings)
     ]
-  
+
     self.settingsToApply = self.videoSettings + \
                            self.advancedAudioSettings + \
                            self.advancedVideoSettings + \
@@ -1057,7 +1056,7 @@ class SettingsMenu(Menu.Menu):
         if isinstance(option, ConfigChoice):
           option.apply()
       self.engine.restart()
-  
+
   def refreshJurgenSettings(self, init = False):
     choices = []
     maxplayer = self.engine.config.get("performance", "max_players")
@@ -1068,7 +1067,7 @@ class SettingsMenu(Menu.Menu):
     if init:
       return choices
     self.engine.mainMenu.settingsMenuObject.jurgenSettingsMenu.choices = choices
-  
+
   def refreshKeySettings(self, init = False):
     choices = [ #the reacharound
       Menu.Choice(_("Test Controls"), self.keyChangeMenu, tipText = _("Go here to test your controllers.")),
@@ -1089,7 +1088,7 @@ class SettingsMenu(Menu.Menu):
     if init:
       return choices
     self.engine.mainMenu.settingsMenuObject.keySettingsMenu.choices = choices
-  
+
   def controlCheck(self):
     control = [self.engine.config.get("game", "control0")]
     self.keyCheckerMode = Config.get("game", "key_checker_mode")
@@ -1116,7 +1115,7 @@ class SettingsMenu(Menu.Menu):
         if self.keyCheckerMode == 2:
           self.engine.view.pushLayer(self.keySettingsMenu)
       self.refreshKeySettings()
-  
+
   def advancedSettings(self):
     Config.set("game", "adv_settings", False)
     self.engine.advSettings = False
@@ -1131,7 +1130,7 @@ class SettingsMenu(Menu.Menu):
       Dialogs.showMessage(self.engine, "No controller set for slot %d" % (controller+1))
     else:
       Dialogs.testKeys(self.engine, controller)
-  
+
   def scrollSet(self):
     self.engine.scrollRate = self.engine.config.get("game", "scroll_rate")
     self.engine.scrollDelay = self.engine.config.get("game", "scroll_delay")
@@ -1151,7 +1150,7 @@ class SettingsMenu(Menu.Menu):
   #    Log.debug(newPath)
   #    Log.debug(os.path.dirname(newPath))
   #    self.engine.resource.refreshBaseLib()   #myfingershurt - to let user continue with new songpath without restart
-      
+
   def baseLibrarySelect(self):
     Log.debug("settings.baseLibrarySelect function call...")
     newPath = Dialogs.chooseFile(self.engine, masks = ["*/*"], prompt = _("Choose a new songs directory."), dirSelect = True)
@@ -1160,7 +1159,7 @@ class SettingsMenu(Menu.Menu):
       Config.set("game", "selected_library", os.path.basename(newPath))
       Config.set("game", "selected_song", "")
       self.engine.resource.refreshBaseLib()   #myfingershurt - to let user continue with new songpath without restart
-    
+
 
 class BasicSettingsMenu(Menu.Menu):
   def __init__(self, engine):
@@ -1172,7 +1171,7 @@ class BasicSettingsMenu(Menu.Menu):
     self.logClassInits = self.engine.config.get("game", "log_class_inits")
     if self.logClassInits == 1:
       Log.debug("BasicSettingsMenu class init (Settings.py)...")
-      
+
     self.opt_text_x = Theme.opt_text_xPos
     self.opt_text_y = Theme.opt_text_yPos
 
@@ -1213,7 +1212,7 @@ class BasicSettingsMenu(Menu.Menu):
       self.modSettingsMenu = Menu.Menu(self.engine, self.modSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
     else:
       self.modSettingsMenu = self.modSettings
-    
+
     FoFiXBasicSettings = [
       ConfigChoice(engine, engine.config, "game",  "language"),
       ConfigChoice(engine, engine.config, "game", "T_sound", autoApply = True), #Faaa Drum sound
@@ -1226,7 +1225,7 @@ class BasicSettingsMenu(Menu.Menu):
       ConfigChoice(engine, engine.config, "audio",  "delay", autoApply = True),     #myfingershurt: so a/v delay can be set without restarting FoF
     ]
     FoFiXBasicSettingsMenu = Menu.Menu(engine, FoFiXBasicSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     self.keyChangeSettings = [
       (_("Test Controller 1"), lambda: self.keyTest(0), _("Test the controller configured for slot 1.")),
       (_("Test Controller 2"), lambda: self.keyTest(1), _("Test the controller configured for slot 2.")),
@@ -1237,16 +1236,16 @@ class BasicSettingsMenu(Menu.Menu):
 
     self.keySettings = self.refreshKeySettings(init = True)
     self.keySettingsMenu = Menu.Menu(self.engine, self.keySettings, onClose = self.controlCheck, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     InGameDisplaySettings = [
       ConfigChoice(engine, engine.config, "game", "in_game_stars", autoApply = True, isQuickset = 2),#myfingershurt
       ConfigChoice(engine, engine.config, "game", "accuracy_mode", autoApply = True),
       ConfigChoice(engine, engine.config, "performance", "in_game_stats", autoApply = True, isQuickset = 1),#myfingershurt
-      ConfigChoice(engine, engine.config, "game", "game_time", autoApply = True),  
+      ConfigChoice(engine, engine.config, "game", "game_time", autoApply = True),
       ConfigChoice(engine, engine.config, "video", "counting", autoApply = True, isQuickset = 2),
     ]
     InGameDisplayMenu = Menu.Menu(engine, InGameDisplaySettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-      
+
     modes = engine.video.getVideoModes()
     modes.reverse()
     Config.define("video",  "resolution", str,   "1024x768", text = _("Video Resolution"), options = ["%dx%d" % (m[0], m[1]) for m in modes], tipText = _("Set the resolution of the game. In windowed mode, higher values mean a larger screen."))
@@ -1261,7 +1260,7 @@ class BasicSettingsMenu(Menu.Menu):
     ]
     self.videoSettingsMenu = Menu.Menu(engine, videoSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
 
-    
+
     volumeSettings = [
       VolumeConfigChoice(engine, engine.config, "audio",  "guitarvol", autoApply = True),
       VolumeConfigChoice(engine, engine.config, "audio",  "songvol", autoApply = True),
@@ -1283,7 +1282,7 @@ class BasicSettingsMenu(Menu.Menu):
       ConfigChoice(engine, engine.config, "audio", "enable_crowd_tracks", autoApply = True), #akedrou
     ]
     audioSettingsMenu = Menu.Menu(engine, audioSettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     quickSettings = [
       ConfigChoice(engine, engine.config, "quickset", "performance", autoApply = True),
       ConfigChoice(engine, engine.config, "quickset", "gameplay", autoApply = True),
@@ -1306,7 +1305,7 @@ class BasicSettingsMenu(Menu.Menu):
 
     Cheats = self.refreshCheatSettings(init = True)
     self.cheatMenu = Menu.Menu(engine, Cheats, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)
-    
+
     settings = [
       (_("Gameplay Settings"),   FoFiXBasicSettingsMenu, _("Settings that affect the rules of the game.")),
       (_("Control Settings"),          self.keySettingsMenu, _("Create, delete, and edit your controls.")),
@@ -1318,11 +1317,11 @@ class BasicSettingsMenu(Menu.Menu):
       (_("Quickset"), quicksetMenu, _("A quick way to set many advanced settings.")),
       (_("See Advanced Options"), self.advancedSettings)
     ]
-  
+
     self.settingsToApply = FoFiXBasicSettings + \
                            videoSettings + \
                            self.modSettings
-  
+
 
 
     Menu.Menu.__init__(self, engine, settings, name = "settings", onCancel = self.applySettings, pos = (self.opt_text_x, self.opt_text_y), textColor = self.opt_text_color, selectedColor = self.opt_selected_color)   #MFH - add position to this so we can move it
@@ -1335,7 +1334,7 @@ class BasicSettingsMenu(Menu.Menu):
         if isinstance(option, ConfigChoice):
           option.apply()
       self.engine.restart()
-  
+
   def refreshKeySettings(self, init = False):
     choices = [ #the reacharound
       Menu.Choice(_("Test Controls"), self.keyChangeMenu, tipText = _("Go here to test your controllers.")),
@@ -1353,7 +1352,7 @@ class BasicSettingsMenu(Menu.Menu):
     if init:
       return choices
     self.engine.mainMenu.settingsMenuObject.keySettingsMenu.choices = choices
-  
+
   def refreshCheatSettings(self, init = False):
     choices = []
     maxplayers = self.engine.config.get("performance", "max_players")
@@ -1371,7 +1370,7 @@ class BasicSettingsMenu(Menu.Menu):
     if init:
       return choices
     self.engine.mainMenu.settingsMenuObject.cheatMenu.choices = choices
-  
+
   def controlCheck(self):
     control = [self.engine.config.get("game", "control0")]
     self.keyCheckerMode = Config.get("game", "key_checker_mode")
@@ -1397,7 +1396,7 @@ class BasicSettingsMenu(Menu.Menu):
         if self.keyCheckerMode == 2:
           self.engine.view.pushLayer(self.keySettingsMenu)
       self.refreshKeySettings()
-  
+
   def advancedSettings(self):
     Config.set("game", "adv_settings", True)
     self.engine.advSettings = True
@@ -1406,13 +1405,13 @@ class BasicSettingsMenu(Menu.Menu):
       self.engine.input.removeKeyListener(self)
     else:
       self.applySettings()
-  
+
   def keyTest(self, controller):
     if str(self.engine.input.controls.controls[controller]) == "None":
       Dialogs.showMessage(self.engine, "No controller set for slot %d" % (controller+1))
     else:
       Dialogs.testKeys(self.engine, controller)
-  
+
   def resetLanguageToEnglish(self):
     Log.debug("settings.resetLanguageToEnglish function call...")
     if self.engine.config.get("game", "language") != "":
@@ -1432,7 +1431,7 @@ def quickset(config):
   #akedrou - quickset (based on Fablaculp's Performance Autoset)
   perfSetNum = config.get("quickset","performance")
   gameSetNum = config.get("quickset","gameplay")
-  
+
   if gameSetNum == 1:
     config.set("game", "sp_notes_while_active", 1)
     config.set("game", "bass_groove_enable", 1)
@@ -1441,14 +1440,14 @@ def quickset(config):
     config.set("coffee", "song_display_mode", 4)
     config.set("game", "mark_solo_sections", 2)
     Log.debug("Quickset Gameplay - Theme-Based")
-    
+
   elif gameSetNum == 2:
     config.set("game", "sp_notes_while_active", 2)
     config.set("game", "bass_groove_enable", 2)
     config.set("game", "big_rock_endings", 2)
     config.set("game", "mark_solo_sections", 3)
     Log.debug("Quickset Gameplay - MIDI-Based")
-    
+
   elif gameSetNum == 3:
     config.set("game", "sp_notes_while_active", 3)
     config.set("game", "bass_groove_enable", 3)
@@ -1457,7 +1456,7 @@ def quickset(config):
     config.set("game", "counting", True)
     config.set("game", "mark_solo_sections", 1)
     Log.debug("Quickset Gameplay - RB style")
-    
+
   elif gameSetNum == 4:
     config.set("game", "sp_notes_while_active", 0)
     config.set("game", "bass_groove_enable", 0)
@@ -1467,7 +1466,7 @@ def quickset(config):
     config.set("game", "counting", False)
     config.set("game", "mark_solo_sections", 0)
     Log.debug("Quickset Gameplay - GH style")
-    
+
   elif gameSetNum == 5: # This needs work.
     config.set("game", "sp_notes_while_active", 0)
     config.set("game", "bass_groove_enable", 0)
@@ -1477,12 +1476,12 @@ def quickset(config):
     config.set("game", "counting", True)
     config.set("game", "mark_solo_sections", 1)
     Log.debug("Quickset Gameplay - WT style")
-    
+
   # elif gameSetNum == 6: #FoFiX mode - perhaps soon.
-    
+
   else:
     Log.debug("Quickset Gameplay - Manual")
-  
+
   if perfSetNum == 1:
     config.set("engine", "highpriority", False)
     config.set("performance", "game_priority", 2)
@@ -1511,7 +1510,7 @@ def quickset(config):
     config.set("performance", "star_score_updates", 0)
     config.set("performance", "cache_song_metadata", False)
     Log.debug("Quickset Performance - Fastest")
-    
+
   elif perfSetNum == 2:
     config.set("engine", "highpriority", False)
     config.set("performance", "game_priority", 2)
@@ -1538,7 +1537,7 @@ def quickset(config):
     config.set("performance", "star_score_updates", 0)
     config.set("performance", "cache_song_metadata", True)
     Log.debug("Quickset Performance - Fast")
-    
+
   elif perfSetNum == 3:
     config.set("engine", "highpriority", False)
     config.set("performance", "game_priority", 2)
@@ -1563,7 +1562,7 @@ def quickset(config):
     config.set("performance", "star_score_updates", 1)
     config.set("performance", "cache_song_metadata", True)
     Log.debug("Quickset Performance - Quality")
-    
+
   elif perfSetNum == 4:
     config.set("engine", "highpriority", False)
     config.set("performance", "game_priority", 2)
@@ -1589,7 +1588,7 @@ def quickset(config):
     config.set("performance", "star_score_updates", 1)
     config.set("performance", "cache_song_metadata", True)
     Log.debug("Quickset Performance - Highest Quality")
-    
+
   else:
     Log.debug("Quickset Performance - Manual")
 
@@ -1599,16 +1598,16 @@ class GameSettingsMenu(Menu.Menu):
     self.logClassInits = Config.get("game", "log_class_inits")
     if self.logClassInits == 1:
       Log.debug("GameSettingsMenu class init (Settings.py)...")
-    
+
     Cheats = []
-    
+
     for i, player in enumerate(players):
       Cheats.append(ConfigChoice(engine, engine.config, "game", "jurg_p%d" % i, autoApply = True))#Jurgen config -- Spikehead777
       if player.part.id != VOCAL_PART:
         Cheats.append(ConfigChoice(engine, engine.config, "game", "jurg_logic_p%d" % i, autoApply = True))#MFH
      #MFH
     CheatMenu = Menu.Menu(engine, Cheats, pos = (.350, .310), viewSize = 5, textColor = gTextColor, selectedColor = gSelectedColor)
-    
+
     settings = [
       (_("Cheats"), CheatMenu),
       VolumeConfigChoice(engine, engine.config, "audio",  "guitarvol", autoApply = True),
