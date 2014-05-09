@@ -31,7 +31,6 @@ import StringIO
 from OpenGL.GL import *
 from OpenGL.GLU import *
 import os.path
-import gc
 
 class TextureException(Exception):
   pass
@@ -100,9 +99,6 @@ class Texture:
         self.loadRaw(image.size, string, GL_RGB, 3)
       except:
         raise TextureException("Unsupported image mode '%s'" % image.mode)
-    del image
-    del string
-    gc.collect()
 
   def loadImageData(self,image):
     """Load the texture from a PIL image"""
@@ -125,9 +121,6 @@ class Texture:
         self.loadRaw(image.size, string, GL_RGB, 3)
       except:
         raise TextureException("Unsupported image mode '%s'" % image.mode)
-    del image
-    del string
-    gc.collect()
 
   def nextPowerOfTwo(self, n):
     m = 1
