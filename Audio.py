@@ -206,7 +206,6 @@ class Sound(object):
             # streaming one on the tracks of more than 30s, just to save
             # memory.
             if duration > 12:
-              print "streaming ",f
               self.sounds.append(StreamingOggSound(f, engine,speed=self.speed))
             else:
               self.sounds.append(OneSound(f))
@@ -264,7 +263,6 @@ class Sound(object):
 
   def stop(self):
       self.Playing = False
-      print "stopped ",self.fileName
       for sound in self.sounds:
           sound.stop()
 

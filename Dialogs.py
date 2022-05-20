@@ -549,7 +549,7 @@ class MessageScreen(Layer, KeyListener):
       
 class SongChooser(Layer, KeyListener):
   """Song choosing layer."""
-  def __init__(self, engine, prompt = "", selectedSong = None, selectedLibrary = None):
+  def __init__(self, engine, prompt = "", selectedLibrary = None, selectedSong = None):
     self.prompt         = prompt
     self.engine         = engine
     
@@ -723,7 +723,7 @@ class SongChooser(Layer, KeyListener):
     self.songCountdown  = 1024
     self.songLoader     = None
     self.initialItem    = selectedSong
-    self.library        = os.path.join(self.engine.config.get("game", "base_library"), selectedLibrary)
+    self.library        = selectedLibrary
     self.searchText     = ""
     self.searching      = False
     
@@ -5267,7 +5267,7 @@ def chooseSong(engine, prompt = _("Choose a Song"), selectedSong = None, selecte
 
   @returns a (library, song) pair
   """
-  d = SongChooser(engine, prompt, selectedLibrary = selectedLibrary, selectedSong = selectedSong)
+  d = SongChooser(engine, prompt, selectedLibrary, selectedSong)
 
   if d.getItems() == []:
     return (None, None)
