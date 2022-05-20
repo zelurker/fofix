@@ -25,7 +25,7 @@ import os
 import sys
 from OpenGL.GL import *
 from OpenGL.GL.ARB.multisample import *
-import Image
+from PIL import Image
 import Log
 import struct
 
@@ -37,30 +37,30 @@ class Video:
     self.fullscreen   = False
     self.flags        = True
     self.multisamples = 0
-    
+
     self.default      = False
 
   def setMode(self, resolution, fullscreen = False, flags = pygame.OPENGL | pygame.DOUBLEBUF,
               multisamples = 0):
     if fullscreen:
       flags |= pygame.FULLSCREEN
-      
+
     self.flags        = flags
     self.fullscreen   = fullscreen
     self.multisamples = multisamples
 
-    try:    
+    try:
       pygame.display.quit()
     except:
       pass
-      
+
     pygame.display.init()
-    
+
     pygame.display.gl_set_attribute(pygame.GL_RED_SIZE,   8)
     pygame.display.gl_set_attribute(pygame.GL_GREEN_SIZE, 8)
     pygame.display.gl_set_attribute(pygame.GL_BLUE_SIZE,  8)
     pygame.display.gl_set_attribute(pygame.GL_ALPHA_SIZE, 8)
-      
+
     if multisamples:
       pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 1);
       pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, multisamples);
@@ -71,7 +71,7 @@ class Video:
     #            Note: For the MS Windows icon, see below.
     if not os.name == "nt" and self.icon != None:
       pygame.display.set_icon(pygame.image.load(self.icon))
-    
+
     try:
       self.screen = pygame.display.set_mode(resolution, flags)
     except Exception, e:
@@ -80,7 +80,7 @@ class Video:
         self.resolutionReset()
       else: # "Couldn't find matching GLX visual"
         self.multisampleReset(resolution)
-        
+
     pygame.display.set_caption(self.caption)
     pygame.mouse.set_visible(False)
 
@@ -140,11 +140,11 @@ class Video:
         pass
 
     return bool(self.screen)
-    
+
   def screenError(self):
     Log.error("Video setup failed. Make sure your graphics card supports 32-bit display modes.")
     raise
-  
+
   def resolutionReset(self):
     Log.warn("Video setup failed. Trying default windowed resolution.")
     if self.fullscreen:
@@ -158,7 +158,7 @@ class Video:
         self.multisampleReset((800, 600))
       else:
         self.screenError()
-  
+
   def multisampleReset(self, resolution):
     Log.warn("Video setup failed. Trying without antialiasing.")
     pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 0)
@@ -171,10 +171,10 @@ class Video:
         self.resolutionReset()
       else:
         self.screenError()
-    
+
   def toggleFullscreen(self):
     assert self.screen
-    
+
     return pygame.display.toggle_fullscreen()
 
   def flip(self):
