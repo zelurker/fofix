@@ -267,7 +267,8 @@ class Sound(object):
           sound.stop()
 
   def setEndEvent(self,event = None):
-    self.sounds[0].setEndEvent(event)
+    for sound in self.sounds:
+      sound.setEndEvent(event)
 
   def setVolume(self, volume):
     for sound in self.sounds:
