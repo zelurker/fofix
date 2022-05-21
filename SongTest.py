@@ -1,8 +1,9 @@
+from __future__ import print_function
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
 # modify it under the terms of the GNU General Public License       #
@@ -20,6 +21,7 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import zip
 import unittest, pygame
 import shutil, os, sys
 
@@ -73,7 +75,7 @@ class SongTest(unittest.TestCase):
         t2, n2 = event[1]
         
         if "-v" in sys.argv:
-          print "%8d. %.3f + %.3f\t%2d\t     %.3f + %.3f\t%2d" % (i, t1, n1.length, n1.number, t2, n2.length, n2.number)
+          print("%8d. %.3f + %.3f\t%2d\t     %.3f + %.3f\t%2d" % (i, t1, n1.length, n1.number, t2, n2.length, n2.number))
         
         # Allow 2ms of rounding error
         assert abs(t1 - t2) < 2

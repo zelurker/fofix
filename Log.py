@@ -1,8 +1,9 @@
+from __future__ import print_function
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #               2009 John Stumpo                                    #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
@@ -24,6 +25,7 @@
 ##@package Log
 # Functions for various types of logging that FoFiX needs to do.
 
+from builtins import str
 import sys
 import os
 import Resource
@@ -39,7 +41,7 @@ quiet = True
 if os.name == "posix": # evilynux - logfile in ~/.fofix/ for GNU/Linux and MacOS X
   # evilynux - Under MacOS X, put the logs in ~/Library/Logs
   if os.uname()[0] == "Darwin":
-    logFile = open(os.path.join(Resource.getWritableResourcePath(), 
+    logFile = open(os.path.join(Resource.getWritableResourcePath(),
                                 "..", "..", "Logs",
                                 Version.appName() + ".log"), "w")
   else: # GNU/Linux et al.
@@ -76,12 +78,12 @@ else:
 # @param cls    Priority class for the message
 # @param msg    Log message text
 def _log(cls, msg):
-  if not isinstance(msg, unicode):
-    msg = unicode(msg, encoding).encode(encoding, "ignore")
+  if not isinstance(msg, str):
+    msg = str(msg, encoding).encode(encoding, "ignore")
   timeprefix = "[%12.6f] " % (time.time() - _initTime)
   if not quiet:
-    print timeprefix + displaylabels[cls] + " " + msg
-  print >>logFile, timeprefix + labels[cls] + " " + msg
+    print(timeprefix + displaylabels[cls] + " " + msg)
+  print(timeprefix + labels[cls] + " " + msg, file=logFile)
   logFile.flush()  #stump: truncated logfiles be gone!
 
 ## Log a major error.
@@ -89,11 +91,9 @@ def _log(cls, msg):
 # be automatically included in the log.
 # @param msg    Error message text
 def error(msg):
-  if sys.exc_info() == (None, None, None):
+    # if sys.exc_info() == (None, None, None):
     #warnings.warn("Log.error() called without an active exception", UserWarning, 2)  #stump: should we enforce this?
     _log("error", msg)
-  else:
-    _log("error", msg + "\n" + traceback.format_exc())
 
 ## Log a warning.
 # @param msg    Warning message text
@@ -111,9 +111,9 @@ def debug(msg):
   _log("debug", msg)
 
 ## A hook to catch Python warnings.
-def _showwarning(*args, **kw):
-  warn("A Python warning was issued:\n" + warnings.formatwarning(*args, **kw))
-  _old_showwarning(*args, **kw)
+def _showwarning(message, category, filename, lineno, file=None, line=None):
+  warn("A Python warning was issued:\n" + warnings.formatwarning(message, category, filename, lineno, line))
+  _old_showwarning(message, category, filename, lineno, line)
 _old_showwarning = warnings.showwarning
 warnings.showwarning = _showwarning
 

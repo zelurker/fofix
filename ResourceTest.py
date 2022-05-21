@@ -3,7 +3,7 @@
 #                                                                   #
 # FoFiX                                                             #
 # Copyright (C) 2009 Team FoFiX                                     #
-#               2006 Sami Kyöstilä                                  #
+#               2006 Sami KyÃ¶stilÃ¤                                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
 # modify it under the terms of the GNU General Public License       #
@@ -21,6 +21,7 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import range
 import unittest
 import time
 

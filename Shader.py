@@ -1,3 +1,4 @@
+from __future__ import division
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
@@ -20,6 +21,10 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import range
+from future.utils import raise_
+from builtins import object
+from past.utils import old_div
 from OpenGL.GL import *
 
 import os
@@ -83,7 +88,7 @@ def checkFunctionsForPyOpenGL2x():
         from ctypes.util import find_library
         
     except ImportError:
-      raise ShaderCompilationError, 'ctypes is required to use shaders with pyOpenGL 2.x.'
+      raise ShaderCompilationError('ctypes is required to use shaders with pyOpenGL 2.x.')
     else:
 
       if os.name == 'nt':  # Windows - look for the functions using wglGetProcAddress()
@@ -97,12 +102,12 @@ def checkFunctionsForPyOpenGL2x():
         if ptr_glShaderSourceARB:
           func_glShaderSourceARB = WINFUNCTYPE(None, c_int, c_int, POINTER(c_char_p), POINTER(c_int))(ptr_glShaderSourceARB)
         else:
-          raise ShaderCompilationError, 'wglGetProcAddress("glShaderSourceARB") returned NULL - are shaders supported?'
+          raise ShaderCompilationError('wglGetProcAddress("glShaderSourceARB") returned NULL - are shaders supported?')
 
         if ptr_glGetObjectParameterivARB:
           func_glGetObjectParameterivARB = WINFUNCTYPE(None, c_int, c_int, POINTER(c_int))(ptr_glGetObjectParameterivARB)
         else:
-          raise ShaderCompilationError, 'wglGetProcAddress("glGetObjectParameterivARB") returned NULL - are shaders supported?'
+          raise ShaderCompilationError('wglGetProcAddress("glGetObjectParameterivARB") returned NULL - are shaders supported?')
 
       else:  # something else - assume that the OpenGL library exports the extension entry point
 
@@ -116,7 +121,7 @@ def checkFunctionsForPyOpenGL2x():
           func_glShaderSourceARB = glLibrary.glShaderSourceARB
           func_glGetObjectParameterivARB = glLibrary.glGetObjectParameterivARB
         except:
-          raise ShaderCompilationError, 'Cannot find glShaderSourceARB() and/or glGetObjectParameterivARB() in the OpenGL library - are shaders supported?'
+          raise ShaderCompilationError('Cannot find glShaderSourceARB() and/or glGetObjectParameterivARB() in the OpenGL library - are shaders supported?')
 
       # Wrap supporting glShaderSource(shader object, iterable object) returning None, as used below.
       def glShaderSourceARB(shader, source):
@@ -141,7 +146,7 @@ def checkFunctionsForPyOpenGL2x():
 
 
 # main class for shaders library
-class ShaderList:
+class ShaderList(object):
   def __init__(self):
     self.shaders = {}		# list of all shaders
     self.active = 0		# active shader
@@ -171,7 +176,7 @@ class ShaderList:
     self.getVars(vertname, program, sArray)
     self.getVars(fragname, program, sArray)
     self.shaders[name] = sArray
-    if self.shaders[name].has_key("Noise3D"):
+    if "Noise3D" in self.shaders[name]:
       self.setTexture("Noise3D",self.noise3D,name)
 
 
@@ -188,7 +193,7 @@ class ShaderList:
     glCompileShaderARB( shader )
     status = glGetObjectParameterivARB(shader, GL_OBJECT_COMPILE_STATUS_ARB)
     if not status:
-      raise ShaderCompilationError, self.log(shader)
+      raise_(ShaderCompilationError, self.log(shader))
     else:
       return shader
 
@@ -249,7 +254,7 @@ class ShaderList:
 
   #simplified texture binding function
   def setTexture(self,name,texture,program = None):
-    if self.assigned.has_key(program):
+    if program in self.assigned:
       program = self.assigned[program]
     if program == None:  program = self.active
     else: program = self[program]
@@ -268,7 +273,7 @@ class ShaderList:
 
        Returns the value.  If the variable does not exist, KeyError is raised."""
 
-    if self.assigned.has_key(program):
+    if program in self.assigned:
       program = self.assigned[program]
       
     if program is None:
@@ -276,7 +281,7 @@ class ShaderList:
     else:
       program = self[program]
 
-    if program is None or not program.has_key(var):
+    if program is None or var not in program:
       return False
     else:
       return program[var][1]
@@ -291,7 +296,7 @@ class ShaderList:
 
        Returns nothing.  If the variable does not exist, KeyError is raised."""
 
-    if self.assigned.has_key(program):
+    if program in self.assigned:
       program = self.assigned[program]
     if program is None:
       program = self.active
@@ -300,11 +305,11 @@ class ShaderList:
 
 
 
-    if program is None or not program.has_key(var):
+    if program is None or var not in program:
       return
       
     if type(value) == str:
-      if self.var.has_key(value):
+      if value in self.var:
         value = self.var[value]
       else:
         return
@@ -330,10 +335,10 @@ class ShaderList:
           if   len(value) == 2: glUniform2iARB(pos[0],*pos[1])
           elif len(value) == 3: glUniform3iARB(pos[0],*pos[1])
           elif len(value) == 4: glUniform4iARB(pos[0],*pos[1])
-      elif type(value) == long:
+      elif type(value) == int:
         glUniform1iARB(pos[0],pos[1])
       else:
-        raise TypeError, 'Unsupported value type (must be bool, float, int, long, or tuple or list of float or int).'
+        raise TypeError('Unsupported value type (must be bool, float, int, long, or tuple or list of float or int).')
 
 
   # slightly changes uniform variable  
@@ -356,7 +361,7 @@ class ShaderList:
     if not self.turnon:
       return False
 
-    if self.assigned.has_key(shader):
+    if shader in self.assigned:
       shader = self.assigned[shader]
 
     if self[shader] is None:
@@ -375,12 +380,12 @@ class ShaderList:
      
   # transmit global vars to uniforms 
   def setGlobals(self):
-    for i in self.globals.keys():
+    for i in list(self.globals.keys()):
       self.setVar(i,self.globals[i])
 
   # update all uniforms        
   def update(self):
-    for i in self.active.keys():
+    for i in list(self.active.keys()):
       if i != "textures":
         if type(self.active[i]) == list and self.active[i][1] is not None:
           self.setVar(i,self.active[i][1])
@@ -413,7 +418,7 @@ class ShaderList:
 
   # update and bind all textures
   def setTextures(self, program = None):
-    if self.assigned.has_key(program):
+    if program in self.assigned:
       program = self.assigned[program]
     if program is None:
       program = self.active
@@ -524,7 +529,7 @@ class ShaderList:
     for x in range(size):
       for y in range(size):
         col1 = noise[x][y]
-        col2 = noise[size/2/(1-c)+x/c][size/2/(1-c)+y/c]
+        col2 = noise[old_div(old_div(size,2),(1-c))+old_div(x,c)][old_div(old_div(size,2),(1-c))+old_div(y,c)]
         noise[x][y] = (1-1/float(c))*col1+1/float(c)*col2
     
   def smoothNoise3D(self, size, c, noise):
@@ -532,11 +537,11 @@ class ShaderList:
       for j in range(size):
         for k in range(size):
           col1 = noise[i][j][k]
-          col2 = noise[size/2/(1-c)+i/c][size/2/(1-c)+j/c][size/2/(1-c)+k/c]
+          col2 = noise[old_div(old_div(size,2),(1-c))+old_div(i,c)][old_div(old_div(size,2),(1-c))+old_div(j,c)][old_div(old_div(size,2),(1-c))+old_div(k,c)]
           noise[i][j][k] = (1-1/float(c))*col1+1/float(c)*col2
       
   def __getitem__(self, name):
-    if self.shaders.has_key(name):
+    if name in self.shaders:
       return self.shaders[name]
     else:
       return None
@@ -583,7 +588,7 @@ class ShaderList:
 
 
     if self.turnon:
-      for i in self.shaders.keys():
+      for i in list(self.shaders.keys()):
         value = Config.get("video","shader_"+i)
         if value != "None":
           if value == "theme":
@@ -596,13 +601,13 @@ class ShaderList:
     return False
          
   def defineConfig(self):
-    for name in self.shaders.keys():
-      for key in self[name].keys():
+    for name in list(self.shaders.keys()):
+      for key in list(self[name].keys()):
         Config.define("shader", name+"_"+key,  str, "None")
          
   def loadFromIni(self):
-    for name in self.shaders.keys():
-      for key in self[name].keys():
+    for name in list(self.shaders.keys()):
+      for key in list(self[name].keys()):
         value = Config.get("theme",name+"_"+key)
         if value != "None":
           if value == "True": value = True

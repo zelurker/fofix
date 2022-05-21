@@ -1,6 +1,7 @@
 # -*- coding: ISO-8859-1 -*-
 
-class MidiOutStream:
+from builtins import object
+class MidiOutStream(object):
 
 
     """

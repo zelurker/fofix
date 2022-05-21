@@ -1,3 +1,5 @@
+from __future__ import division
+import traceback
 ####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
@@ -23,6 +25,9 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 from OpenGL.GL import *
 import math
 from FakeNetworking import socket
@@ -90,7 +95,7 @@ class MainMenu(BackgroundLayer):
       #blazingamer
       self.menux = Theme.menuX
       self.menuy = Theme.menuY
-    except Exception, e:
+    except Exception as e:
       Log.warn("Unable to load Theme menuX / Y positions: %s" % e) 
       self.menux = None
       self.menuy = None
@@ -142,7 +147,7 @@ class MainMenu(BackgroundLayer):
     allfiles = os.listdir(filepath)
     for name in allfiles:
       if os.path.splitext(name)[1] == ".ogg":
-        if string.find(name,"menu") > -1:
+        if name.find("menu") > -1:
           self.files.append(name)
     
 
@@ -304,7 +309,7 @@ class MainMenu(BackgroundLayer):
       try:
         engine.loadImgDrawing(self, "ok", os.path.join("necks","defaultneck.png"))
       except IOError: #we don't really need to be accepting this except... ...yea, sorry.
-        raise IOError, "Default chosen neck not valid; fallbacks Neck_1.png and defaultneck.png also not valid!"
+        raise IOError("Default chosen neck not valid; fallbacks Neck_1.png and defaultneck.png also not valid!")
       else:
         Log.warn("Default chosen neck not valid; fallback defaultneck.png forced.")
         Config.set("game", "default_neck", "defaultneck")
@@ -382,14 +387,14 @@ class MainMenu(BackgroundLayer):
           Log.error("Traceback:" + traceback.format_exc() )
           traceback.print_exc()
           raise
-      except socket.error, e:
-        Dialogs.showMessage(self.engine, unicode(e[1]))
+      except socket.error as e:
+        Dialogs.showMessage(self.engine, str(e[1]))
       except KeyboardInterrupt:
         pass
-      except Exception, e:
+      except Exception as e:
         #MFH - enhancing error trapping and locating logic
         if e:
-          Dialogs.showMessage(self.engine, unicode(e))
+          Dialogs.showMessage(self.engine, str(e))
     return harness
 
   def launchLayer(self, layerFunc):
@@ -522,7 +527,7 @@ class MainMenu(BackgroundLayer):
       self.active = True
 
       
-    t = self.time / 100
+    t = old_div(self.time, 100)
     w, h, = self.engine.view.geometry[2:4]
     r = .5
     
@@ -533,14 +538,14 @@ class MainMenu(BackgroundLayer):
           if self.optionsBG != None:
             self.engine.drawImage(self.optionsBG, (self.opt_bkg_size[2],-self.opt_bkg_size[3]), (w*self.opt_bkg_size[0],h*self.opt_bkg_size[1]), stretched = 3)
           
-          self.engine.drawImage(self.optionsPanel, (0.5,-0.5), (w/1.7, h/2))
+          self.engine.drawImage(self.optionsPanel, (0.5,-0.5), (w/1.7, old_div(h,2)))
         else:
-          self.engine.drawImage(self.engine.data.loadingImage, (1.0,-1.0), (w/2, h/2), stretched = 3)
+          self.engine.drawImage(self.engine.data.loadingImage, (1.0,-1.0), (old_div(w,2), old_div(h,2)), stretched = 3)
 
       if self.menu.active and self.engine.cmdPlay == 0:
         if self.background != None:
           #MFH - auto-scaling
-          self.engine.drawImage(self.background, (1.0,-1.0), (w/2, h/2), stretched = 3)
+          self.engine.drawImage(self.background, (1.0,-1.0), (old_div(w,2), old_div(h,2)), stretched = 3)
 
         for i in range(0,6):
           #Item selected
@@ -564,7 +569,7 @@ class MainMenu(BackgroundLayer):
           else:
             try:
               textcoord = (w*self.menux,h*self.menuy-(h*self.main_menu_vspacing)*i)
-            except Exception, e:
+            except Exception as e:
               Log.warn("Unable to translate BGText: %s" % e) 
         
 #===================================     
@@ -579,13 +584,13 @@ class MainMenu(BackgroundLayer):
           if self.optionsBG != None:
             self.engine.drawImage(self.optionsBG, (self.opt_bkg_size[2],-self.opt_bkg_size[3]), (w*self.opt_bkg_size[0],h*self.opt_bkg_size[1]), stretched = 3)
         
-          self.engine.drawImage(self.optionsPanel, (0.5,-0.5), (w*0.4, h/2))
+          self.engine.drawImage(self.optionsPanel, (0.5,-0.5), (w*0.4, old_div(h,2)))
         else:
-          self.engine.drawImage(self.engine.data.loadingImage, scale = (1.0,-1.0), coord = (w/2,h/2), stretched = 3)
+          self.engine.drawImage(self.engine.data.loadingImage, scale = (1.0,-1.0), coord = (old_div(w,2),old_div(h,2)), stretched = 3)
         
       if self.menu.active and self.engine.cmdPlay == 0:
         if self.background != None:
-          self.engine.drawImage(self.background, (1.0,-1.0), (w/2, h/2), stretched = 3)
+          self.engine.drawImage(self.background, (1.0,-1.0), (old_div(w,2), old_div(h,2)), stretched = 3)
 
         for i in range(0,5):
           #Item selected
@@ -606,7 +611,7 @@ class MainMenu(BackgroundLayer):
           else:
             try:
               textcoord = (w*self.menux,(h*self.menuy-(h*self.main_menu_vspacing)*i)*v)
-            except Exception, e:
+            except Exception as e:
               Log.warn("Unable to translate BGText: %s" % e) 
         
 #===================================

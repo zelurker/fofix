@@ -23,6 +23,9 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import str
+from builtins import range
+from builtins import object
 from Font import Font
 from Texture import Texture
 from Svg import ImgDrawing, SvgContext
@@ -655,4 +658,4 @@ class Data(object):
 
   def resourcesLoaded(self):
     """return: True if all the resources have been loaded."""
-    return not None in self.__dict__.values()
+    return not None in list(self.__dict__.values())

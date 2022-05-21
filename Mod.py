@@ -2,7 +2,7 @@
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
 # modify it under the terms of the GNU General Public License       #
@@ -41,7 +41,7 @@ def getAvailableMods(engine):
   modPath = _getModPath(engine)
   try:
     dirList = os.listdir(modPath)
-  except OSError, e:
+  except OSError as e:
     import Log
     Log.warn("Could not find mods directory")
     return []

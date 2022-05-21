@@ -1,8 +1,9 @@
+from __future__ import division
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #               2008 myfingershurt                                  #
 #               2008 evilynux <evilynux@gmail.com>                  #
 #                                                                   #
@@ -22,6 +23,8 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from past.utils import old_div
+from builtins import object
 import pygame
 import OpenGL
 from OpenGL.GL import *
@@ -43,7 +46,7 @@ import Config
 import Dialogs
 import Theme
 
-class Element:
+class Element(object):
   """A basic element in the credits scroller."""
   def getHeight(self):
     """@return: The height of this element in fractions of the screen height"""
@@ -76,7 +79,7 @@ class Text(Element):
     elif self.alignment == "right":
       x = .9 - self.size[0]
     elif self.alignment == "center":
-      x = .5 - self.size[0] / 2
+      x = .5 - old_div(self.size[0], 2)
     glColor4f(*self.color)
     self.font.render(self.text, (x, offset), scale = self.scale)
 
@@ -314,7 +317,7 @@ class Credits(Layer, KeyListener):
   def quit(self):
     self.engine.view.popLayer(self)
 
-  def keyPressed(self, key, unicode):
+  def keyPressed(self, key, str):
     if self.engine.input.controls.getMapping(key) in (Player.menuYes + Player.menuNo) or key == pygame.K_RETURN or key == pygame.K_ESCAPE:
       self.quit()
     elif self.engine.input.controls.getMapping(key) in (Player.menuDown) or key == pygame.K_DOWN: #akedrou: so I was bored.
@@ -340,7 +343,7 @@ class Credits(Layer, KeyListener):
     self.time   += ticks / 50.0
     #self.offset -= ticks / 7500.0 # evilynux - corresponds to scroll speed
     #self.offset -= ticks / 15000.0 #MFH - slowin it down - # evilynux - corresponds to scroll speed
-    self.offset -= (ticks / self.speedDiv) * self.speedDir #akedrou - some credits fun.
+    self.offset -= (old_div(ticks, self.speedDiv)) * self.speedDir #akedrou - some credits fun.
 
     # evilynux - approximating the end of the list from the (mostly used font size * lines)
     #if self.offset < -( self.text_size * len(self.credits) ):
@@ -353,13 +356,13 @@ class Credits(Layer, KeyListener):
     v = 1.0 - ((1 - visibility) ** 2)
     
     # render the background    
-    t = self.time / 100 + 34
+    t = old_div(self.time, 100) + 34
     w, h, = self.engine.view.geometry[2:4]
     
     self.engine.view.setOrthogonalProjection(normalize = True)
     if self.background:
       wFactor = 640.000/self.background.width1()
-      self.engine.drawImage(self.background, scale = (wFactor,-wFactor), coord = (w/2,h/2))
+      self.engine.drawImage(self.background, scale = (wFactor,-wFactor), coord = (old_div(w,2),old_div(h,2)))
     else:
       Dialogs.fadeScreen(.4)
     font = self.engine.data.font
@@ -383,6 +386,6 @@ class Credits(Layer, KeyListener):
         hPos = h - ((self.topLayer.height1() * wFactor)*.75)
         if hPos < h * .6:
           hPos = h * .6
-        self.engine.drawImage(self.topLayer, scale = (wFactor,-wFactor), coord = (w/2,hPos))
+        self.engine.drawImage(self.topLayer, scale = (wFactor,-wFactor), coord = (old_div(w,2),hPos))
     finally:
       self.engine.view.resetProjection()

@@ -1,10 +1,12 @@
 # -*- coding: ISO-8859-1 -*-
 
-from RawInstreamFile import RawInstreamFile
-from MidiFileParser import MidiFileParser
+from __future__ import absolute_import
+from builtins import object
+from .RawInstreamFile import RawInstreamFile
+from .MidiFileParser import MidiFileParser
 
 
-class MidiInFile:
+class MidiInFile(object):
 
     """
 

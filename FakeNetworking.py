@@ -37,6 +37,7 @@ Limitations:
   - Probably rough around the edges in many other ways.
 """
 
+from builtins import object
 __version__ = '$Id: FakeNetworking.py 914 2009-02-05 01:18:15Z john.stumpo $'
 
 # Keep track of what ports are being listened to.
@@ -44,14 +45,14 @@ class FakeTcpStack(object):
   def __init__(self):
     self.openPorts = {}
   def registerOpenPort(self, port, obj):
-    if self.openPorts.has_key(port):
-      raise socket.error, 'Address already in use.'
+    if port in self.openPorts:
+      raise socket.error('Address already in use.')
     self.openPorts[port] = obj
   def releaseOpenPort(self, port):
     del self.openPorts[port]
   def connectSocket(self, port, sock):
-    if not self.openPorts.has_key(port):
-      raise socket.error, 'Connection refused.'
+    if port not in self.openPorts:
+      raise socket.error('Connection refused.')
     self.openPorts[port].backlog.append(sock)
 tcpStack = FakeTcpStack()  # singleton instance
 del FakeTcpStack
@@ -74,7 +75,7 @@ class socket(object):
     return socket(af, socktype, proto)
   def bind(self, addr):
     if self.listening or (self.pairedSocket is not None) or (self.bindaddr is not None):
-      raise socket.error, 'Socket already bound.'
+      raise socket.error('Socket already bound.')
     self.bindaddr = addr
   def listen(self, backlog):
     self.backlog = []
@@ -82,9 +83,9 @@ class socket(object):
     tcpStack.registerOpenPort(self.bindaddr[1], self)
   def accept(self):
     if not self.listening:
-      raise socket.error, 'Invalid argument.'
+      raise socket.error('Invalid argument.')
     if not len(self.backlog):
-      raise socket.error, 'The socket operation could not complete without blocking.'
+      raise socket.error('The socket operation could not complete without blocking.')
     s = self.backlog[0]
     del self.backlog[0]
     return s, ('127.0.0.1', 1024)
@@ -105,20 +106,20 @@ class socket(object):
     self.bindaddr = None
   def send(self, buf, length=None):
     if self.pairedSocket is None:
-      raise socket.error, 'Socket is not connected.'
+      raise socket.error('Socket is not connected.')
     try:
       self.pairedSocket.buf += buf
       return len(buf)
     except:
       self.close()
-      raise socket.error, 'Connection reset by peer.'
+      raise socket.error('Connection reset by peer.')
   sendall = send
   def recv(self, length=4096):
     if self.pairedSocket is None:
-      raise socket.error, 'Socket is not connected.'
+      raise socket.error('Socket is not connected.')
     try:
       if len(self.buf) == 0:
-        raise socket.error, 'The socket operation could not complete without blocking.'
+        raise socket.error('The socket operation could not complete without blocking.')
       if len(self.buf) < length:
         buf = self.buf
         self.buf = ''
@@ -130,7 +131,7 @@ class socket(object):
       raise
     except:
       self.close()
-      raise socket.error, 'Connection reset by peer.'
+      raise socket.error('Connection reset by peer.')
   def readable(self):
     return (len(self.buf) > 0)
   def writable(self):
@@ -154,15 +155,15 @@ class asyncore(object):
       pass
     def bind(self, addr):
       if self._socket is None:
-        raise socket.error, 'Bad file descriptor'
+        raise socket.error('Bad file descriptor')
       self._socket.bind(addr)
     def listen(self, backlog):
       if self._socket is None:
-        raise socket.error, 'Bad file descriptor'
+        raise socket.error('Bad file descriptor')
       self._socket.listen(backlog)
     def accept(self):
       if self._socket is None:
-        raise socket.error, 'Bad file descriptor'
+        raise socket.error('Bad file descriptor')
       return self._socket.accept()
     def close(self):
       if self._socket is not None:
@@ -174,15 +175,15 @@ class asyncore(object):
         pass
     def send(self, data):
       if self._socket is None:
-        raise socket.error, 'Bad file descriptor'
+        raise socket.error('Bad file descriptor')
       return self._socket.send(data)
     def recv(self, length=4096):
       if self._socket is None:
-        raise socket.error, 'Bad file descriptor'
+        raise socket.error('Bad file descriptor')
       return self._socket.recv(length)
     def connect(self, addr):
       if self._socket is None:
-        raise socket.error, 'Bad file descriptor'
+        raise socket.error('Bad file descriptor')
       self._socket.connect(addr)
       self.connected = True
     def readable(self):

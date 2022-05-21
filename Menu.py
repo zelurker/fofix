@@ -1,3 +1,4 @@
+from __future__ import division
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
@@ -22,6 +23,9 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import str
+from past.utils import old_div
+from builtins import object
 import pygame
 from OpenGL.GL import *
 import math
@@ -36,10 +40,10 @@ import Player
 
 import Log
 
-class Choice:
+class Choice(object):
   def __init__(self, text, callback, name = None, values = None, valueIndex = 0, append_submenu_char = True, tipText = None):
     #Log.debug("Choice class init (Menu.py)...")
-    self.text       = unicode(text)
+    self.text       = str(text)
     self.callback   = callback
     self.name       = name
     self.values     = values
@@ -268,7 +272,7 @@ class Menu(Layer, KeyListener):
     
   #MFH added drum navigation conditional here to prevent drum nav if disabled
   #MFH updated SFX play logic to just play the new sound instead of setting volume
-  def keyPressed(self, key, unicode): #racer: drum nav.
+  def keyPressed(self, key, str): #racer: drum nav.
     choice = self.choices[self.currentIndex]
     c = self.engine.input.controls.getMapping(key)
     if c in Player.menuYes or key == pygame.K_RETURN:
@@ -373,7 +377,7 @@ class Menu(Layer, KeyListener):
       self.tipWait = False
       self.tipDir = 0
     else:
-      self.tipScroll = .5 - tipW/2
+      self.tipScroll = .5 - old_div(tipW,2)
       self.tipScrollB = None
       self.tipTimerEnabled = False
       self.tipDir = 0
@@ -407,7 +411,7 @@ class Menu(Layer, KeyListener):
         
       if self.graphicMenu and self.menuBackground:
         #volshebnyi - better menu scaling
-        self.engine.drawImage(self.menuBackground, scale = (1.0,-1.0), coord = (wS/2,hS/2), stretched = 3)
+        self.engine.drawImage(self.menuBackground, scale = (1.0,-1.0), coord = (old_div(wS,2),old_div(hS,2)), stretched = 3)
       else:
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -424,9 +428,9 @@ class Menu(Layer, KeyListener):
             xpos = (0,.5)
           ypos = float(i+self.viewOffset)
           self.menuText.transform.reset()
-          self.menuText.transform.scale(.5*self.menuScale,(-1.0/n*self.menuScale))
+          self.menuText.transform.scale(.5*self.menuScale,(old_div(-1.0,n)*self.menuScale))
           self.menuText.transform.translate(wS*self.menux,(hS*self.menuy)-(hS*self.vSpace)*i)
-          self.menuText.draw(rect = (xpos[0],xpos[1],ypos/n,(ypos+1.0)/n))
+          self.menuText.draw(rect = (xpos[0],xpos[1],old_div(ypos,n),old_div((ypos+1.0),n)))
           #self.engine.drawImage(self.menuText, scale = (self.menuScale,-self.menuScale*2/n), coord = (wS*self.menux,hS*(self.menuy-self.vSpace*i)), rect = (xpos[0],xpos[1],ypos/n,(ypos+1.0)/n), stretched = 11)
         else:
           text = choice.getText(i + self.viewOffset == self.currentIndex)
@@ -441,15 +445,15 @@ class Menu(Layer, KeyListener):
 
           # Draw arrows if scrolling is needed to see all items
           if i == 0 and self.viewOffset > 0:
-            Theme.setBaseColor((1 - v) * max(.1, 1 - (1.0 / self.viewOffset) / 3))
+            Theme.setBaseColor((1 - v) * max(.1, 1 - old_div((1.0 / self.viewOffset), 3)))
             glPushMatrix()
-            glTranslatef(x - v / 4 - w * 2, y + h / 2, 0)
+            glTranslatef(x - old_div(v, 4) - w * 2, y + old_div(h, 2), 0)
             self.renderTriangle(up = (0, -1), s = .015)
             glPopMatrix()
           elif i == self.viewSize - 1 and self.viewOffset + self.viewSize < n:
-            Theme.setBaseColor((1 - v) * max(.1, 1 - (1.0 / (n - self.viewOffset - self.viewSize)) / 3))
+            Theme.setBaseColor((1 - v) * max(.1, 1 - old_div((1.0 / (n - self.viewOffset - self.viewSize)), 3)))
             glPushMatrix()
-            glTranslatef(x - v / 4 - w * 2, y + h / 2, 0)
+            glTranslatef(x - old_div(v, 4) - w * 2, y + old_div(h, 2), 0)
             self.renderTriangle(up = (0, 1), s = .015)
             glPopMatrix()
 
@@ -494,10 +498,10 @@ class Menu(Layer, KeyListener):
             frameWidth = Tw*1.10
             #frameHeight = (Th+Th2)*1.10
             frameHeight = Th + lineSpacing
-            boxXOffset = (x + (Tw/2))*wS
+            boxXOffset = (x + (old_div(Tw,2)))*wS
             boxYOffset = (1.0 - (y*4.0/3.0) - (Th*1.2/2))*hS
             subSelectHYFactor = 640.000/self.engine.view.aspectRatio
-            subSelectHFactor = subSelectHYFactor/self.engine.data.subSelectImgH
+            subSelectHFactor = old_div(subSelectHYFactor,self.engine.data.subSelectImgH)
             self.engine.data.submenuSelect.transform.reset()
             tempWScale = frameWidth*self.engine.data.subSelectWFactor
             tempHScale = -(frameHeight)*subSelectHFactor
@@ -505,7 +509,7 @@ class Menu(Layer, KeyListener):
             self.engine.data.submenuSelect.transform.translate(boxXOffset,boxYOffset)
             self.engine.data.submenuSelect.draw()
           
-          font.render(text, (x - v / 4, y), scale = scale)
+          font.render(text, (x - old_div(v, 4), y), scale = scale)
         
         
           v *= 2

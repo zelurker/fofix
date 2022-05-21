@@ -1,8 +1,10 @@
+from __future__ import division
+from __future__ import print_function
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #               2008 myfingershurt                                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
@@ -21,6 +23,10 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import pygame
 MusicFinished = pygame.USEREVENT
 import Log
@@ -57,12 +63,12 @@ if not hasattr(pygame.mixer, 'music'):
   pygame.mixer.music = sys.modules['pygame.mixer_music']
 
 try:
-  import ogg.vorbis
+  import pyogg as ogg
 except ImportError:
   Log.warn("PyOGG not found. OGG files will be fully decoded prior to playing; expect absurd memory usage.")
   ogg = None
 
-class Audio:
+class Audio(object):
   def pre_open(self, frequency = 22050, bits = 16, stereo = True, bufferSize = 1024):
     pygame.mixer.pre_init(frequency, -bits, stereo and 2 or 1, bufferSize)
     return True
@@ -74,7 +80,7 @@ class Audio:
       pass
 
     try:
-      pygame.mixer.init(frequency, -bits, stereo and 2 or 1, bufferSize)
+      pygame.mixer.init(frequency, bits, stereo and 2 or 1, bufferSize)
     except:
       Log.warn("Audio setup failed. Trying with default configuration.")
       pygame.mixer.init()
@@ -118,8 +124,7 @@ class OneSound(object):
     self.event = None
     self.channel = None
     stream        = OggStream(self.file)
-    self.info = stream.info()
-    self.freq = self.info.rate
+    self.freq = stream.freq()
 
   def setPos(self,pos):
       # here just for inheritance, not used on these
@@ -136,18 +141,17 @@ class OneSound(object):
   def play(self):
     if not self.sound:
       self.sound   = pygame.mixer.Sound(self.file)
-      self.freq = self.info.rate
     if resampleOk:
         (freq,format,channels) = pygame.mixer.get_init()
         if freq != self.freq:
-          print "reload sound ",self.file
-          self.freq = self.info.rate
+          print("reload sound ",self.file)
+          self.freq = self.stream.freq()
           self.sound   = pygame.mixer.Sound(self.file)
         if self.freq != freq:
             snd_array = pygame.sndarray.array(self.sound)
-            samples = len(snd_array)/2
+            samples = old_div(len(snd_array),2)
             samples = int(samples*freq*1.0/(self.info.rate))
-            print "start resampling ",self.file," from ",self.info.rate," to ",freq," len ",len(snd_array)/2," visée ",samples
+            print("start resampling ",self.file," from ",self.info.rate," to ",freq," len ",old_div(len(snd_array),2)," visÃ©e ",samples)
     #        if samples != len(snd_array):
     #          snd_array = np.resize(snd_array,(samples,2))
             snd_array = resample(snd_array, freq*1.0/self.info.rate, "sinc_fastest").astype(snd_array.dtype)
@@ -197,8 +201,8 @@ class Sound(object):
         for f in glob.glob(file):
             duration = 0
             if f.lower().endswith(".ogg"):
-              file = ogg.vorbis.VorbisFile(f)
-              duration = file.time_total()
+              file = ogg.VorbisFileStream(f)
+              duration = file.vf.pcmlengths[1]/file.frequency
             # Both classes below are compatible and can both play ogg files
             # the difference is that OneSound is specialized on small
             # sounds, and the Streaming one on big audio tracks which need
@@ -257,7 +261,7 @@ class Sound(object):
                 found = True
                 break
         if not found:
-          print "updated Playing to false"
+          print("updated Playing to false")
           self.Playing = False
     return self.Playing
 
@@ -275,7 +279,7 @@ class Sound(object):
       sound.setVolume(volume)
 
   def fadeout(self, time):
-    print "fadeout ",time
+    print("fadeout ",time)
     for sound in self.sounds:
       sound.fadeout(time)
 
@@ -284,17 +288,24 @@ import GameEngine
 if ogg:
   class OggStream(object):
     def __init__(self, inputFileName):
-      self.file = ogg.vorbis.VorbisFile(inputFileName)
+      self.file = ogg.VorbisFileStream(inputFileName)
 
     def read(self, bytes = 4096):
-      (data, bytes, bit) = self.file.read(bytes)
-      return data[:bytes]
+        ogg.pyoggSetStreamBufferSize(bytes)
+        try:
+          (data, bytes) = self.file.get_buffer()
+          return data
+        except:
+          return None
 
-    def info(self):
-        return self.file.info()
+    def freq(self):
+        return self.file.frequency
+
+    def chans(self):
+        return self.file.channels
 
     def time_seek(self,pos):
-        return self.file.time_seek(pos)
+        return self.file.vf.ov_time_seek(pos)
 
   class StreamingOggSound(OneSound, Task):
 
@@ -336,17 +347,16 @@ if ogg:
 
       self.stream        = OggStream(self.fileName)
       self.fadeoutTime = None
-      self.info = self.stream.info()
       (self.freq,self.format,self.channels) = pygame.mixer.get_init()
-      if self.info.rate*self.speed != self.freq:
+      if self.stream.freq()*self.speed != self.freq:
           # try to re-open the mixer with this file's frequency
           # the idea is to try to minimize the resampling work which is cpu
           # intensive, it should work if different frequencies are not
           # mixed on the same song
           self.engine.audio.close()    #MFH - ensure no audio is playing during the switch!
-          print "reopen mixer at ",int(self.info.rate*self.speed)
+          print("reopen mixer at ",int(self.info.rate*self.speed))
           self.engine.audio.pre_open(frequency = int(self.info.rate*self.speed), bits = self.engine.bits, stereo = self.engine.stereo, bufferSize = self.engine.bufferSize)
-          self.engine.audio.open(frequency = int(self.info.rate*self.speed), bits = self.engine.bits, stereo = self.engine.stereo, bufferSize = self.engine.bufferSize)
+          self.engine.audio.open(frequency = int(self.stream.freq()*self.speed), bits = self.engine.bits, stereo = self.engine.stereo, bufferSize = self.engine.bufferSize)
           (self.freq,self.format,self.channels) = pygame.mixer.get_init()
 
       self.buffersIn     = [pygame.sndarray.make_sound(zeros((self.bufferSize,2 ))) for i in range(self.bufferCount + 1)]
@@ -423,7 +433,7 @@ if ogg:
 
     def fadeout(self, ms):
       if self.channel:
-        self.fadeoutTime = time.time() + ms/1000
+        self.fadeoutTime = time.time() + old_div(ms,1000)
         # The channel alone is not enough here, because buffers are just
         # queued, so after the fadeout time it just continues playing what
         # arrives...
@@ -442,24 +452,24 @@ if ogg:
         if self.info.channels == 2:
           # data = struct.unpack("%dh" % (len(data) / 2), data)
           data = np.frombuffer(data, dtype=np.int16)
-          samples = len(data) / 2
+          samples = old_div(len(data), 2)
 #          if self.freq != self.info.rate*self.speed:
-#	      samples = int(samples*self.freq/(self.info.rate*self.speed))
+#         samples = int(samples*self.freq/(self.info.rate*self.speed))
 #              datal = signal.resample(data[0::2],samples)
-#	      datar = signal.resample(data[1::2],samples)
-#	      self.buffer[self.bufferPos:self.bufferPos + samples, 0] = datal
-#	      self.buffer[self.bufferPos:self.bufferPos + samples, 1] = datar
-#	  else:
-	  self.buffer[self.bufferPos:self.bufferPos + samples, 0] = data[0::2]
-	  self.buffer[self.bufferPos:self.bufferPos + samples, 1] = data[1::2]
+#         datar = signal.resample(data[1::2],samples)
+#         self.buffer[self.bufferPos:self.bufferPos + samples, 0] = datal
+#         self.buffer[self.bufferPos:self.bufferPos + samples, 1] = datar
+#     else:
+          self.buffer[self.bufferPos:self.bufferPos + samples, 0] = data[0::2]
+          self.buffer[self.bufferPos:self.bufferPos + samples, 1] = data[1::2]
           self.bufferPos += samples
         elif self.info.channels == 1:
-          samples = len(data)/2
+          samples = old_div(len(data),2)
           # data = struct.unpack("%dh" % (samples), data)
           data = np.frombuffer(data, dtype=np.int16)
 #          if self.freq != self.info.rate*self.speed:
-#	      samples = int(samples*self.freq/(self.info.rate*self.speed))
-#	      data = signal.resample(data,samples)
+#         samples = int(samples*self.freq/(self.info.rate*self.speed))
+#         data = signal.resample(data,samples)
           self.buffer[self.bufferPos:self.bufferPos + samples,0] = data
           self.buffer[self.bufferPos:self.bufferPos + samples,1] = data
           self.bufferPos += samples
@@ -486,7 +496,7 @@ if ogg:
       # Decode enough that we have at least one full sound buffer
       # ready in the queue if possible
       while not self.done:
-        for i in xrange(self.decodingRate):
+        for i in range(self.decodingRate):
           soundBuffer = self._decodeStream()
           if soundBuffer:
             self.buffersOut.insert(0, soundBuffer)
@@ -561,7 +571,7 @@ class MicrophonePassthroughStream(Sound, Task):
     self.mic.passthroughQueue = []
     if chunk == '':
       return
-    samples = len(chunk)/4
+    samples = old_div(len(chunk),4)
     data = tuple(int(s * 32767) for s in struct.unpack('%df' % samples, chunk))
     playbuf = zeros((samples, 2))
     playbuf[:, 0] = data

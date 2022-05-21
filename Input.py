@@ -1,8 +1,9 @@
+from __future__ import division
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #               2008 myfingershurt                                  #
 #               2008 Glorandwarf                                    #
 #                                                                   #
@@ -22,6 +23,11 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import chr
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import pygame
 import Log
 import Audio
@@ -56,7 +62,7 @@ if haveMidi:
     Log.debug("MIDI output port count = " + str(midiOutPortCount) )
     if midiOutPortCount > 0:
       midiOutPortNumber = 0
-      midiOutPorts = range(midiOutPortCount)
+      midiOutPorts = list(range(midiOutPortCount))
       for x in midiOutPorts:
         midiOutList.append( rtmidi.RtMidiOut() )
         midiOutPortName = midiOutList[midiOutPortNumber].getPortName(midiOutPortNumber)
@@ -70,7 +76,7 @@ if haveMidi:
 
 
         midiOutPortNumber += 1
-  except Exception, e:
+  except Exception as e:
     Log.error(str(e))
     midiOutPorts = None
 
@@ -81,10 +87,10 @@ if haveMidi:
     portCount = midiin.getPortCount()
     #Log.debug("MIDI port count = " + str(portCount) )
     if portCount > 0:
-      ports = range(portCount)
+      ports = list(range(portCount))
       for x in ports:
         midi.append( rtmidi.RtMidiIn() )
-  except Exception, e:
+  except Exception as e:
     Log.error(str(e))
     ports = None
 
@@ -127,8 +133,8 @@ from Player import Controls
 
 import Config   #MFH
 
-class KeyListener:
-  def keyPressed(self, key, unicode):
+class KeyListener(object):
+  def keyPressed(self, key, str):
     pass
 
   def keyReleased(self, key):
@@ -140,7 +146,7 @@ class KeyListener:
   def exitRequested(self):
     pass
 
-class MouseListener:
+class MouseListener(object):
   def mouseButtonPressed(self, button, pos):
     pass
 
@@ -150,7 +156,7 @@ class MouseListener:
   def mouseMoved(self, pos, rel):
     pass
 
-class SystemEventListener:
+class SystemEventListener(object):
   def screenResized(self, size):
     pass
 
@@ -228,7 +234,7 @@ class Input(Task):
         try:
           for i in ports:
             midi[i].openPort(i, False)
-        except Exception, e:
+        except Exception as e:
           Log.error("Error opening MIDI port %d: %s" % (i,str(e)) )
       else:
         Log.warn("No MIDI input ports found.")
@@ -347,7 +353,7 @@ class Input(Task):
   def decodeJoystickHat(self, id):
     id -= 0x30000
     v = id & 0xf
-    x, y = (v % 3) - 1, (v / 3) - 1
+    x, y = (v % 3) - 1, (old_div(v, 3)) - 1
     return (id >> 8, (id >> 4) & 0xf, (x, y))
 
   #myfingershurt: new function specifically for detecting an analog whammy input:

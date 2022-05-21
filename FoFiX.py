@@ -1,8 +1,8 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python
 # -*- coding: iso-8859-1 -*-
 #####################################################################
 # Frets on Fire X (FoFiX)                                           #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #               2008 evilynux <evilynux@gmail.com>                  #
 #               2009 FoFiX Team                                     #
 #               2009 akedrou                                        #
@@ -27,6 +27,9 @@
 # Main game executable.
 
 # Register the latin-1 encoding
+from __future__ import print_function
+from builtins import str
+from future.utils import raise_
 import codecs
 import encodings.iso8859_1
 import encodings.utf_8
@@ -87,12 +90,12 @@ One-shot mode options (ignored unless in one-shot mode):
     import win32con
     win32api.MessageBox(0, usage, '%s %s' % (Version.appNameSexy(), Version.version()), win32con.MB_OK)
   else:
-    print usage
+    print(usage)
   sys.exit(1)
 
 try:
 	opts, args = getopt.getopt(sys.argv[1:], "hvdc:f:g:r:t:s:l:p:m:n:", ["help", "verbose", "debug", "config=", "fullscreen=", "geometry=", "resolution=", "theme=", "song=", "diff=", "part=", "mode=", "nbrplayers=", "opengl-error-checking"])
-except getopt.GetoptError, e:
+except getopt.GetoptError as e:
   _usage(str(e))  # str(e): error message from getopt, e.g. "option --some-invalid-option not recognized"
 if ('-h', '') in opts or ('--help', '') in opts:
   _usage()
@@ -143,9 +146,9 @@ def main():
       resolution = arg
     if opt in ["--geometry", "-g"]:
       r = re.match('([0-9]+x\d+)\+?(\d+)?\+?(\d+)?',arg)
-      print "geometry tested ",arg
+      print("geometry tested ",arg)
       (resolution,x,y) = r.groups()
-      print "found ",resolution," x ",x," y ",y
+      print("found ",resolution," x ",x," y ",y)
     if opt in ["--theme", "-t"]:
       theme = arg
     if opt in ["--song", "-s"]:
@@ -226,13 +229,6 @@ def main():
     engine.quit()
     return
 
-  encoding = Config.get("game", "encoding")
-  if encoding is not None:
-    #stump: XXX: Everything I have seen indicates that this is a
-    # horrible, horrible hack.  Is there another way?  Do we even need this?
-    reload(sys)
-    sys.setdefaultencoding(encoding)
-
   engine.setStartupLayer(MainMenu(engine))
 
   #stump: make psyco optional
@@ -264,13 +260,13 @@ def main():
       if hasattr(sys, "frozen"):
         if os.name == "nt":
           # When py2exe'd, sys.executable is the name of the EXE.
-          exe = os.path.abspath(unicode(sys.executable, sys.getfilesystemencoding()))
+          exe = os.path.abspath(str(sys.executable, sys.getfilesystemencoding()))
         elif sys.frozen == "macosx_app":
           # When py2app'd, sys.executable is a Python interpreter copied
           # into the same dir where we live.
           exe = os.path.join(os.path.dirname(sys.executable), 'FoFiX')  # FIXME: don't hard-code "FoFiX" here
         else:
-          raise RuntimeError, "Don't know how to restart when sys.frozen is %s" % repr(sys.frozen)
+          raise_(RuntimeError, "Don't know how to restart when sys.frozen is %s" % repr(sys.frozen))
       else:
         # When running from source, sys.executable is the Python interpreter
         # being used to run the program.
@@ -312,5 +308,5 @@ if __name__ == '__main__':
       if hasattr(sys, 'frozen'):
         sys.exit(1)  # don't reraise if py2exe'd so the "Errors occurred" box won't appear after this and confuse the user as to which logfile we actually want
     else:
-      print >>sys.stderr, _errmsg
+      print(_errmsg, file=sys.stderr)
     raise

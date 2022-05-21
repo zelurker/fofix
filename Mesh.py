@@ -1,3 +1,4 @@
+from __future__ import division
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
@@ -20,12 +21,15 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import range
+from builtins import object
+from past.utils import old_div
 from OpenGL.GL import *
 from numpy import array, float32
 
 import Collada
 
-class Mesh:
+class Mesh(object):
   def __init__(self, fileName):
     self.doc = Collada.DaeDocument()
     self.doc.LoadDocumentFromFile(fileName)
@@ -33,7 +37,7 @@ class Mesh:
     self.fullGeoms = {}
 
   def _unflatten(self, array, stride):
-    return [tuple(array[i * stride : (i + 1) * stride]) for i in range(len(array) / stride)]
+    return [tuple(array[i * stride : (i + 1) * stride]) for i in range(old_div(len(array), stride))]
 
   def setupLight(self, light, n, pos):
     l = light.techniqueCommon

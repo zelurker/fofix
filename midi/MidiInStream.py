@@ -1,8 +1,10 @@
 # -*- coding: ISO-8859-1 -*-
 
-from MidiOutStream import MidiOutStream
+from __future__ import absolute_import
+from builtins import object
+from .MidiOutStream import MidiOutStream
 
-class MidiInStream:
+class MidiInStream(object):
 
     """
     Takes midi events from the midi input and calls the apropriate

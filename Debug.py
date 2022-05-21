@@ -1,3 +1,4 @@
+from __future__ import print_function
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
@@ -20,6 +21,7 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import str
 from OpenGL.GL import *
 from View import Layer
 
@@ -60,7 +62,7 @@ class DebugLayer(Layer):
         
       x, y = (.5, .05)
       font.render("Layers:", (x, y), scale = scale)
-      for layer in self.engine.view.layers + self.engine.view.incoming + self.engine.view.outgoing + self.engine.view.visibility.keys():
+      for layer in self.engine.view.layers + self.engine.view.incoming + self.engine.view.outgoing + list(self.engine.view.visibility.keys()):
         font.render(self.className(layer), (x + .1, y), scale = scale)
         y += h
         
@@ -113,7 +115,7 @@ class DebugLayer(Layer):
     gc.collect()
     for obj in gc.garbage:
       try:
-        print >>f, obj
+        print(obj, file=f)
         n += 1
       except:
         pass

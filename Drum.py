@@ -1,3 +1,4 @@
+from __future__ import division
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
@@ -28,6 +29,11 @@
 
 #altered by myfingershurt to adapt to Alarian mod
 
+from builtins import str
+from builtins import chr
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import Player
 from Song import Note, Tempo
 from Mesh import Mesh
@@ -60,7 +66,7 @@ import Song   #need the base song defines as well
 # to enable it, only here and Player.drums should need changing.
 
 
-class Drum:
+class Drum(object):
   def __init__(self, engine, playerObj, editorMode = False, player = 0):
     self.engine         = engine
 
@@ -112,7 +118,7 @@ class Drum:
     self.freestyleLength = 0
     self.freestyleLastHit = 0
     self.freestyleBonusFret = -2
-    self.freestyleLastFretHitTime = range(5)
+    self.freestyleLastFretHitTime = list(range(5))
     self.freestyleBaseScore = 750
     self.freestylePeriod = 1000
     self.freestylePercent = 50
@@ -628,55 +634,55 @@ class Drum:
 
     #MFH - Neck speed determination:
     if self.nstype == 0:    #BPM mode
-      self.neckSpeed = (340 - bpm)/self.speed
+      self.neckSpeed = old_div((340 - bpm),self.speed)
     elif self.nstype == 1:   #Difficulty mode
       if self.difficulty == 0:    #expert
-        self.neckSpeed = 220/self.speed
+        self.neckSpeed = old_div(220,self.speed)
       elif self.difficulty == 1:
-        self.neckSpeed = 250/self.speed
+        self.neckSpeed = old_div(250,self.speed)
       elif self.difficulty == 2:
-        self.neckSpeed = 280/self.speed
+        self.neckSpeed = old_div(280,self.speed)
       else:   #easy
-        self.neckSpeed = 300/self.speed
+        self.neckSpeed = old_div(300,self.speed)
     elif self.nstype == 2:   #BPM & Diff mode
       if self.difficulty == 0:    #expert
-        self.neckSpeed = (226-(bpm/10))/self.speed
+        self.neckSpeed = old_div((226-(old_div(bpm,10))),self.speed)
       elif self.difficulty == 1:
-        self.neckSpeed = (256-(bpm/10))/self.speed
+        self.neckSpeed = old_div((256-(old_div(bpm,10))),self.speed)
       elif self.difficulty == 2:
-        self.neckSpeed = (286-(bpm/10))/self.speed
+        self.neckSpeed = old_div((286-(old_div(bpm,10))),self.speed)
       else:   #easy
-        self.neckSpeed = (306-(bpm/10))/self.speed
+        self.neckSpeed = old_div((306-(old_div(bpm,10))),self.speed)
     else: #Percentage mode - pre-calculated
       self.neckSpeed = self.speed
 
-    self.earlyMargin       = 250 - bpm/5 - 70*self.hitw
-    self.lateMargin        = 250 - bpm/5 - 70*self.hitw
+    self.earlyMargin       = 250 - old_div(bpm,5) - 70*self.hitw
+    self.lateMargin        = 250 - old_div(bpm,5) - 70*self.hitw
     #self.earlyMargin = self.lateMargin * self.earlyHitWindowSizeFactor    #MFH - scale early hit window here
 
     #self.noteReleaseMargin = 200 - bpm/5 - 70*self.hitw
     #if (self.noteReleaseMargin < (200 - bpm/5 - 70*1.2)):   #MFH - enforce "tight" hitwindow minimum note release margin
     #  self.noteReleaseMargin = (200 - bpm/5 - 70*1.2)
     if self.muteSustainReleases == 4:   #tight
-      self.noteReleaseMargin = (200 - bpm/5 - 70*1.2)
+      self.noteReleaseMargin = (200 - old_div(bpm,5) - 70*1.2)
     elif self.muteSustainReleases == 3: #standard
-      self.noteReleaseMargin = (200 - bpm/5 - 70*1.0)
+      self.noteReleaseMargin = (200 - old_div(bpm,5) - 70*1.0)
     elif self.muteSustainReleases == 2: #wide
-      self.noteReleaseMargin = (200 - bpm/5 - 70*0.7)
+      self.noteReleaseMargin = (200 - old_div(bpm,5) - 70*0.7)
     else:  #ultra-wide
-      self.noteReleaseMargin = (200 - bpm/5 - 70*0.5)
+      self.noteReleaseMargin = (200 - old_div(bpm,5) - 70*0.5)
 
     #MFH - TODO - only calculate the below values if the realtime hit accuracy feedback display is enabled - otherwise this is a waste!
     self.accThresholdWorstLate = (0-self.lateMargin)
-    self.accThresholdVeryLate = (0-(3*self.lateMargin/4))
-    self.accThresholdLate = (0-(2*self.lateMargin/4))
-    self.accThresholdSlightlyLate = (0-(1*self.lateMargin/4))
+    self.accThresholdVeryLate = (0-(old_div(3*self.lateMargin,4)))
+    self.accThresholdLate = (0-(old_div(2*self.lateMargin,4)))
+    self.accThresholdSlightlyLate = (0-(old_div(1*self.lateMargin,4)))
     self.accThresholdExcellentLate = -1.0
     self.accThresholdPerfect = 1.0
-    self.accThresholdExcellentEarly = (1*self.lateMargin/4)
-    self.accThresholdSlightlyEarly = (2*self.lateMargin/4)
-    self.accThresholdEarly = (3*self.lateMargin/4)
-    self.accThresholdVeryEarly = (4*self.lateMargin/4)
+    self.accThresholdExcellentEarly = (old_div(1*self.lateMargin,4))
+    self.accThresholdSlightlyEarly = (old_div(2*self.lateMargin,4))
+    self.accThresholdEarly = (old_div(3*self.lateMargin,4))
+    self.accThresholdVeryEarly = (old_div(4*self.lateMargin,4))
 
 
   def setMultiplier(self, multiplier):
@@ -705,7 +711,7 @@ class Drum:
     boardWindowMax = pos + self.currentPeriod * self.beatsPerBoard
     track = song.midiEventTrack[self.player]
     #self.currentPeriod = self.neckSpeed
-    beatsPerUnit = self.beatsPerBoard / self.boardLength
+    beatsPerUnit = old_div(self.beatsPerBoard, self.boardLength)
     if self.freestyleEnabled:
       freestyleActive = False
       self.drumFillsActive = False
@@ -717,15 +723,15 @@ class Drum:
           if event.number == Song.freestyleMarkingNote and (not event.happened or self.bigRockEndingMarkerSeen):  #MFH - don't kill the BRE!
             #drumFillOnScreen = True
             drumFillEvents.append(event)
-            length     = (event.length - 50) / self.currentPeriod / beatsPerUnit
-            w = self.boardWidth / self.strings
+            length     = old_div(old_div((event.length - 50), self.currentPeriod), beatsPerUnit)
+            w = old_div(self.boardWidth, self.strings)
             self.freestyleLength = event.length #volshebnyi
             self.freestyleStart = time # volshebnyi
-            z  = ((time - pos) / self.currentPeriod) / beatsPerUnit
-            z2 = ((time + event.length - pos) / self.currentPeriod) / beatsPerUnit
+            z  = old_div((old_div((time - pos), self.currentPeriod)), beatsPerUnit)
+            z2 = old_div((old_div((time + event.length - pos), self.currentPeriod)), beatsPerUnit)
 
             if z > self.boardLength * .8:
-              f = (self.boardLength - z) / (self.boardLength * .2)
+              f = old_div((self.boardLength - z), (self.boardLength * .2))
             elif z < 0:
               f = min(1, max(0, 1 + z2))
             else:
@@ -768,7 +774,7 @@ class Drum:
             #volshebnyi - render 4 freestyle tails
             if self.freestyleReady or self.drumFillsReady:
               for theFret in range(1,5):
-                x = (self.strings / 2 + .5 - theFret) * w
+                x = (old_div(self.strings, 2) + .5 - theFret) * w
                 if theFret == 4:
                   c = self.fretColors[0]
                 else:
@@ -800,7 +806,7 @@ class Drum:
     #volshebnyi - if freestyleTail == 1, render an freestyle tail
     #  if freestyleTail == 2, render highlighted freestyle tail
 
-    beatsPerUnit = self.beatsPerBoard / self.boardLength
+    beatsPerUnit = old_div(self.beatsPerBoard, self.boardLength)
 
     if flat:
       tailscale = (1, .1, 1)
@@ -837,7 +843,7 @@ class Drum:
     if freestyleTail == 1:
       #glColor4f(*color)
       c1, c2, c3, c4 = color
-      tailGlow = 1 - (pos - self.freestyleLastFretHitTime[fret] ) / self.freestylePeriod
+      tailGlow = 1 - old_div((pos - self.freestyleLastFretHitTime[fret] ), self.freestylePeriod)
       if tailGlow < 0:
         tailGlow = 0
       color = (c1 + c1*2.0*tailGlow, c2 + c2*2.0*tailGlow, c3 + c3*2.0*tailGlow, c4*0.6 + c4*0.4*tailGlow)    #MFH - this fades inactive tails' color darker
@@ -860,7 +866,7 @@ class Drum:
     if flat:
       glScalef(1, .1, 1)
 
-    beatsPerUnit = self.beatsPerBoard / self.boardLength
+    beatsPerUnit = old_div(self.beatsPerBoard, self.boardLength)
 
     if tailOnly:
       return
@@ -882,7 +888,7 @@ class Drum:
       #death_au: Adjusted for different image.
       if self.separateDrumNotes:
         if isOpen:
-          size = (self.boardWidth/1.9, (self.boardWidth/self.strings)/3.0)
+          size = (self.boardWidth/1.9, (old_div(self.boardWidth,self.strings))/3.0)
           texSize = (0,1)
           if spNote == True:
             texY = (3.0/6.0,4.0/6.0)
@@ -892,7 +898,7 @@ class Drum:
             texY = (1.0/6.0,2.0/6.0)
 
         else:
-          size = (self.boardWidth/self.strings/2, self.boardWidth/self.strings/2)
+          size = (old_div(old_div(self.boardWidth,self.strings),2), old_div(old_div(self.boardWidth,self.strings),2))
           fret -= 1
           texSize = (fret/4.0,fret/4.0+0.25)
           if spNote == True:
@@ -912,7 +918,7 @@ class Drum:
           fret = 0
 
 
-          size = (self.boardWidth/self.strings/2, self.boardWidth/self.strings/2)
+          size = (old_div(old_div(self.boardWidth,self.strings),2), old_div(old_div(self.boardWidth,self.strings),2))
           texSize = (fret/5.0,fret/5.0+0.2)
           if spNote == True:
             if isTappable:
@@ -932,7 +938,7 @@ class Drum:
               texSize = (0,0.2)
 
         elif self.theme == 2:
-          size = (self.boardWidth/self.strings/2, self.boardWidth/self.strings/2)
+          size = (old_div(old_div(self.boardWidth,self.strings),2), old_div(old_div(self.boardWidth,self.strings),2))
           texSize = (fret/5.0,fret/5.0+0.2)
           if spNote == True:
             if isTappable:
@@ -957,7 +963,7 @@ class Drum:
               texY = (4*0.166667, 5*0.166667)
 
         if isOpen:
-          size = (self.boardWidth/2.0, (self.boardWidth/self.strings)/40.0)
+          size = (self.boardWidth/2.0, (old_div(self.boardWidth,self.strings))/40.0)
 
       self.engine.draw3Dtex(self.noteButtons, vertex = (-size[0],size[1],size[0],-size[1]), texcoord = (texSize[0],texY[0],texSize[1],texY[1]),
                             scale = (1,1,1), multiples = True, color = color, vertscale = .2)
@@ -988,7 +994,7 @@ class Drum:
       glShadeModel(GL_SMOOTH)
 
       if spNote == True and self.threeDspin == True and isOpen == False:
-        glRotate(90 + self.time/3, 0, 1, 0)
+        glRotate(90 + old_div(self.time,3), 0, 1, 0)
       if isOpen == False and spNote == False and self.noterotate == True:
         glRotatef(90, 0, 1, 0)
         glRotatef(-90, 1, 0, 0)
@@ -1153,8 +1159,8 @@ class Drum:
 
     self.killPoints = False
 
-    beatsPerUnit = self.beatsPerBoard / self.boardLength
-    w = self.boardWidth / self.strings
+    beatsPerUnit = old_div(self.beatsPerBoard, self.boardLength)
+    w = old_div(self.boardWidth, self.strings)
     track = song.track[self.player]
 
     num = 0
@@ -1168,7 +1174,7 @@ class Drum:
         if self.lastBpmChange > 0 and self.disableVBPM == True:
           continue
         if (pos - time > self.currentPeriod or self.lastBpmChange < 0) and time > self.lastBpmChange:
-          self.baseBeat          += (time - self.lastBpmChange) / self.currentPeriod
+          self.baseBeat          += old_div((time - self.lastBpmChange), self.currentPeriod)
           self.targetBpm          = event.bpm
           self.lastBpmChange      = time
           self.neck.lastBpmChange = time
@@ -1200,15 +1206,15 @@ class Drum:
 
       # isOpen = False
       # if event.number == 0: #treat open string note differently - also haven't we already ensured that event.number == 0?
-      x  = (self.strings / 2 - .5 - 1.5) * w
+      x  = (old_div(self.strings, 2) - .5 - 1.5) * w
       isOpen     = True
       c = self.openFretColor
 
-      z  = ((time - pos) / self.currentPeriod) / beatsPerUnit
-      z2 = ((time + event.length - pos) / self.currentPeriod) / beatsPerUnit
+      z  = old_div((old_div((time - pos), self.currentPeriod)), beatsPerUnit)
+      z2 = old_div((old_div((time + event.length - pos), self.currentPeriod)), beatsPerUnit)
 
       if z > self.boardLength * .8:
-        f = (self.boardLength - z) / (self.boardLength * .2)
+        f = old_div((self.boardLength - z), (self.boardLength * .2))
       elif z < 0:
         f = min(1, max(0, 1 + z2))
       else:
@@ -1322,8 +1328,8 @@ class Drum:
 
     self.killPoints = False
 
-    beatsPerUnit = self.beatsPerBoard / self.boardLength
-    w = self.boardWidth / self.strings
+    beatsPerUnit = old_div(self.beatsPerBoard, self.boardLength)
+    w = old_div(self.boardWidth, self.strings)
     track = song.track[self.player]
 
     num = 0
@@ -1337,7 +1343,7 @@ class Drum:
         if self.lastBpmChange > 0 and self.disableVBPM == True:
           continue
         if (pos - time > self.currentPeriod or self.lastBpmChange < 0) and time > self.lastBpmChange:
-          self.baseBeat          += (time - self.lastBpmChange) / self.currentPeriod
+          self.baseBeat          += old_div((time - self.lastBpmChange), self.currentPeriod)
           self.targetBpm          = event.bpm
           self.lastBpmChange      = time
           self.neck.lastBpmChange = time
@@ -1377,15 +1383,15 @@ class Drum:
 
       isOpen = False
 
-      x  = (self.strings / 2 - .5 - (event.number - 1)) * w
+      x  = (old_div(self.strings, 2) - .5 - (event.number - 1)) * w
       if event.number == 4:
         c = self.fretColors[0]        #myfingershurt: need to swap note 0 and note 4 colors for drums:
 
-      z  = ((time - pos) / self.currentPeriod) / beatsPerUnit
-      z2 = ((time + event.length - pos) / self.currentPeriod) / beatsPerUnit
+      z  = old_div((old_div((time - pos), self.currentPeriod)), beatsPerUnit)
+      z2 = old_div((old_div((time + event.length - pos), self.currentPeriod)), beatsPerUnit)
 
       if z > self.boardLength * .8:
-        f = (self.boardLength - z) / (self.boardLength * .2)
+        f = old_div((self.boardLength - z), (self.boardLength * .2))
       elif z < 0:
         f = min(1, max(0, 1 + z2))
       else:
@@ -1481,7 +1487,7 @@ class Drum:
       self.finalStarSeen = False
 
   def renderFrets(self, visibility, song, controls):
-    w = self.boardWidth / self.strings
+    w = old_div(self.boardWidth, self.strings)
     size = (.22, .22)
     v = 1.0 - visibility
 
@@ -1501,14 +1507,14 @@ class Drum:
 
       glColor4f(.1 + .8 * c[0] + f, .1 + .8 * c[1] + f, .1 + .8 * c[2] + f, visibility)
       if self.fretPress:
-        y = v + f / 6 #this allows the keys to "press"
+        y = v + old_div(f, 6) #this allows the keys to "press"
       else:
-        y = v / 6
-      x = (self.strings / 2 - .5 - n) * w
+        y = old_div(v, 6)
+      x = (old_div(self.strings, 2) - .5 - n) * w
 
       if self.twoDkeys == True: #death_au
 
-        size = (self.boardWidth/self.strings/2, self.boardWidth/self.strings/2.4)
+        size = (old_div(old_div(self.boardWidth,self.strings),2), old_div(self.boardWidth,self.strings)/2.4)
         whichFret = n
 
         #death_au: only with old-style drum fret images
@@ -1680,7 +1686,7 @@ class Drum:
       c = self.openFretColor
 
       glColor4f(.1 + .8 * c[0] + f, .1 + .8 * c[1] + f, .1 + .8 * c[2] + f, visibility)
-      y = v + f / 6
+      y = v + old_div(f, 6)
       x = 0
 
       if self.keyMeshOpen:
@@ -1749,7 +1755,7 @@ class Drum:
 
       x = 0.0#(self.boardWidth / 2 )
 
-      size = (self.boardWidth/2, self.boardWidth/self.strings/2.4)
+      size = (old_div(self.boardWidth,2), old_div(self.boardWidth,self.strings)/2.4)
 
       texSize = (0.0,1.0)
 
@@ -1772,8 +1778,8 @@ class Drum:
     if not song or self.flameColors[0][0][0] == -1:
       return
 
-    beatsPerUnit = self.beatsPerBoard / self.boardLength
-    w = self.boardWidth / self.strings
+    beatsPerUnit = old_div(self.beatsPerBoard, self.boardLength)
+    w = old_div(self.boardWidth, self.strings)
     track = song.track[self.player]
 
     size = (.22, .22)
@@ -1933,14 +1939,14 @@ class Drum:
           ms = math.sin(self.time) * .25 + 1
 
           if event.number == 0:
-            x  = (self.strings / 2 - 2) * w
+            x  = (old_div(self.strings, 2) - 2) * w
           else:
-            x  = (self.strings / 2 +.5 - event.number) * w
+            x  = (old_div(self.strings, 2) +.5 - event.number) * w
           #x  = (self.strings / 2 - event.number) * w
 
-          xlightning = (self.strings / 2 - event.number)*2.2*w
+          xlightning = (old_div(self.strings, 2) - event.number)*2.2*w
           ff = 1 + 0.25
-          y = v + ff / 6
+          y = v + old_div(ff, 6)
 
           if self.theme == 2:
             y -= 0.5
@@ -1966,7 +1972,7 @@ class Drum:
             if event.flameCount < flameLimitHalf:
 
 
-              HIndex = (self.HCount2 * 13 - (self.HCount2 * 13) % 13) / 13
+              HIndex = old_div((self.HCount2 * 13 - (self.HCount2 * 13) % 13), 13)
               if HIndex > 12 and self.HCountAni != True:
                 HIndex = 0
 
@@ -2191,8 +2197,8 @@ class Drum:
     if self.flameColors[0][0][0] == -1:
       return
 
-    beatsPerUnit = self.beatsPerBoard / self.boardLength
-    w = self.boardWidth / self.strings
+    beatsPerUnit = old_div(self.beatsPerBoard, self.boardLength)
+    w = old_div(self.boardWidth, self.strings)
     #track = song.track[self.player]
 
     size = (.22, .22)
@@ -2343,14 +2349,14 @@ class Drum:
             ms = math.sin(self.time) * .25 + 1
 
             if fretNum == 0:
-              x  = (self.strings / 2 - 2) * w
+              x  = (old_div(self.strings, 2) - 2) * w
             else:
-              x  = (self.strings / 2 +.5 - fretNum) * w
+              x  = (old_div(self.strings, 2) +.5 - fretNum) * w
             #x  = (self.strings / 2 - fretNum) * w
 
-            xlightning = (self.strings / 2 - fretNum)*2.2*w
+            xlightning = (old_div(self.strings, 2) - fretNum)*2.2*w
             ff = 1 + 0.25
-            y = v + ff / 6
+            y = v + old_div(ff, 6)
             glBlendFunc(GL_ONE, GL_ONE)
 
             if self.theme == 2:
@@ -2497,11 +2503,11 @@ class Drum:
         self.totalNotes += 1
       stars = []
       maxStars = []
-      maxPhrase = self.totalNotes/120
+      maxPhrase = old_div(self.totalNotes,120)
       for q in range(0,maxPhrase):
         for n in range(0,10):
-          stars.append(self.totalNotes/maxPhrase*(q)+n+maxPhrase/4)
-        maxStars.append(self.totalNotes/maxPhrase*(q)+10+maxPhrase/4)
+          stars.append(old_div(self.totalNotes,maxPhrase)*(q)+n+old_div(maxPhrase,4))
+        maxStars.append(old_div(self.totalNotes,maxPhrase)*(q)+10+old_div(maxPhrase,4))
       i = 0
       for time, event in song.track[self.player].getAllEvents():
         if not isinstance(event, Note):
@@ -2839,7 +2845,7 @@ class Drum:
       self.time += ticks
     #myfingershurt: must not decrease SP if paused.
     if self.starPowerActive == True and self.paused == False:
-      self.starPower -= ticks/self.starPowerDecreaseDivisor
+      self.starPower -= old_div(ticks,self.starPowerDecreaseDivisor)
       if self.starPower <= 0:
         self.starPower = 0
         self.starPowerActive = False

@@ -20,9 +20,10 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import object
 from OpenGL.GLU import *
 
-class Camera:
+class Camera(object):
   def __init__(self):
     # Camera origin vector
     self.origin = (10.0, 0.0, 10.0)

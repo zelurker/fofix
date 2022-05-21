@@ -1,8 +1,10 @@
+from __future__ import division
+from __future__ import print_function
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #               2008 myfingershurt                                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
@@ -22,6 +24,15 @@
 #####################################################################
 
 
+from past.builtins import cmp
+from future import standard_library
+from functools import reduce
+standard_library.install_aliases()
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import midi
 import Log
 import Audio
@@ -39,16 +50,16 @@ try:
   import hashlib
 except ImportError:
   import sha
-  class hashlib:
+  class hashlib(object):
     sha1 = sha.sha
 import binascii
 import Cerealizer
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import Version
 import Theme
 import copy
 import string
-import cPickle  #stump: Cerealizer and sqlite3 don't seem to like each other that much...
+import pickle  #stump: Cerealizer and sqlite3 don't seem to like each other that much...
 from Language import _
 
 DEFAULT_BPM = 120.0
@@ -117,7 +128,7 @@ instrumentDiff = {
   5 : (lambda a: a.diffVocals)
 }
 
-class Part:
+class Part(object):
   def __init__(self, id, text):
     self.id   = id
     self.text = text
@@ -147,7 +158,7 @@ parts = {
   VOCAL_PART:  Part(VOCAL_PART,  _("Vocals")),
 }
 
-class Difficulty:
+class Difficulty(object):
   def __init__(self, id, text):
     self.id   = id
     self.text = text
@@ -260,7 +271,7 @@ class SongInfo(object):
       scores = Cerealizer.loads(binascii.unhexlify(scores))
       if scores_ext:
         scores_ext = Cerealizer.loads(binascii.unhexlify(scores_ext))
-      for difficulty in scores.keys():
+      for difficulty in list(scores.keys()):
         try:
           difficulty = difficulties[difficulty]
         except KeyError:
@@ -292,7 +303,7 @@ class SongInfo(object):
   def _set(self, attr, value):
     if not self.info.has_section("song"):
       self.info.add_section("song")
-    if type(value) == unicode:
+    if type(value) == str:
       value = value.encode(Config.encoding)
     else:
       value = str(value)
@@ -315,7 +326,7 @@ class SongInfo(object):
     else:
       highScores = self.highScores
 
-    for difficulty in highScores.keys():
+    for difficulty in list(highScores.keys()):
       if isinstance(difficulty, Difficulty):
         diff = diff.id
       else:
@@ -340,7 +351,7 @@ class SongInfo(object):
     else:
       highScores = self.highScores
 
-    for difficulty in highScores.keys():
+    for difficulty in list(highScores.keys()):
       if isinstance(difficulty, Difficulty):
         diff = diff.id
       else:
@@ -476,9 +487,9 @@ class SongInfo(object):
         self._partDifficulties[part.id] = info.difficulties[part.id]
     except:
       Log.warn("Note file not parsed correctly. Selected part and/or difficulty may not be available.")
-      self._parts = parts.values()
+      self._parts = list(parts.values())
       for part in self._parts:
-        self._partDifficulties[part.id] = difficulties.values()
+        self._partDifficulties[part.id] = list(difficulties.values())
     return self._parts
 
   def getName(self):
@@ -678,11 +689,11 @@ class SongInfo(object):
         "version":  "%s-3.100" % Version.appNameSexy(),
         "songPart": part
       }
-      data = urllib.urlopen(url + "?" + urllib.urlencode(d)).read()
+      data = urllib.request.urlopen(url + "?" + urllib.parse.urlencode(d)).read()
       Log.debug("Score upload result: %s" % data)
       #return data == "True"
       return data   #MFH - want to return the actual result data.
-    except Exception, e:
+    except Exception as e:
       Log.error("Score upload error: %s" % e)
       return False
     return True
@@ -759,7 +770,7 @@ class SongInfo(object):
         if self.logSections == 1:
           Log.debug("Practice sections: " + str(self._sections))
 
-    except Exception, e:
+    except Exception as e:
       Log.warn("Song.py: Unable to retrieve section names for practice mode selection: %s" % e)
       self._sections = None
     return self._sections
@@ -892,7 +903,7 @@ class LibraryInfo(object):
   def _set(self, attr, value):
     if not self.info.has_section("library"):
       self.info.add_section("library")
-    if type(value) == unicode:
+    if type(value) == str:
       value = value.encode(Config.encoding)
     else:
       value = str(value)
@@ -947,7 +958,7 @@ class BlankSpaceInfo(object): #MFH
     self.artist = None    #MFH - prevents search errors
 
   def _set(self, attr, value):
-    if type(value) == unicode:
+    if type(value) == str:
       value = value.encode(Config.encoding)
     else:
       value = str(value)
@@ -999,7 +1010,7 @@ class CareerResetterInfo(object): #MFH
     self.artist = None    #MFH - prevents search errors
 
   def _set(self, attr, value):
-    if type(value) == unicode:
+    if type(value) == str:
       value = value.encode(Config.encoding)
     else:
       value = str(value)
@@ -1046,7 +1057,7 @@ class RandomSongInfo(object): #MFH
     self.artist = None    #MFH - prevents search errors
 
   def _set(self, attr, value):
-    if type(value) == unicode:
+    if type(value) == str:
       value = value.encode(Config.encoding)
     else:
       value = str(value)
@@ -1093,7 +1104,7 @@ class TitleInfo(object):
     self.artist = None    #MFH - prevents search errors
 
   def _set(self, attr, value):
-    if type(value) == unicode:
+    if type(value) == str:
       value = value.encode(Config.encoding)
     else:
       value = str(value)
@@ -1141,7 +1152,7 @@ class SortTitleInfo(object):
     self.artist = None    #MFH - prevents search errors
 
   def _set(self, attr, value):
-    if type(value) == unicode:
+    if type(value) == str:
       value = value.encode(Config.encoding)
     else:
       value = str(value)
@@ -1177,7 +1188,7 @@ class SortTitleInfo(object):
   color         = property(getColor, setColor)
 
 
-class Event:
+class Event(object):
   def __init__(self, length):
     self.length = length
 
@@ -1256,7 +1267,7 @@ class PictureEvent(Event):
     Event.__init__(self, length)
     self.fileName = fileName
 
-class Track:    #MFH - Changing Track class to a base class.  NoteTrack and TempoTrack will extend it.
+class Track(object):    #MFH - Changing Track class to a base class.  NoteTrack and TempoTrack will extend it.
   granularity = 50
 
   def __init__(self, engine):
@@ -1290,7 +1301,7 @@ class Track:    #MFH - Changing Track class to a base class.  NoteTrack and Temp
     return len(self.allEvents)
 
   def addEvent(self, time, event):
-    for t in range(int(time / self.granularity), int((time + event.length) / self.granularity) + 1):
+    for t in range(int(old_div(time, self.granularity)), int(old_div((time + event.length), self.granularity)) + 1):
       if len(self.events) < t + 1:
         n = t + 1 - len(self.events)
         n *= 8
@@ -1305,7 +1316,7 @@ class Track:    #MFH - Changing Track class to a base class.  NoteTrack and Temp
       self.maxIndex += 1
 
   def removeEvent(self, time, event):
-    for t in range(int(time / self.granularity), int((time + event.length) / self.granularity) + 1):
+    for t in range(int(old_div(time, self.granularity)), int(old_div((time + event.length), self.granularity)) + 1):
       e = (time - (t * self.granularity), event)
       if t < len(self.events) and e in self.events[t]:
         self.events[t].remove(e)
@@ -1334,7 +1345,7 @@ class Track:    #MFH - Changing Track class to a base class.  NoteTrack and Temp
     return None
 
   def getEvents(self, startTime, endTime):
-    t1, t2 = [int(x) for x in [startTime / self.granularity, endTime / self.granularity]]
+    t1, t2 = [int(x) for x in [old_div(startTime, self.granularity), old_div(endTime, self.granularity)]]
     if t1 > t2:
       t1, t2 = t2, t1
 
@@ -1410,7 +1421,7 @@ class VocalTrack(Track):
         phraseTimes.append(time)
         phraseId += 1
     index = 0
-    for time, tuple in self.allNotes.iteritems():
+    for time, tuple in self.allNotes.items():
       phraseId = 0
       for i, phraseTime in enumerate(self.getAllEvents()):
         if time > phraseTime[0] and time < phraseTime[0] + phraseTime[1].length:
@@ -1469,7 +1480,7 @@ class VocalPhrase(VocalTrack, Event):
     for time, event in self.allEvents:
       if isinstance(event, VocalNote):
         eventDict[int(time)] = (time, event)
-    times = eventDict.keys()
+    times = list(eventDict.keys())
     times.sort()
     for time in times:
       newEvents.append(eventDict[time])
@@ -1550,7 +1561,7 @@ class NoteTrack(Track):   #MFH - special Track type for note events, with markin
 
     try:
       songHopoFreq = int(songHopoFreq)
-    except Exception, e:
+    except Exception as e:
       songHopoFreq = None
     #  Log.warn("Song.ini HOPO Frequency setting is invalid -- forcing Normal (value 1)")
       if self.songHopoFreq == 1 and (songHopoFreq == 0 or songHopoFreq == 1 or songHopoFreq == 2 or songHopoFreq == 3 or songHopoFreq == 4 or songHopoFreq == 5):
@@ -1787,7 +1798,7 @@ class NoteTrack(Track):   #MFH - special Track type for note events, with markin
 
     try:
       songHopoFreq = int(songHopoFreq)
-    except Exception, e:
+    except Exception as e:
       songHopoFreq = None
     #  Log.warn("Song.ini HOPO Frequency setting is invalid -- forcing Normal (value 1)")
     if self.songHopoFreq == 1 and (songHopoFreq == 0 or songHopoFreq == 1 or songHopoFreq == 2 or songHopoFreq == 3 or songHopoFreq == 4 or songHopoFreq == 5):
@@ -2320,8 +2331,8 @@ class NoteTrack(Track):   #MFH - special Track type for note events, with markin
         i += 1
         continue
       tempbpm = tempoBpm[i]
-      nbars = (msTotal * (tempbpm / (240.0 / THnote) )) / 1000.0
-      inc = msTotal / nbars
+      nbars = (msTotal * (old_div(tempbpm, (240.0 / THnote)) )) / 1000.0
+      inc = old_div(msTotal, nbars)
 
       while time < tempoTime[i+1]:
         if drawBar == True:
@@ -2361,7 +2372,7 @@ class NoteTrack(Track):   #MFH - special Track type for note events, with markin
 
 class Song(object):
   def __init__(self, engine, infoFileName, songTrackName, guitarTrackName, rhythmTrackName, noteFileName, scriptFileName = None, partlist = [parts[GUITAR_PART]], drumTrackName = None, crowdTrackName = None,speed = 1):
-    print "song creation received speed ",speed
+    print("song creation received speed ",speed)
     self.engine        = engine
 
     self.logClassInits = self.engine.config.get("game", "log_class_inits")
@@ -2463,13 +2474,13 @@ class Song(object):
     try:
       if guitarTrackName:
         self.guitarTrack = Audio.Sound( guitarTrackName, self.engine,speed=speed)
-    except Exception, e:
+    except Exception as e:
       Log.warn("Unable to load guitar track: %s" % e)
 
     try:
       if rhythmTrackName:
         self.rhythmTrack = Audio.Sound(rhythmTrackName,self.engine,speed=speed)
-    except Exception, e:
+    except Exception as e:
       Log.warn("Unable to load rhythm track: %s" % e)
 
 
@@ -2477,13 +2488,13 @@ class Song(object):
       if drumTrackName:
         drumTrackName = engine.resource.fileName(drumTrackName, "drums.ogg")+";"+engine.resource.fileName(drumTrackName, "drums_?.ogg")
         self.drumTrack = Audio.Sound( drumTrackName, self.engine,speed=speed)
-    except Exception, e:
+    except Exception as e:
       Log.warn("Unable to load drum track: %s" % e)
 
     try:
       if crowdTrackName:
         self.crowdTrack = Audio.Sound( crowdTrackName, self.engine,speed=speed)
-    except Exception, e:
+    except Exception as e:
       Log.warn("Unable to load crowd track: %s" % e)
 
     #MFH - single audio track song detection
@@ -2776,7 +2787,7 @@ class Song(object):
         return self._playing and self.music.isPlaying()
 
   def getBeat(self):
-    return self.getPosition() / self.period
+    return old_div(self.getPosition(), self.period)
 
   def update(self, ticks):
     pass
@@ -2826,10 +2837,10 @@ overDriveMarkingNote = 116     #note 116 = G#9
 freestyleMarkingNote = 124      #notes 120 - 124 = drum fills & BREs - always all 5 notes present
 
 
-reverseNoteMap = dict([(v, k) for k, v in noteMap.items()])
+reverseNoteMap = dict([(v, k) for k, v in list(noteMap.items())])
 
 
-class MidiWriter:
+class MidiWriter(object):
   def __init__(self, song, out):
     self.song         = song
     self.out          = out
@@ -2848,12 +2859,12 @@ class MidiWriter:
     self.out.start_of_track()
     self.out.update_time(0)
     if self.song.bpm:
-      self.out.tempo(int(60.0 * 10.0**6 / self.song.bpm))
+      self.out.tempo(int(old_div(60.0 * 10.0**6, self.song.bpm)))
     else:
       self.out.tempo(int(60.0 * 10.0**6 / 122.0))
 
     # Collect all events
-    events = [zip([difficulty] * len(track.getAllEvents()), track.getAllEvents()) for difficulty, track in enumerate(self.song.tracks[0])]
+    events = [list(zip([difficulty] * len(track.getAllEvents()), track.getAllEvents())) for difficulty, track in enumerate(self.song.tracks[0])]
     events = reduce(lambda a, b: a + b, events)
     events.sort(lambda a, b: {True: 1, False: -1}[a[1][0] > b[1][0]])
     heldNotes = []
@@ -2886,7 +2897,7 @@ class MidiWriter:
     self.out.eof()
     self.out.write()
 
-class ScriptReader:
+class ScriptReader(object):
   def __init__(self, song, scriptFile):
     self.song = song
     self.file = scriptFile
@@ -3049,7 +3060,7 @@ class MidiReader(midi.MidiOutStream):
 
   def abs_time(self):
     def ticksToBeats(ticks, bpm):
-      return (60000.0 * ticks) / (bpm * self.ticksPerBeat)
+      return old_div((60000.0 * ticks), (bpm * self.ticksPerBeat))
 
     if self.song.bpm:
       currentTime = midi.MidiOutStream.abs_time(self)
@@ -3072,7 +3083,7 @@ class MidiReader(midi.MidiOutStream):
       self.partTrack = 1
 
   def tempo(self, value):
-    bpm = 60.0 * 10.0**6 / value
+    bpm = old_div(60.0 * 10.0**6, value)
     self.tempoMarkers.append((midi.MidiOutStream.abs_time(self), bpm))
     if not self.song.bpm:
       self.song.setBpm(bpm)
@@ -3347,7 +3358,7 @@ class MidiReader(midi.MidiOutStream):
 
 class MidiSectionReader(midi.MidiOutStream):
   # We exit via this exception so that we don't need to read the whole file in
-  class Done: pass
+  class Done(object): pass
 
   def __init__(self):
     midi.MidiOutStream.__init__(self)
@@ -3375,7 +3386,7 @@ class MidiSectionReader(midi.MidiOutStream):
 
   def abs_time(self):
     def ticksToBeats(ticks, bpm):
-      return (60000.0 * ticks) / (bpm * self.ticksPerBeat)
+      return old_div((60000.0 * ticks), (bpm * self.ticksPerBeat))
 
     if self.bpm:
       currentTime = midi.MidiOutStream.abs_time(self)
@@ -3393,13 +3404,13 @@ class MidiSectionReader(midi.MidiOutStream):
     return 0.0
 
   def tempo(self, value):
-    self.bpm = 60.0 * 10.0**6 / value
+    self.bpm = old_div(60.0 * 10.0**6, value)
     self.tempoMarkers.append((midi.MidiOutStream.abs_time(self), self.bpm))
 
   def note_on(self, channel, note, velocity):
     pos = float(midi.MidiOutStream.abs_time(self))
-    if (pos / 60000) >= self.nextSectionMinute:
-      text = "%d:%02d -> " % (pos / 60000, (pos % 60000) / 1000) + "Section " + str(round(self.nextSectionMinute,2))
+    if (old_div(pos, 60000)) >= self.nextSectionMinute:
+      text = "%d:%02d -> " % (old_div(pos, 60000), old_div((pos % 60000), 1000)) + "Section " + str(round(self.nextSectionMinute,2))
       self.nextSectionMinute += 0.25
 
       #MFH - only log if enabled
@@ -3436,7 +3447,7 @@ class MidiSectionReader(midi.MidiOutStream):
         if self.logSections == 1:
           Log.debug("Found <section> potential RB-style practice section: " + str(pos) + " - " + text)
 
-        text = "%d:%02d -> " % (pos / 60000, (pos % 60000) / 1000) + text
+        text = "%d:%02d -> " % (old_div(pos, 60000), old_div((pos % 60000), 1000)) + text
         self.sections.append([text,pos])
 
 
@@ -3446,7 +3457,7 @@ class MidiSectionReader(midi.MidiOutStream):
         if self.logSections == 1:
           Log.debug("Found potential GH1-style practice section: " + str(pos) + " - " + text)
 
-        text = "%d:%02d -> " % (pos / 60000, (pos % 60000) / 1000) + text
+        text = "%d:%02d -> " % (old_div(pos, 60000), old_div((pos % 60000), 1000)) + text
         self.sections.append([text,pos])
       elif text.lower().find("verse") >= 0 and text.find("[") < 0 and not self.guitarSoloSectionMarkers:   #this is an alternate GH1-style solo end marker
 
@@ -3454,7 +3465,7 @@ class MidiSectionReader(midi.MidiOutStream):
         if self.logSections == 1:
           Log.debug("Found potential GH1-style practice section: " + str(pos) + " - " + text)
 
-        text = "%d:%02d -> " % (pos / 60000, (pos % 60000) / 1000) + text
+        text = "%d:%02d -> " % (old_div(pos, 60000), old_div((pos % 60000), 1000)) + text
         self.sections.append([text,pos])
       elif text.lower().find("gtr") >= 0 and text.lower().find("off") >= 0 and text.find("[") < 0 and not self.guitarSoloSectionMarkers:   #this is an alternate GH1-style solo end marker
         #also convert "gtr" to "Guitar"
@@ -3464,7 +3475,7 @@ class MidiSectionReader(midi.MidiOutStream):
         if self.logSections == 1:
           Log.debug("Found potential GH1-style practice section: " + str(pos) + " - " + text)
 
-        text = "%d:%02d -> " % (pos / 60000, (pos % 60000) / 1000) + text
+        text = "%d:%02d -> " % (old_div(pos, 60000), old_div((pos % 60000), 1000)) + text
         self.sections.append([text,pos])
       elif not self.guitarSoloSectionMarkers:   #General GH1-style sections.  Messy but effective.
 
@@ -3472,7 +3483,7 @@ class MidiSectionReader(midi.MidiOutStream):
         if self.logSections == 1:
           Log.debug("Found potential GH1-style practice section: " + str(pos) + " - " + text)
 
-        text = "%d:%02d -> " % (pos / 60000, (pos % 60000) / 1000) + text
+        text = "%d:%02d -> " % (old_div(pos, 60000), old_div((pos % 60000), 1000)) + text
         self.sections.append([text,pos])
 
       else:  #unused text event
@@ -3482,7 +3493,7 @@ class MidiSectionReader(midi.MidiOutStream):
 
 
 
-class SongQueue:
+class SongQueue(object):
   def __init__(self):
     self.songName = []
     self.library = []
@@ -3651,7 +3662,7 @@ class MidiPartsDiffReader(midi.MidiOutStream):
         self.parts.append(part)
         self.nextPart = None
         self.currentPart = part.id
-        self.difficulties[part.id] = difficulties.values()
+        self.difficulties[part.id] = list(difficulties.values())
         if self.logSections == 1:
           tempText2 = "VOCAL_PART"
           Log.debug(tempText + tempText2)
@@ -4416,7 +4427,7 @@ def isInt(possibleInt):
       return True
     else:
       return False
-  except Exception, e:
+  except Exception as e:
     return False
 
 def removeSongOrderPrefixFromName(name): #copied from Dialogs - can't import it here.

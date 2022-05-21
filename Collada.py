@@ -1,3 +1,4 @@
+from __future__ import print_function
 # -------------------------------------------------------------------------
 # Illusoft Collada 1.4 plugin for Blender version 0.3.89
 # --------------------------------------------------------------------------
@@ -22,6 +23,9 @@
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
+from builtins import str
+from builtins import range
+from builtins import object
 from xml.dom.minidom import *
 from datetime import *
 
@@ -62,7 +66,7 @@ def ToFloat2(stringValue, errorText=''):
 	try:
 		return [ float( split[ 0 ] ), float( split[ 1 ] )]
 	except IndexError:
-		print 'Error: ' + errorText
+		print('Error: ' + errorText)
 		raise
 
 def ToList(var):
@@ -305,7 +309,7 @@ def __ToXml(xmlNode, indent='\t',newl='\n',totalIndent=''):
 		attrs = ''
 		attributes = xmlNode.attributes
 		if attributes != None:
-			for attr in attributes.keys():
+			for attr in list(attributes.keys()):
 				val = attributes[attr].nodeValue
 				attrs += ' %s="%s"'%(attr,val)
 		result = '%s<%s%s>'%(totalIndent,xmlNode.localName,attrs)

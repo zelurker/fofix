@@ -1,3 +1,4 @@
+from __future__ import division
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
@@ -29,6 +30,9 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import os
 from Language import _
 import Song
@@ -190,7 +194,7 @@ class ScoreCard(object):
         for i in range(4, -1, -1):
           if avMult >= self.star[i]:
             part = avMult - self.star[i]
-            partPct = part / (self.star[i+1] - self.star[i])
+            partPct = old_div(part, (self.star[i+1] - self.star[i]))
             partStar = int(8*partPct)
             partStar = min(partStar, 7) #catches 99.very9%, just in case
             self.stars = i
@@ -220,7 +224,7 @@ class ScoreCard(object):
         for i in range(4, -1, -1):
           if avMult >= self.star[i]:
             part = avMult - self.star[i]
-            partPct = part / (self.star[i+1] - self.star[i])
+            partPct = old_div(part, (self.star[i+1] - self.star[i]))
             partStar = int(8*partPct)
             partStar = min(partStar, 7) #catches 99.very9%, just in case
             self.stars = i
@@ -247,7 +251,7 @@ class ScoreCard(object):
         for i in range(4, -1, -1):
           if self.hitAccuracy >= self.star[i]:
             part = self.hitAccuracy - self.star[i]
-            partPct = part / (self.star[i+1] - self.star[i])
+            partPct = old_div(part, (self.star[i+1] - self.star[i]))
             partStar = int(8*partPct)
             partStar = min(partStar, 7) #catches 99.very9%, just in case
             self.stars = i
@@ -304,17 +308,17 @@ class ScoreCard(object):
   def getScoreMultiplier(self):
     if self.instrument == [Song.BASS_PART] and self.bassGrooveEnabled:    #myfingershurt: bass groove
       try:
-        return BASS_GROOVE_SCORE_MULTIPLIER.index((self.streak / 10) * 10) + 1
+        return BASS_GROOVE_SCORE_MULTIPLIER.index((old_div(self.streak, 10)) * 10) + 1
       except ValueError:
         return len(BASS_GROOVE_SCORE_MULTIPLIER)
     elif self.instrument == [Song.VOCAL_PART]:
       return min(self.streak + 1, 4)
     else:
       try:
-        return SCORE_MULTIPLIER.index((self.streak / 10) * 10) + 1
+        return SCORE_MULTIPLIER.index((old_div(self.streak, 10)) * 10) + 1
       except ValueError:
         return len(SCORE_MULTIPLIER)
 
-class Rockmeter:
+class Rockmeter(object):
   pass # future breaking out of rockmeter can likely go here. Scorekeeper seems fitting.
 

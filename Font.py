@@ -1,8 +1,9 @@
+from __future__ import division
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #               2008 evilynux <evilynux@gmail.com>                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
@@ -21,6 +22,8 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from past.utils import old_div
+from builtins import object
 import pygame
 from OpenGL.GL import *
 import sys
@@ -50,12 +53,12 @@ class Cache(object):
     def add(self,key,element):
         self.elements[key] = CacheElement(element)
         if len(self.elements) > self.maxCount:
-            keys = self.elements.keys()
+            keys = list(self.elements.keys())
             keys.sort(key=lambda e:-self.elements[e].lastUse)
             for k in keys[self.maxCount:]:
                 del self.elements[k]
 
-class Font:
+class Font(object):
   """A texture-mapped font."""
   def __init__(self, fileName, size, bold = False, italic = False, underline = False, outline = True,
                scale = 1.0, reversed = False, systemFont = False, shadow = False, shadowoffsetx = .0022, shadowoffsety = .0005):
@@ -108,7 +111,7 @@ class Font:
   def scaleText(self, text, maxwidth, scale = DEFAULT_SCALE):
     w, h = self.getStringSize(text, scale)
     if w > maxwidth:
-        scale *= maxwidth/w
+        scale *= old_div(maxwidth,w)
     return scale
 
   def getHeight(self):

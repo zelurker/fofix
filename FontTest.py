@@ -5,6 +5,12 @@
 # based on version of Nehe's OpenGL lesson04
 #  by Paul Furber 2001 - m@verick.co.za
 
+from __future__ import division
+from __future__ import print_function
+from builtins import str
+from builtins import chr
+from builtins import range
+from past.utils import old_div
 from OpenGL.GL import *
 from OpenGL.GLU import *
 import pygame
@@ -20,13 +26,14 @@ rtri = rquad = 0.0
 
 triOn = quadOn = True
 
-def resize((width, height)):
+def resize(xxx_todo_changeme):
+    (width, height) = xxx_todo_changeme
     if height==0:
         height=1
     glViewport(0, 0, width, height)
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
-    gluPerspective(45, 1.0*width/height, 0.1, 100.0)
+    gluPerspective(45, old_div(1.0*width,height), 0.1, 100.0)
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
@@ -195,10 +202,10 @@ def main():
         pygame.display.flip()
         frames = frames+1
         if( ticksDiff > 200 ):
-            fps = ((frames*1000)/(ticksDiff))
+            fps = (old_div((frames*1000),(ticksDiff)))
             ticks = pygame.time.get_ticks()
             frames = 0
-            print "mode: %s, %.2f fps" % (mode, fps)
+            print("mode: %s, %.2f fps" % (mode, fps))
         # evilynux - commented the following so we go as fast as we can
         #clock.tick(60)
 

@@ -29,6 +29,8 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import str
+from builtins import range
 import Menu
 from Language import _
 import Dialogs
@@ -66,7 +68,7 @@ class ConfigChoice(Menu.Choice):
     o = config.prototype[section][option]
     v = config.get(section, option)
     if isinstance(o.options, dict):
-      values     = o.options.values()
+      values     = list(o.options.values())
       values.sort()
       try:
         valueIndex = values.index(o.options[v])
@@ -86,7 +88,7 @@ class ConfigChoice(Menu.Choice):
     o = self.config.prototype[self.section][self.option]
 
     if isinstance(o.options, dict):
-      for k, v in o.options.items():
+      for k, v in list(o.options.items()):
         if v == value:
           value = k
           break
@@ -230,7 +232,7 @@ class KeyConfigChoice(Menu.Choice):
     o = self.config.prototype[self.section][self.option]
 
     if isinstance(o.options, dict):
-      for k, v in o.options.items():
+      for k, v in list(o.options.items()):
         if v == value:
           value = k
           break
@@ -303,7 +305,7 @@ def chooseControl(engine, mode = "edit", refresh = None):
   """
   mode     = mode == "delete" and 1 or 0
   options  = []
-  for i in Player.controllerDict.keys():
+  for i in list(Player.controllerDict.keys()):
     if i != "defaultg" and i != "None" and i != "defaultd" and i != "defaultm":
       options.append(i)
   options.sort()
@@ -372,7 +374,7 @@ class ControlCreator(BackgroundLayer, KeyListener):
 
     self.time   = 0.0
     self.badname     = ["defaultg", "defaultd", "defaultm"] #ensures that defaultm is included - duplicate is ok
-    for i in Player.controllerDict.keys():
+    for i in list(Player.controllerDict.keys()):
       self.badname.append(i.lower())
 
     self.menu = None

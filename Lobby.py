@@ -1,3 +1,4 @@
+from __future__ import division
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
@@ -21,6 +22,10 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import chr
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import pygame
 from OpenGL.GL import *
 import math
@@ -269,7 +274,7 @@ class Lobby(Layer, KeyListener, MessageHandler):
     self.engine.addTask(GameTask(self.engine, self.session), synchronized = False)
     self.engine.view.popLayer(self)
 
-  def keyPressedSP(self, key, unicode):
+  def keyPressedSP(self, key, str):
     c = self.engine.input.controls.getMapping(key)
     i = self.playerNum
     if self.gameStarted:
@@ -364,11 +369,11 @@ class Lobby(Layer, KeyListener, MessageHandler):
     elif self.selected < self.pos[0]:
         self.pos = (self.selected, self.selected+self.screenOptions)
   
-  def keyPressed(self, key, unicode):
+  def keyPressed(self, key, str):
     if not self.active:
       return
     if self.singlePlayer:
-      return self.keyPressedSP(key, unicode)
+      return self.keyPressedSP(key, str)
     
     c = self.engine.input.controls.getMapping(key)
     if c in Player.cancels + Player.key2s or key == pygame.K_ESCAPE:
@@ -416,10 +421,10 @@ class Lobby(Layer, KeyListener, MessageHandler):
       neck = self.necks[i]
       scale = self.neckScale[i]
     hn = neck.height1()*scale*(self.neckT-self.neckB)
-    self.engine.drawImage(neck, scale = (scale, scale*(self.neckT-self.neckB)), coord = (w*.7, h*.6-(hn/2)), rect = (0, 1, self.neckB, self.neckT))
+    self.engine.drawImage(neck, scale = (scale, scale*(self.neckT-self.neckB)), coord = (w*.7, h*.6-(old_div(hn,2))), rect = (0, 1, self.neckB, self.neckT))
     if twoNeck:
       h2 = neck.height1()*scale*(neckT-neckB)
-      self.engine.drawImage(neck, scale = (scale, scale*(neckT-neckB)), coord = (w*.7, (h*.6)-hn-(h2/2)), rect = (0, 1, neckB, neckT))
+      self.engine.drawImage(neck, scale = (scale, scale*(neckT-neckB)), coord = (w*.7, (h*.6)-hn-(old_div(h2,2))), rect = (0, 1, neckB, neckT))
   
   def renderLocalLobby(self, visibility, topMost):
     if self.playerNum >= self.players:
@@ -436,7 +441,7 @@ class Lobby(Layer, KeyListener, MessageHandler):
     try:
       if self.background:
         wFactor = 640.000/self.background.width1()
-        self.engine.drawImage(self.background, scale = (wFactor,-wFactor), coord = (w/2,h/2))
+        self.engine.drawImage(self.background, scale = (wFactor,-wFactor), coord = (old_div(w,2),old_div(h,2)))
       r, g, b = Theme.lobbyTitleColor
       glColor3f(r, g, b)
       if self.chooseCharImg:
@@ -447,7 +452,7 @@ class Lobby(Layer, KeyListener, MessageHandler):
       r, g, b = Theme.lobbyPlayerColor
       glColor3f(r, g, b)
       wText, hText = titleFont.getStringSize(self.tsPlayerStr % (self.playerNum+1), scale = Theme.lobbyTitleScale)
-      titleFont.render(self.tsPlayerStr % (self.playerNum+1), (Theme.lobbyTitleCharacterX-wText/2, Theme.lobbyTitleCharacterY), scale = Theme.lobbyTitleScale)
+      titleFont.render(self.tsPlayerStr % (self.playerNum+1), (Theme.lobbyTitleCharacterX-old_div(wText,2), Theme.lobbyTitleCharacterY), scale = Theme.lobbyTitleScale)
       for i, name in enumerate(self.options):
         if i < self.pos[0] or i > self.pos[1]:
           continue
@@ -473,15 +478,15 @@ class Lobby(Layer, KeyListener, MessageHandler):
               self.engine.drawImage(self.infoImg, scale = (.5,-.5), coord = (w*Theme.lobbyPreviewX,h*(Theme.lobbyPreviewY+.55)))
             else:
               wText, hText = titleFont.getStringSize(self.tsInfo, scale = .0025)
-              titleFont.render(self.tsInfo, (Theme.lobbyPreviewX-wText/2, ((.45-Theme.lobbyPreviewY)*self.engine.data.fontScreenBottom)-hText/2), scale = .0025)
+              titleFont.render(self.tsInfo, (Theme.lobbyPreviewX-old_div(wText,2), ((.45-Theme.lobbyPreviewY)*self.engine.data.fontScreenBottom)-old_div(hText,2)), scale = .0025)
             r, g, b = Theme.lobbyInfoColor
             glColor3f(r, g, b)
             for k in range(1,5):
               text = self.tsList[k][self.playerPrefs[j][k]]
               wText, hText = font.getStringSize(text, scale = .0018)
-              font.render(text, (Theme.lobbyPreviewX-wText/2,.4-(Theme.lobbyPreviewY*self.engine.data.fontScreenBottom)+(Theme.lobbyPreviewSpacing*k)), scale = .0018)
+              font.render(text, (Theme.lobbyPreviewX-old_div(wText,2),.4-(Theme.lobbyPreviewY*self.engine.data.fontScreenBottom)+(Theme.lobbyPreviewSpacing*k)), scale = .0018)
           if self.itemSelect:
-            self.engine.drawImage(self.itemSelect, scale = (.5,-.5), coord = (w*Theme.lobbySelectImageX,h*(1-(Theme.lobbySelectImageY+Theme.lobbySelectSpace*(i-self.pos[0]))/self.engine.data.fontScreenBottom)))
+            self.engine.drawImage(self.itemSelect, scale = (.5,-.5), coord = (w*Theme.lobbySelectImageX,h*(1-old_div((Theme.lobbySelectImageY+Theme.lobbySelectSpace*(i-self.pos[0])),self.engine.data.fontScreenBottom))))
           else:
             r, g, b = Theme.lobbySelectColor
             glColor3f(r, g, b)
@@ -500,7 +505,7 @@ class Lobby(Layer, KeyListener, MessageHandler):
           font.render(name, (Theme.lobbySelectX-wText, Theme.lobbySelectY + (Theme.lobbySelectSpace*(i-self.pos[0]))), scale = Theme.lobbySelectScale)
       if self.backgroundTop:
         wFactor = 640.000/self.backgroundTop.width1()
-        self.engine.drawImage(self.backgroundTop, scale = (wFactor,-wFactor), coord = (w/2,h/2))
+        self.engine.drawImage(self.backgroundTop, scale = (wFactor,-wFactor), coord = (old_div(w,2),old_div(h,2)))
     finally:
       self.engine.view.resetProjection()
   
@@ -529,7 +534,7 @@ class Lobby(Layer, KeyListener, MessageHandler):
       text = _("Lobby (%d players)") % len(self.session.world.players)
       w, h = font.getStringSize(text)
 
-      x = .5 - w / 2
+      x = .5 - old_div(w, 2)
       d = 0.0
       c = 1 - .25 * v
 
@@ -540,14 +545,14 @@ class Lobby(Layer, KeyListener, MessageHandler):
         c = i * .05
         glColor3f(*colorsys.hsv_to_rgb(.75, c, 1))
         glPushMatrix()
-        s = .25 * (math.sin(i / 2 + self.time / 4) + 2)
-        glTranslate(-s * w / 2, -s * h / 2, 0)
+        s = .25 * (math.sin(old_div(i, 2) + old_div(self.time, 4)) + 2)
+        glTranslate(old_div(-s * w, 2), old_div(-s * h, 2), 0)
         font.render(ch, (x, y), scale = 0.002 * s)
         glPopMatrix()
         x += w
 
       x = .1
-      y = .2 + (1 - v) / 4
+      y = .2 + old_div((1 - v), 4)
       glColor4f(1, 1, 1, v)
       
       for player in self.session.world.players:
@@ -558,7 +563,7 @@ class Lobby(Layer, KeyListener, MessageHandler):
         s = _("Press Enter to Start Game")
         sz = 0.0013
         w, h = font.getStringSize(s, scale = sz)
-        font.render(s, (.5 - w / 2, .65), scale = sz)
+        font.render(s, (.5 - old_div(w, 2), .65), scale = sz)
         
     finally:
       self.engine.view.resetProjection()
@@ -683,18 +688,18 @@ class CreateCharacter(Layer, KeyListener):
     self.engine.input.addKeyListener(self)
   def hidden(self):
     self.engine.input.removeKeyListener(self)
-  def keyPressed(self, key, unicode):
+  def keyPressed(self, key, str):
     c = self.engine.input.controls.getMapping(key)
     if key == pygame.K_BACKSPACE and self.active:
       self.choices[self.selected] = self.choices[self.selected][:-1]
-    elif unicode and ord(unicode) > 31 and self.active:
+    elif str and ord(str) > 31 and self.active:
       if self.selected == 0 or self.selected == 7:
-        if self.selected == 0 and (ord(unicode) in (34, 42, 47, 58, 60, 62, 63, 92, 124) or ord(unicode) > 126): #ascii only
+        if self.selected == 0 and (ord(str) in (34, 42, 47, 58, 60, 62, 63, 92, 124) or ord(str) > 126): #ascii only
           self.engine.data.cancelSound.play()
           return True
         if len(self.choices[self.selected]) > 24:
           self.choices[self.selected] = self.choices[self.selected][:-1]
-        self.choices[self.selected] += unicode
+        self.choices[self.selected] += str
         return
     if c in Player.key1s or key == pygame.K_RETURN:
       self.scrolling = 0
@@ -848,14 +853,14 @@ class CreateCharacter(Layer, KeyListener):
     try:
       if self.background:
         wFactor = 640.000/self.background.width1()
-        self.engine.drawImage(self.background, scale = (wFactor,-wFactor), coord = (w/2,h/2))
+        self.engine.drawImage(self.background, scale = (wFactor,-wFactor), coord = (old_div(w,2),old_div(h,2)))
       for i, option in enumerate(self.options):
         r, g, b = Theme.characterCreateHelpColor
         glColor3f(r, g, b)
         cursor = ""
         if self.selected == i:
           wText, hText = helpFont.getStringSize(option[1], scale = Theme.characterCreateScale)
-          helpFont.render(option[1], (Theme.characterCreateHelpX-(wText/2), Theme.characterCreateHelpY-hText), scale = Theme.characterCreateHelpScale)
+          helpFont.render(option[1], (Theme.characterCreateHelpX-(old_div(wText,2)), Theme.characterCreateHelpY-hText), scale = Theme.characterCreateHelpScale)
           r, g, b = Theme.characterCreateSelectColor
           glColor3f(r, g, b)
           cursor = self.cursor
@@ -878,6 +883,6 @@ class CreateCharacter(Layer, KeyListener):
           font.render(str, (Theme.characterCreateOptionX-wText, Theme.characterCreateY+Theme.characterCreateSpace*i), scale = Theme.characterCreateScale)
       if self.backgroundTop:
         wFactor = 640.000/self.backgroundTop.width1()
-        self.engine.drawImage(self.backgroundTop, scale = (wFactor,-wFactor), coord = (w/2,h/2))
+        self.engine.drawImage(self.backgroundTop, scale = (wFactor,-wFactor), coord = (old_div(w,2),old_div(h,2)))
     finally:
       self.engine.view.resetProjection()

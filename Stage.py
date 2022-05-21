@@ -1,8 +1,9 @@
+from __future__ import division
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #               2008 myfingershurt                                  #
 #               2008 Blazingamer                                    #
 #               2008 evilynux <evilynux@gmail.com>                  #
@@ -23,6 +24,10 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import Config
 from OpenGL.GL import *
 import math
@@ -253,13 +258,13 @@ class Stage(object):
     if self.mode != 2:
       if self.rotationMode == 0:
         self.engine.drawImage(self.background, scale = (self.backgroundScaleFactor,-self.backgroundScaleFactor),
-                              coord = (self.wFull/2,self.hFull/2))
+                              coord = (old_div(self.wFull,2),old_div(self.hFull,2)))
 
       #myfingershurt:
       else:
         #MFH - use precalculated scale factors instead
         self.engine.drawImage(self.imgArr[self.arrNum], scale = (self.imgArrScaleFactors[self.arrNum],-self.imgArrScaleFactors[self.arrNum]),
-                              coord = (self.wFull/2,self.hFull/2))
+                              coord = (old_div(self.wFull,2),old_div(self.hFull,2)))
 
   def updateDelays(self):
     self.rotateDelay = self.engine.config.get("game",  "stage_rotate_delay") #myfingershurt - user defined stage rotate delay
@@ -298,12 +303,12 @@ class Stage(object):
   def run(self, pos, period):
     self.pos        = pos
     self.beatPeriod = period
-    quarterBeat = int(4 * pos / period)
+    quarterBeat = int(old_div(4 * pos, period))
 
     if quarterBeat > self.quarterBeat:
       self.triggerQuarterBeat(pos, quarterBeat)
 
-    beat = quarterBeat / 4
+    beat = old_div(quarterBeat, 4)
 
     if beat > self.beat:
       self.triggerBeat(pos, beat)
@@ -313,7 +318,7 @@ class Stage(object):
       self.renderBackground()
     if shaders.enable("stage"):
       height = 0.0
-      for i in shaders.var["color"].keys():
+      for i in list(shaders.var["color"].keys()):
         shaders.modVar("color",shaders.var["color"][i],0.05,10.0)
         height += shaders.var["color"][i][3]/3.0
       height=height**2

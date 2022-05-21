@@ -1,3 +1,4 @@
+from __future__ import division
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
@@ -21,6 +22,10 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import pygame
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -116,7 +121,7 @@ class Editor(Layer, KeyListener):
       self.modified = True
 
   def setAVDelay(self):
-    delay = Dialogs.getText(self.engine, str("Enter A/V delay in milliseconds"), unicode(self.song.info.delay))
+    delay = Dialogs.getText(self.engine, str("Enter A/V delay in milliseconds"), str(self.song.info.delay))
     if delay:
       try:
         self.song.info.delay = int(delay)
@@ -125,7 +130,7 @@ class Editor(Layer, KeyListener):
         Dialogs.showMessage(self.engine, str("That isn't a number."))
 
   def setBpm(self):
-    bpm = Dialogs.getText(self.engine, str("Enter Beats per Minute Value"), unicode(self.song.bpm))
+    bpm = Dialogs.getText(self.engine, str("Enter Beats per Minute Value"), str(self.song.bpm))
     if bpm:
       try:
         self.song.setBpm(float(bpm))
@@ -188,18 +193,18 @@ class Editor(Layer, KeyListener):
     elif control in Player.DOWNS:
       self.guitar.selectNextString()
     elif control in Player.LEFTS:
-      self.pos = self.snapPos - self.song.period / 4
+      self.pos = self.snapPos - old_div(self.song.period, 4)
     elif control in Player.RIGHTS:
-      self.pos = self.snapPos + self.song.period / 4
+      self.pos = self.snapPos + old_div(self.song.period, 4)
     elif control in KEYS:
       self.heldFrets.add(KEYS.index(control))
     elif control in Player.ACTION1S + Player.ACTION2S:
       self.newNotePos = self.snapPos
       # Add notes for the frets that are held down or for the selected string.
       if self.heldFrets:
-        self.newNotes = [Note(f, self.song.period / 4) for f in self.heldFrets]
+        self.newNotes = [Note(f, old_div(self.song.period, 4)) for f in self.heldFrets]
       else:
-        self.newNotes = [Note(self.guitar.selectedString, self.song.period / 4)]
+        self.newNotes = [Note(self.guitar.selectedString, old_div(self.song.period, 4))]
       self.modified   = True
 
   def controlReleased(self, control):
@@ -217,22 +222,22 @@ class Editor(Layer, KeyListener):
     self.engine.view.popLayer(self)
     self.engine.view.popLayer(self.menu)
 
-  def keyPressed(self, key, unicode):
+  def keyPressed(self, key, str):
     c = self.engine.input.controls.getMapping(key)
     if c in Player.CANCELS:
       self.engine.view.pushLayer(self.menu)
     elif key == pygame.K_PAGEDOWN and self.song:
       d = self.song.difficulty[0]
-      v = difficulties.values()
+      v = list(difficulties.values())
       self.song.difficulty[0] = v[(v.index(d) + 1) % len(v)]
     elif key == pygame.K_PAGEUP and self.song:
       d = self.song.difficulty[0]
-      v = difficulties.values()
+      v = list(difficulties.values())
       self.song.difficulty[0] = v[(v.index(d) - 1) % len(v)]
     elif key == pygame.K_DELETE and self.song:
       # gather up all events that intersect the cursor and delete the ones on the selected string
       t1 = self.snapPos
-      t2 = self.snapPos + self.song.period / 4
+      t2 = self.snapPos + old_div(self.song.period, 4)
       e  = [(time, event) for time, event in self.song.track[0].getEvents(t1, t2) if isinstance(event, Note)]
       for time, event in e:
         if event.number == self.guitar.selectedString:
@@ -276,8 +281,8 @@ class Editor(Layer, KeyListener):
 
     self.pos = max(0, self.pos)
 
-    quarterBeat = int(self.pos / (self.song.period / 4) + .5)
-    self.snapPos = quarterBeat * (self.song.period / 4)
+    quarterBeat = int(old_div(self.pos, (old_div(self.song.period, 4))) + .5)
+    self.snapPos = quarterBeat * (old_div(self.song.period, 4))
 
     # note adding
     if self.newNotes:
@@ -285,7 +290,7 @@ class Editor(Layer, KeyListener):
         self.newNotes = []
       for note in self.newNotes:
         self.song.track[0].removeEvent(self.newNotePos, note)
-        note.length = max(self.song.period / 4, self.snapPos - self.newNotePos)
+        note.length = max(old_div(self.song.period, 4), self.snapPos - self.newNotePos)
         # remove all notes under the this new note
         oldNotes = [(time, event) for time, event in self.song.track[0].getEvents(self.newNotePos, self.newNotePos + note.length) if isinstance(event, Note)]
         for time, event in oldNotes:
@@ -308,15 +313,15 @@ class Editor(Layer, KeyListener):
     v = 1.0 - ((1 - visibility) ** 2)
 
     # render the background
-    t = self.time / 100 + 34
+    t = old_div(self.time, 100) + 34
     w, h, = self.engine.view.geometry[2:4]
     r = .5
 
     if self.spinnyDisabled != True and Theme.spinnyEditorDisabled:    
       self.background.transform.reset()
-      self.background.transform.translate(w / 2 + math.sin(t / 2) * w / 2 * r, h / 2 + math.cos(t) * h / 2 * r)
+      self.background.transform.translate(old_div(w, 2) + old_div(math.sin(old_div(t, 2)) * w, 2) * r, old_div(h, 2) + old_div(math.cos(t) * h, 2) * r)
       self.background.transform.rotate(-t)
-      self.background.transform.scale(math.sin(t / 8) + 2, math.sin(t / 8) + 2)
+      self.background.transform.scale(math.sin(old_div(t, 8)) + 2, math.sin(old_div(t, 8)) + 2)
     self.background.draw()
 
     self.camera.target = ( 2, 0, 5.5)
@@ -343,14 +348,14 @@ class Editor(Layer, KeyListener):
       else:
         status = str("Stopped")
 
-      t = "%d.%02d'%03d" % (self.pos / 60000, (self.pos % 60000) / 1000, self.pos % 1000)
-      font.render(t, (.05, .05 - h / 2))
-      font.render(status, (.05, .05 + h / 2))
-      font.render(unicode(self.song.difficulty[0]), (.05, .05 + 3 * h / 2))
+      t = "%d.%02d'%03d" % (old_div(self.pos, 60000), old_div((self.pos % 60000), 1000), self.pos % 1000)
+      font.render(t, (.05, .05 - old_div(h, 2)))
+      font.render(status, (.05, .05 + old_div(h, 2)))
+      font.render(str(self.song.difficulty[0]), (.05, .05 + old_div(3 * h, 2)))
 
       Theme.setBaseColor()
       text = self.song.info.name + (self.modified and "*" or "")
-      Dialogs.wrapText(font, (.5, .05 - h / 2), text)
+      Dialogs.wrapText(font, (.5, .05 - old_div(h, 2)), text)
     finally:
       self.engine.view.resetProjection()
 
@@ -513,7 +518,7 @@ class GHImporter(Layer):
          [           0.0,          0.0 ],
          [           0.0,          0.0 ]]
 
-    class StreamDecoder:
+    class StreamDecoder(object):
       """XA ADPCM decoder"""
       def __init_str(self):
         self.s_1     = 0.0
@@ -688,7 +693,7 @@ class GHImporter(Layer):
       songMap = {}
       vgsMap =  {}
       for line in open(self.engine.resource.fileName("ghmidimap.txt")):
-        songName, fullName, artist = map(lambda s: s.strip(), line.strip().split(";"))
+        songName, fullName, artist = [s.strip() for s in line.strip().split(";")]
         songMap[songName] = (fullName, artist)
 
       self.statusText = str("Reading the archive index.")
@@ -697,7 +702,7 @@ class GHImporter(Layer):
       songs    = []
 
       # Filter out the songs that aren't in this archive
-      for songName, data in songMap.items():
+      for songName, data in list(songMap.items()):
         vgsMap[songName] = "songs/%s/%s.vgs" % (songName, songName)
         if not vgsMap[songName] in archive.files:
           vgsMap[songName] = "songs/%s/%s_sp.vgs" % (songName, songName)
@@ -711,7 +716,7 @@ class GHImporter(Layer):
           del songMap[songName]
           continue
 
-      for songName, data in songMap.items():
+      for songName, data in list(songMap.items()):
         fullName, artist = data
 
         Log.notice("Extracting song '%s'" % songName)

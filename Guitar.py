@@ -1,3 +1,4 @@
+from __future__ import division
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
@@ -27,6 +28,12 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from past.builtins import cmp
+from builtins import str
+from builtins import chr
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import Player
 from Song import Note, Tempo
 from Mesh import Mesh
@@ -46,7 +53,7 @@ import Song   #need the base song defines as well
 from numpy import array, float32
 
 
-class Guitar:
+class Guitar(object):
   def __init__(self, engine, playerObj, editorMode = False, player = 0, bass = False):
     self.engine         = engine
 
@@ -92,7 +99,7 @@ class Guitar:
     self.freestyleLength = 0
     self.freestyleLastHit = 0
     self.freestyleBonusFret = -2
-    self.freestyleLastFretHitTime = range(5)
+    self.freestyleLastFretHitTime = list(range(5))
     self.freestyleBaseScore = 750
     self.freestylePeriod = 1000
     self.freestylePercent = 50
@@ -139,7 +146,7 @@ class Guitar:
     self.fretPress      = Theme.fret_press
 
     self.beatsPerBoard  = 5.0
-    self.beatsPerUnit   = self.beatsPerBoard / self.boardLength
+    self.beatsPerUnit   = old_div(self.beatsPerBoard, self.boardLength)
     self.strings        = 5
     self.fretWeight     = [0.0] * self.strings
     self.fretActivity   = [0.0] * self.strings
@@ -589,56 +596,56 @@ class Guitar:
 
     #MFH - Neck speed determination:
     if self.nstype == 0:    #BPM mode
-      self.neckSpeed = (340 - bpm)/self.speed
+      self.neckSpeed = old_div((340 - bpm),self.speed)
     elif self.nstype == 1:   #Difficulty mode
       if self.difficulty == 0:    #expert
-        self.neckSpeed = 220/self.speed
+        self.neckSpeed = old_div(220,self.speed)
       elif self.difficulty == 1:
-        self.neckSpeed = 250/self.speed
+        self.neckSpeed = old_div(250,self.speed)
       elif self.difficulty == 2:
-        self.neckSpeed = 280/self.speed
+        self.neckSpeed = old_div(280,self.speed)
       else:   #easy
-        self.neckSpeed = 300/self.speed
+        self.neckSpeed = old_div(300,self.speed)
     elif self.nstype == 2:   #BPM & Diff mode
       if self.difficulty == 0:    #expert
-        self.neckSpeed = (226-(bpm/10))/self.speed
+        self.neckSpeed = old_div((226-(old_div(bpm,10))),self.speed)
       elif self.difficulty == 1:
-        self.neckSpeed = (256-(bpm/10))/self.speed
+        self.neckSpeed = old_div((256-(old_div(bpm,10))),self.speed)
       elif self.difficulty == 2:
-        self.neckSpeed = (286-(bpm/10))/self.speed
+        self.neckSpeed = old_div((286-(old_div(bpm,10))),self.speed)
       else:   #easy
-        self.neckSpeed = (306-(bpm/10))/self.speed
+        self.neckSpeed = old_div((306-(old_div(bpm,10))),self.speed)
     else: #Percentage mode - pre-calculated
       self.neckSpeed = self.speed
 
-    self.earlyMargin       = 250 - bpm/5 - 70*self.hitw
-    self.lateMargin        = 250 - bpm/5 - 70*self.hitw
+    self.earlyMargin       = 250 - old_div(bpm,5) - 70*self.hitw
+    self.lateMargin        = 250 - old_div(bpm,5) - 70*self.hitw
     #self.earlyMargin = self.lateMargin * self.earlyHitWindowSizeFactor    #MFH - scale early hit window here
 
     #self.noteReleaseMargin = 200 - bpm/5 - 70*self.hitw
     #if (self.noteReleaseMargin < (200 - bpm/5 - 70*1.2)):   #MFH - enforce "tight" hitwindow minimum note release margin
     #  self.noteReleaseMargin = (200 - bpm/5 - 70*1.2)
     if self.muteSustainReleases == 4:   #tight
-      self.noteReleaseMargin = (200 - bpm/5 - 70*1.2)
+      self.noteReleaseMargin = (200 - old_div(bpm,5) - 70*1.2)
     elif self.muteSustainReleases == 3: #standard
-      self.noteReleaseMargin = (200 - bpm/5 - 70*1.0)
+      self.noteReleaseMargin = (200 - old_div(bpm,5) - 70*1.0)
     elif self.muteSustainReleases == 2: #wide
-      self.noteReleaseMargin = (200 - bpm/5 - 70*0.7)
+      self.noteReleaseMargin = (200 - old_div(bpm,5) - 70*0.7)
     else:  #ultra-wide
-      self.noteReleaseMargin = (200 - bpm/5 - 70*0.5)
+      self.noteReleaseMargin = (200 - old_div(bpm,5) - 70*0.5)
 
 
     #MFH - TODO - only calculate the below values if the realtime hit accuracy feedback display is enabled - otherwise this is a waste!
     self.accThresholdWorstLate = (0-self.lateMargin)
-    self.accThresholdVeryLate = (0-(3*self.lateMargin/4))
-    self.accThresholdLate = (0-(2*self.lateMargin/4))
-    self.accThresholdSlightlyLate = (0-(1*self.lateMargin/4))
+    self.accThresholdVeryLate = (0-(old_div(3*self.lateMargin,4)))
+    self.accThresholdLate = (0-(old_div(2*self.lateMargin,4)))
+    self.accThresholdSlightlyLate = (0-(old_div(1*self.lateMargin,4)))
     self.accThresholdExcellentLate = -1.0
     self.accThresholdPerfect = 1.0
-    self.accThresholdExcellentEarly = (1*self.lateMargin/4)
-    self.accThresholdSlightlyEarly = (2*self.lateMargin/4)
-    self.accThresholdEarly = (3*self.lateMargin/4)
-    self.accThresholdVeryEarly = (4*self.lateMargin/4)
+    self.accThresholdExcellentEarly = (old_div(1*self.lateMargin,4))
+    self.accThresholdSlightlyEarly = (old_div(2*self.lateMargin,4))
+    self.accThresholdEarly = (old_div(3*self.lateMargin,4))
+    self.accThresholdVeryEarly = (old_div(4*self.lateMargin,4))
 
 
 
@@ -691,7 +698,7 @@ class Guitar:
                 tex2 = self.kill2
 
                 #volshebnyi - killswitch tail width and color change
-                kEffect = ( math.sin( pos / 50 ) + 1 ) /2
+                kEffect = old_div(( math.sin( old_div(pos, 50) ) + 1 ),2)
                 size = (0.02+kEffect*0.15, s - zsize)
                 c = [self.fretColors[6][0],self.fretColors[6][1],self.fretColors[6][2]]
                 if c != [0,0,0]:
@@ -754,7 +761,7 @@ class Guitar:
                 tex1 = self.kill1
                 tex2 = self.kill2
                 #volshebnyi - killswitch tail width and color change
-                kEffect = ( math.sin( pos / 50 ) + 1 ) /2
+                kEffect = old_div(( math.sin( old_div(pos, 50) ) + 1 ),2)
                 size = (0.02+kEffect*0.15, s - zsize)
                 c = [self.fretColors[6][0],self.fretColors[6][1],self.fretColors[6][2]]
                 if c != [0,0,0]:
@@ -786,7 +793,7 @@ class Guitar:
           if freestyleTail == 1:
             #glColor4f(*color)
             c1, c2, c3, c4 = color
-            tailGlow = 1 - (pos - self.freestyleLastFretHitTime[fret] ) / self.freestylePeriod
+            tailGlow = 1 - old_div((pos - self.freestyleLastFretHitTime[fret] ), self.freestylePeriod)
             if tailGlow < 0:
               tailGlow = 0
             color = (c1 + c1*2.0*tailGlow, c2 + c2*2.0*tailGlow, c3 + c3*2.0*tailGlow, c4*0.6 + c4*0.4*tailGlow)    #MFH - this fades inactive tails' color darker
@@ -842,7 +849,7 @@ class Guitar:
 
       if self.theme < 2:
         if self.starspin:
-          size = (self.boardWidth/self.strings/2, self.boardWidth/self.strings/2)
+          size = (old_div(old_div(self.boardWidth,self.strings),2), old_div(old_div(self.boardWidth,self.strings),2))
           texSize = (fret/5.0,fret/5.0+0.2)
           if spNote == True:
             if isTappable:
@@ -861,7 +868,7 @@ class Guitar:
             else:
               texSize = (0,0.2)
         else:
-          size = (self.boardWidth/self.strings/2, self.boardWidth/self.strings/2)
+          size = (old_div(old_div(self.boardWidth,self.strings),2), old_div(old_div(self.boardWidth,self.strings),2))
           texSize = (fret/5.0,fret/5.0+0.2)
           if spNote == True:
             if isTappable:
@@ -881,7 +888,7 @@ class Guitar:
               texSize = (0,0.2)
 
       elif self.theme == 2:
-        size = (self.boardWidth/self.strings/2, self.boardWidth/self.strings/2)
+        size = (old_div(old_div(self.boardWidth,self.strings),2), old_div(old_div(self.boardWidth,self.strings),2))
         texSize = (fret/5.0,fret/5.0+0.2)
         if spNote == True:
           if isTappable:
@@ -926,7 +933,7 @@ class Guitar:
         glRotatef(-90, 1, 0, 0)
 
       if spNote == True and self.threeDspin == True:
-        glRotate(90 + self.time/3, 0, 1, 0)
+        glRotate(90 + old_div(self.time,3), 0, 1, 0)
       #death_au: fixed 3D note colours
       #volshebnyi - note color when sp is active
       glColor4f(*color)
@@ -1067,15 +1074,15 @@ class Guitar:
       for time, event in track.getEvents(pos - self.freestyleOffset , boardWindowMax + self.freestyleOffset):
         if isinstance(event, Song.MarkerNote):
           if event.number == Song.freestyleMarkingNote:
-            length     = (event.length - 50) / self.currentPeriod / self.beatsPerUnit
-            w = self.boardWidth / self.strings
+            length     = old_div(old_div((event.length - 50), self.currentPeriod), self.beatsPerUnit)
+            w = old_div(self.boardWidth, self.strings)
             self.freestyleLength = event.length #volshebnyi
             self.freestyleStart = time # volshebnyi
-            z  = ((time - pos) / self.currentPeriod) / self.beatsPerUnit
-            z2 = ((time + event.length - pos) / self.currentPeriod) / self.beatsPerUnit
+            z  = old_div((old_div((time - pos), self.currentPeriod)), self.beatsPerUnit)
+            z2 = old_div((old_div((time + event.length - pos), self.currentPeriod)), self.beatsPerUnit)
 
             if z > self.boardLength * .8:
-              f = (self.boardLength - z) / (self.boardLength * .2)
+              f = old_div((self.boardLength - z), (self.boardLength * .2))
             elif z < 0:
               f = min(1, max(0, 1 + z2))
             else:
@@ -1091,7 +1098,7 @@ class Guitar:
 
             #MFH - render 5 freestyle tails
             for theFret in range(0,5):
-              x  = (self.strings / 2 - theFret) * w
+              x  = (old_div(self.strings, 2) - theFret) * w
               c = self.fretColors[theFret]
               color      = (.1 + .8 * c[0], .1 + .8 * c[1], .1 + .8 * c[2], 1 * visibility * f)
               glPushMatrix()
@@ -1121,7 +1128,7 @@ class Guitar:
 
     self.killPoints = False
 
-    w = self.boardWidth / self.strings
+    w = old_div(self.boardWidth, self.strings)
     track = song.track[self.player]
 
     num = 0
@@ -1135,7 +1142,7 @@ class Guitar:
         if self.lastBpmChange > 0 and self.disableVBPM == True:
             continue
         if (pos - time > self.currentPeriod or self.lastBpmChange < 0) and time > self.lastBpmChange:
-          self.baseBeat          += (time - self.lastBpmChange) / self.currentPeriod
+          self.baseBeat          += old_div((time - self.lastBpmChange), self.currentPeriod)
           self.targetBpm          = event.bpm
           self.lastBpmChange      = time
           self.neck.lastBpmChange = time
@@ -1162,13 +1169,13 @@ class Guitar:
 
       c = self.fretColors[event.number]
 
-      x  = (self.strings / 2 - event.number) * w
-      z  = ((time - pos) / self.currentPeriod) / self.beatsPerUnit
-      z2 = ((time + event.length - pos) / self.currentPeriod) / self.beatsPerUnit
+      x  = (old_div(self.strings, 2) - event.number) * w
+      z  = old_div((old_div((time - pos), self.currentPeriod)), self.beatsPerUnit)
+      z2 = old_div((old_div((time + event.length - pos), self.currentPeriod)), self.beatsPerUnit)
 
 
       if z > self.boardLength * .8:
-        f = (self.boardLength - z) / (self.boardLength * .2)
+        f = old_div((self.boardLength - z), (self.boardLength * .2))
       elif z < 0:
         f = min(1, max(0, 1 + z2))
       else:
@@ -1184,7 +1191,7 @@ class Guitar:
       else:
         color      = (.1 + .8 * c[0], .1 + .8 * c[1], .1 + .8 * c[2], 1 * visibility * f)
       if event.length > 120:
-        length     = (event.length - 50) / self.currentPeriod / self.beatsPerUnit
+        length     = old_div(old_div((event.length - 50), self.currentPeriod), self.beatsPerUnit)
       else:
         length     = 0
       flat       = False
@@ -1284,7 +1291,7 @@ class Guitar:
         length = None
 
       sustain = False
-      if event.length > (1.4 * (60000.0 / event.noteBpm) / 4):
+      if event.length > (old_div(1.4 * (60000.0 / event.noteBpm), 4)):
         sustain = True
 
       glPushMatrix()
@@ -1322,7 +1329,7 @@ class Guitar:
 
     self.killPoints = False
 
-    w = self.boardWidth / self.strings
+    w = old_div(self.boardWidth, self.strings)
 
     track = song.track[self.player]
 
@@ -1354,13 +1361,13 @@ class Guitar:
 
       c = self.fretColors[event.number]
 
-      x  = (self.strings / 2 - event.number) * w
-      z  = ((time - pos) / self.currentPeriod) / self.beatsPerUnit
-      z2 = ((time + event.length - pos) / self.currentPeriod) / self.beatsPerUnit
+      x  = (old_div(self.strings, 2) - event.number) * w
+      z  = old_div((old_div((time - pos), self.currentPeriod)), self.beatsPerUnit)
+      z2 = old_div((old_div((time + event.length - pos), self.currentPeriod)), self.beatsPerUnit)
 
 
       if z > self.boardLength * .8:
-        f = (self.boardLength - z) / (self.boardLength * .2)
+        f = old_div((self.boardLength - z), (self.boardLength * .2))
       elif z < 0:
         f = min(1, max(0, 1 + z2))
       else:
@@ -1368,7 +1375,7 @@ class Guitar:
 
       color      = (.1 + .8 * c[0], .1 + .8 * c[1], .1 + .8 * c[2], 1 * visibility * f)
       if event.length > 120:
-        length     = (event.length - 50) / self.currentPeriod / self.beatsPerUnit
+        length     = old_div(old_div((event.length - 50), self.currentPeriod), self.beatsPerUnit)
       else:
         length     = 0
       flat       = False
@@ -1451,7 +1458,7 @@ class Guitar:
         length = None
 
       sustain = False
-      if event.length > (1.4 * (60000.0 / event.noteBpm) / 4):
+      if event.length > (old_div(1.4 * (60000.0 / event.noteBpm), 4)):
         sustain = True
 
       glPushMatrix()
@@ -1474,17 +1481,17 @@ class Guitar:
       if killswitch and self.killfx == 1:
         glBlendFunc(GL_SRC_ALPHA, GL_ONE)
         for time, event in self.playedNotes:
-          step  = self.currentPeriod / 16
+          step  = old_div(self.currentPeriod, 16)
           t     = time + event.length
-          x     = (self.strings / 2 - event.number) * w
+          x     = (old_div(self.strings, 2) - event.number) * w
           c     = self.fretColors[event.number]
           s     = t
-          proj  = 1.0 / self.currentPeriod / self.beatsPerUnit
+          proj  = old_div(1.0 / self.currentPeriod, self.beatsPerUnit)
           zStep = step * proj
 
           def waveForm(t):
             u = ((t - time) * -.1 + pos - time) / 64.0 + .0001
-            return (math.sin(event.number + self.time * -.01 + t * .03) + math.cos(event.number + self.time * .01 + t * .02)) * .1 + .1 + math.sin(u) / (5 * u)
+            return (math.sin(event.number + self.time * -.01 + t * .03) + math.cos(event.number + self.time * .01 + t * .02)) * .1 + .1 + old_div(math.sin(u), (5 * u))
 
           glBegin(GL_TRIANGLE_STRIP)
           f1 = 0
@@ -1497,7 +1504,7 @@ class Guitar:
 
             if z < 0:
               break
-            f2 = min((s - t) / (6 * step), 1.0)
+            f2 = min(old_div((s - t), (6 * step)), 1.0)
             a1 = waveForm(t) * f1
             a2 = waveForm(t - step) * f2
             if self.starPowerActive and self.theme != 2:#8bit
@@ -1525,7 +1532,7 @@ class Guitar:
 
 
   def renderFrets(self, visibility, song, controls):
-    w = self.boardWidth / self.strings
+    w = old_div(self.boardWidth, self.strings)
     size = (.22, .22)
     v = 1.0 - visibility
 
@@ -1542,10 +1549,10 @@ class Guitar:
 
       glColor4f(.1 + .8 * c[0] + f, .1 + .8 * c[1] + f, .1 + .8 * c[2] + f, visibility)
       if self.fretPress:
-        y = v + f / 6
+        y = v + old_div(f, 6)
       else:
-        y = v / 6
-      x = (self.strings / 2 - n) * w
+        y = old_div(v, 6)
+      x = (old_div(self.strings, 2) - n) * w
 
       if self.twoDkeys == True:
 
@@ -1556,12 +1563,12 @@ class Guitar:
           fretWhamOffset = 0
           fretColor = (1,1,1,1)
 
-        size = (self.boardWidth/self.strings/2, self.boardWidth/self.strings/2.4)
+        size = (old_div(old_div(self.boardWidth,self.strings),2), old_div(self.boardWidth,self.strings)/2.4)
         if self.battleStatus[3] and self.battleFrets != None and self.battleBreakString == n:
           texSize = (n/5.0+.042,n/5.0+0.158)
           size = (.30, .40)
-          fretPos = 8 - round((self.battleBreakNow/self.battleBreakLimit) * 8)
-          texY = (fretPos/8.0,(fretPos + 1.0)/8)
+          fretPos = 8 - round((old_div(self.battleBreakNow,self.battleBreakLimit)) * 8)
+          texY = (fretPos/8.0,old_div((fretPos + 1.0),8))
           self.engine.draw3Dtex(self.battleFrets, vertex = (size[0],size[1],-size[0],-size[1]), texcoord = (texSize[0], texY[0], texSize[1], texY[1]),
                                 coord = (x,v + .08 + fretWhamOffset,0), multiples = True,color = fretColor, depth = True)
         else:
@@ -1723,7 +1730,7 @@ class Guitar:
     if self.flameColors[0][0][0] == -1:
       return
 
-    w = self.boardWidth / self.strings
+    w = old_div(self.boardWidth, self.strings)
     #track = song.track[self.player]
 
     size = (.22, .22)
@@ -1738,10 +1745,10 @@ class Guitar:
           if self.freestyleHitFlameCounts[fretNum] < flameLimit:
             ms = math.sin(self.time) * .25 + 1
 
-            x  = (self.strings / 2 - fretNum) * w
+            x  = (old_div(self.strings, 2) - fretNum) * w
 
             ff = 1 + 0.25
-            y = v + ff / 6
+            y = v + old_div(ff, 6)
 
             if self.theme == 2:
               y -= 0.5
@@ -1776,7 +1783,7 @@ class Guitar:
                 if step == 0:
                   hfCount += 1
                 self.engine.draw3Dtex(self.hitflames2Drawing, coord = (x+xOffset[step], y+yOffset[step], 0), rot = (90, 1, 0, 0),
-                                    scale = (.25 + .05 * step + scaleMod, hfCount/scaleFix[step] + scaleMod, hfCount/scaleFix[step] + scaleMod),
+                                    scale = (.25 + .05 * step + scaleMod, old_div(hfCount,scaleFix[step]) + scaleMod, old_div(hfCount,scaleFix[step]) + scaleMod),
                                     vertex = (-flameSize * ff,-flameSize * ff,flameSize * ff,flameSize * ff),
                                     texcoord = (0.0,0.0,1.0,1.0), multiples = True, alpha = True, color = flamecol)
 
@@ -1798,7 +1805,7 @@ class Guitar:
                     flamecol = (.4+.1*step,)*3
 
                 self.engine.draw3Dtex(self.hitflames1Drawing, coord = (x+xOffset[step], y+yOffset[step], 0), rot = (90, 1, 0, 0),
-                                    scale = (.25 + .05 * step + scaleMod, hfCount/scaleFix[step] + scaleMod, hfCount/scaleFix[step] + scaleMod),
+                                    scale = (.25 + .05 * step + scaleMod, old_div(hfCount,scaleFix[step]) + scaleMod, old_div(hfCount,scaleFix[step]) + scaleMod),
                                     vertex = (-flameSize * ff,-flameSize * ff,flameSize * ff,flameSize * ff),
                                     texcoord = (0.0,0.0,1.0,1.0), multiples = True, alpha = True, color = flamecol)
 
@@ -1812,7 +1819,7 @@ class Guitar:
     if not song or self.flameColors[0][0][0] == -1:
       return
 
-    w = self.boardWidth / self.strings
+    w = old_div(self.boardWidth, self.strings)
     track = song.track[self.player]
 
     size = (.22, .22)
@@ -1824,8 +1831,8 @@ class Guitar:
         c = self.fretColors[n]
         if f and (controls.getState(self.actions[0]) or controls.getState(self.actions[1])):
           f += 0.25
-        y = v + f / 6
-        x = (self.strings / 2 - n) * w
+        y = v + old_div(f, 6)
+        x = (old_div(self.strings, 2) - n) * w
         f = self.fretActivity[n]
 
         if f:
@@ -1862,7 +1869,7 @@ class Guitar:
             self.HCount = self.HCount + 1
             if self.HCount > self.Animspeed-1:
               self.HCount = 0
-            HIndex = (self.HCount * 16 - (self.HCount * 16) % self.Animspeed) / self.Animspeed
+            HIndex = old_div((self.HCount * 16 - (self.HCount * 16) % self.Animspeed), self.Animspeed)
             if HIndex > 15:
               HIndex = 0
             texX = (HIndex*(1/16.0), HIndex*(1/16.0)+(1/16.0))
@@ -1902,10 +1909,10 @@ class Guitar:
 
         if (event.played or event.hopod) and event.flameCount < flameLimit:
           ms = math.sin(self.time) * .25 + 1
-          x  = (self.strings / 2 - event.number) * w
-          xlightning = (self.strings / 2 - event.number)*2.2*w
+          x  = (old_div(self.strings, 2) - event.number) * w
+          xlightning = (old_div(self.strings, 2) - event.number)*2.2*w
           ff = 1 + 0.25
-          y = v + ff / 6
+          y = v + old_div(ff, 6)
 
           if self.theme == 2:
             y -= 0.5
@@ -1924,14 +1931,14 @@ class Guitar:
             self.HCount2 = self.HCount2 + 1
             self.HCountAni = False
             if self.HCount2 > 12:
-              if not event.length > (1.4 * (60000.0 / event.noteBpm) / 4):
+              if not event.length > (old_div(1.4 * (60000.0 / event.noteBpm), 4)):
                 self.HCount2 = 0
               else:
                 self.HCountAni = True
             if event.flameCount < flameLimitHalf:
 
 
-                HIndex = (self.HCount2 * 13 - (self.HCount2 * 13) % 13) / 13
+                HIndex = old_div((self.HCount2 * 13 - (self.HCount2 * 13) % 13), 13)
                 if HIndex > 12 and self.HCountAni != True:
                   HIndex = 0
 
@@ -1958,9 +1965,9 @@ class Guitar:
                   continue
 
                 if step == 0:
-                  yzscaleMod = event.flameCount/ scaleChange[step]
+                  yzscaleMod = old_div(event.flameCount, scaleChange[step])
                 else:
-                  yzscaleMod = (event.flameCount + 1)/ scaleChange[step]
+                  yzscaleMod = old_div((event.flameCount + 1), scaleChange[step])
 
                 if self.starPowerActive:
                   if self.theme == 0 or self.theme == 1:
@@ -2002,7 +2009,7 @@ class Guitar:
                   else: #Default starcolor (Rockband)
                     flamecol = (0.1+i*0.1,)*3
                 self.engine.draw3Dtex(self.hitflames2Drawing, coord = (x-.005, y + .255, 0), rot = (90, 1, 0, 0),
-                                      scale = (.30 + i*0.05 + .6 * ms * ff, event.flameCount/(5.5 - i*0.4) + .6 * ms * ff, event.flameCount / (5.5 - i*0.4) + .6 * ms * ff),
+                                      scale = (.30 + i*0.05 + .6 * ms * ff, old_div(event.flameCount,(5.5 - i*0.4)) + .6 * ms * ff, old_div(event.flameCount, (5.5 - i*0.4)) + .6 * ms * ff),
                                       vertex = (-flameSize * ff,-flameSize * ff,flameSize * ff,flameSize * ff), texcoord = (0.0,0.0,1.0,1.0),
                                       multiples = True, alpha = True, color = flamecol)
 
@@ -2023,9 +2030,9 @@ class Guitar:
                   continue
 
                 if step == 0:
-                  yzscaleMod = event.flameCount/ scaleChange[step]
+                  yzscaleMod = old_div(event.flameCount, scaleChange[step])
                 else:
-                  yzscaleMod = (event.flameCount + 1)/ scaleChange[step]
+                  yzscaleMod = old_div((event.flameCount + 1), scaleChange[step])
 
                 if self.starPowerActive:
                   if self.theme == 0 or self.theme == 1:
@@ -2064,11 +2071,11 @@ class Guitar:
 
       stars = []
       maxStars = []
-      maxPhrase = self.totalNotes/120
+      maxPhrase = old_div(self.totalNotes,120)
       for q in range(0,maxPhrase):
         for n in range(0,10):
-          stars.append(self.totalNotes/maxPhrase*(q)+n+maxPhrase/4)
-        maxStars.append(self.totalNotes/maxPhrase*(q)+10+maxPhrase/4)
+          stars.append(old_div(self.totalNotes,maxPhrase)*(q)+n+old_div(maxPhrase,4))
+        maxStars.append(old_div(self.totalNotes,maxPhrase)*(q)+10+old_div(maxPhrase,4))
       i = 0
       for time, event in song.track[self.player].getAllEvents():
         if not isinstance(event, Note):
@@ -2427,7 +2434,7 @@ class Guitar:
       chords[time].append((time, note))
 
     #Make sure the notes are in the right time order
-    chordlist = chords.values()
+    chordlist = list(chords.values())
     chordlist.sort(lambda a, b: cmp(a[0][0], b[0][0]))
 
     twochord = 0
@@ -2488,7 +2495,7 @@ class Guitar:
       chords[time].append((time, note))
 
     #Make sure the notes are in the right time order
-    chordlist = chords.values()
+    chordlist = list(chords.values())
     chordlist.sort(lambda a, b: cmp(a[0][0], b[0][0]))
 
     twochord = 0
@@ -2550,7 +2557,7 @@ class Guitar:
       chords[time].append((time, note))
 
     #Make sure the notes are in the right time order
-    chordlist = chords.values()
+    chordlist = list(chords.values())
     #chordlist.sort(lambda a, b: cmp(a[0][0], b[0][0]))
     chordlist.sort(key=lambda a: a[0][0])
 
@@ -2618,7 +2625,7 @@ class Guitar:
       chords[time].append((time, note))
 
     #Make sure the notes are in the right time order
-    chordlist = chords.values()
+    chordlist = list(chords.values())
     chordlist.sort(key=lambda a: a[0][0])
 
     twochord = 0
@@ -2892,14 +2899,14 @@ class Guitar:
       self.indexCount = self.indexCount + 1
       if self.indexCount > self.Animspeed-1:
         self.indexCount = 0
-      self.starSpinFrameIndex = (self.indexCount * self.starSpinFrames - (self.indexCount * self.starSpinFrames) % self.Animspeed) / self.Animspeed
+      self.starSpinFrameIndex = old_div((self.indexCount * self.starSpinFrames - (self.indexCount * self.starSpinFrames) % self.Animspeed), self.Animspeed)
       if self.starSpinFrameIndex > self.starSpinFrames - 1:
         self.starSpinFrameIndex = 0
 
 
     #myfingershurt: must not decrease SP if paused.
     if self.starPowerActive == True and self.paused == False:
-      self.starPower -= ticks/self.starPowerDecreaseDivisor
+      self.starPower -= old_div(ticks,self.starPowerDecreaseDivisor)
       if self.starPower <= 0:
         self.starPower = 0
         self.starPowerActive = False

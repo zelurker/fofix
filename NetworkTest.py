@@ -2,7 +2,7 @@
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
 # modify it under the terms of the GNU General Public License       #
@@ -41,7 +41,7 @@ class NetworkTest(unittest.TestCase):
     c.sendPacket("moikka")
 
     Network.communicate(100)
-    client = s.clients.values()[0]
+    client = list(s.clients.values())[0]
     assert client.packet == "moikka"
     assert client.id == 1
 

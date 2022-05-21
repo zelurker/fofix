@@ -27,7 +27,12 @@
 #####################################################################
 
 """A bunch of dialog functions for interacting with the user."""
+from __future__ import division
 
+from builtins import chr
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import pygame
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -92,15 +97,15 @@ def wrapCenteredText(font, pos, text, rightMargin = 1.0, scale = 0.002, visibili
   sentence = ""
   for n, word in enumerate(text.split(" ")):
     w, h = font.getStringSize(sentence + " " + word, scale = scale)
-    if x + (w/2) > rightMargin or word == "\n":
+    if x + (old_div(w,2)) > rightMargin or word == "\n":
       w, h = font.getStringSize(sentence, scale = scale)
       #x = startXpos
       glPushMatrix()
       glRotate(visibility * (n + 1) * -45, 0, 0, 1)
       if allowshadowoffset == True:
-        font.render(sentence, (x - (w/2), y + visibility * n), scale = scale, shadowoffset = shadowoffset)
+        font.render(sentence, (x - (old_div(w,2)), y + visibility * n), scale = scale, shadowoffset = shadowoffset)
       else:
-        font.render(sentence, (x - (w/2), y + visibility * n), scale = scale)
+        font.render(sentence, (x - (old_div(w,2)), y + visibility * n), scale = scale)
       glPopMatrix()
       sentence = word
       y += h * linespace
@@ -114,9 +119,9 @@ def wrapCenteredText(font, pos, text, rightMargin = 1.0, scale = 0.002, visibili
     glPushMatrix()
     glRotate(visibility * (n + 1) * -45, 0, 0, 1)
     if allowshadowoffset == True:
-      font.render(sentence, (x - (w/2), y + visibility * n), scale = scale, shadowoffset = shadowoffset)
+      font.render(sentence, (x - (old_div(w,2)), y + visibility * n), scale = scale, shadowoffset = shadowoffset)
     else:
-      font.render(sentence, (x - (w/2), y + visibility * n), scale = scale)
+      font.render(sentence, (x - (old_div(w,2)), y + visibility * n), scale = scale)
     glPopMatrix()
     y += h * linespace
   
@@ -224,7 +229,7 @@ class GetText(Layer, KeyListener):
     self.engine.input.removeKeyListener(self)
     self.engine.input.disableKeyRepeat()
     
-  def keyPressed(self, key, unicode):
+  def keyPressed(self, key, str):
     self.time = 0
     c = self.engine.input.controls.getMapping(key)
     
@@ -232,8 +237,8 @@ class GetText(Layer, KeyListener):
     #if (c in Player.KEY1S or key == pygame.K_RETURN or c in Player.DRUM4S) and not self.accepted:   #MFH - adding support for green drum "OK"
     if key == pygame.K_BACKSPACE and not self.accepted:
       self.text = self.text[:-1]
-    elif unicode and ord(unicode) > 31 and not self.accepted:
-      self.text += unicode
+    elif str and ord(str) > 31 and not self.accepted:
+      self.text += str
     elif key == pygame.K_LSHIFT or key == pygame.K_RSHIFT:
       return True
     elif (c in Player.menuYes or key == pygame.K_RETURN) and not self.accepted:   #MFH - adding support for green drum "OK"
@@ -330,7 +335,7 @@ class GetText(Layer, KeyListener):
       Theme.setSelectedColor(1 - v)
       
       if self.text is not None:
-        pos = wrapText(font, (.1, (pos[1] + v) + .08 + v / 4), self.text)
+        pos = wrapText(font, (.1, (pos[1] + v) + .08 + old_div(v, 4)), self.text)
         font.render(cursor, pos)
       
     finally:
@@ -359,7 +364,7 @@ class GetKey(Layer, KeyListener):
   def hidden(self):
     self.engine.input.removeKeyListener(self)
     
-  def keyPressed(self, key, unicode):
+  def keyPressed(self, key, str):
     if key == pygame.K_ESCAPE and not self.accepted:
       self.toggleEsc = True
     elif not self.accepted and key not in self.specialKeyList:
@@ -404,7 +409,7 @@ class GetKey(Layer, KeyListener):
 
       if self.key is not None:
         text = pygame.key.name(self.key).capitalize()
-        pos = wrapText(font, (.1, (pos[1] + v) + .08 + v / 4), text)
+        pos = wrapText(font, (.1, (pos[1] + v) + .08 + old_div(v, 4)), text)
       
     finally:
       self.engine.view.resetProjection()
@@ -434,7 +439,7 @@ class LoadingScreen(Layer, KeyListener):
   def shown(self):
     self.engine.input.addKeyListener(self, priority = True)
 
-  def keyPressed(self, key, unicode):
+  def keyPressed(self, key, str):
     c = self.engine.input.controls.getMapping(key)
     if self.allowCancel and c in Player.menuNo:
       self.engine.view.popLayer(self)
@@ -466,24 +471,24 @@ class LoadingScreen(Layer, KeyListener):
       
       #MFH - auto-scaling of loading screen
       #Volshebnyi - fit to screen applied
-      self.engine.drawImage(self.engine.data.loadingImage, scale = (1.0,-1.0), coord = (w/2,h/2), stretched = 3)
+      self.engine.drawImage(self.engine.data.loadingImage, scale = (1.0,-1.0), coord = (old_div(w,2),old_div(h,2)), stretched = 3)
 
       Theme.setBaseColor(1 - v)
       w, h = font.getStringSize(self.text)
 
       if self.loadingx != None:
         if self.loadingy != None:
-          x = self.loadingx - w / 2
-          y = self.loadingy - h / 2 + v * .5
+          x = self.loadingx - old_div(w, 2)
+          y = self.loadingy - old_div(h, 2) + v * .5
         else:
-          x = self.loadingx - w / 2
-          y = .6 - h / 2 + v * .5
+          x = self.loadingx - old_div(w, 2)
+          y = .6 - old_div(h, 2) + v * .5
       elif self.loadingy != None:
-        x = .5 - w / 2
-        y = .6 - h / 2 + v * .5
+        x = .5 - old_div(w, 2)
+        y = .6 - old_div(h, 2) + v * .5
       else:
-        x = .5 - w / 2
-        y = .6 - h / 2 + v * .5
+        x = .5 - old_div(w, 2)
+        y = .6 - old_div(h, 2) + v * .5
 
       if self.allowtext:
         if self.theme == 1:
@@ -509,7 +514,7 @@ class MessageScreen(Layer, KeyListener):
   def shown(self):
     self.engine.input.addKeyListener(self, priority = True)
 
-  def keyPressed(self, key, unicode):
+  def keyPressed(self, key, str):
     c = self.engine.input.controls.getMapping(key)
     if c in (Player.menuYes + Player.menuNo) or key in [pygame.K_RETURN, pygame.K_ESCAPE, pygame.K_LCTRL, pygame.K_RCTRL]:
       self.engine.view.popLayer(self)
@@ -539,7 +544,7 @@ class MessageScreen(Layer, KeyListener):
       pos = wrapText(font, (x, y), self.text, visibility = v)
 
       w, h = font.getStringSize(self.prompt, scale = 0.001)
-      x = .5 - w / 2
+      x = .5 - old_div(w, 2)
       y = pos[1] + 3 * h + v * 2
       Theme.setSelectedColor(1 - v)
       font.render(self.prompt, (x, y), scale = 0.001)
@@ -602,63 +607,63 @@ class SongChooser(Layer, KeyListener):
     try:
       self.song_cd_xpos = Theme.song_cd_Xpos
       Log.debug("song_cd_xpos found: " + str(self.song_cd_xpos))
-    except Exception, e:
+    except Exception as e:
       Log.warn("Unable to load Theme song_cd_xpos: %s" % e) 
       self.song_cd_xpos = None
 
     try:
       self.song_cdscore_xpos = Theme.song_cdscore_Xpos
       Log.debug("song_cdscore_xpos found: " + str(self.song_cdscore_xpos))
-    except Exception, e:
+    except Exception as e:
       Log.warn("Unable to load Theme song_cdscore_xpos: %s" % e) 
       self.song_cdscore_xpos = None
 
     try:
       self.song_list_xpos = Theme.song_list_Xpos
       Log.debug("song_list_xpos found: " + str(self.song_list_xpos))
-    except Exception, e:
+    except Exception as e:
       Log.warn("Unable to load Theme song_list_xpos: %s" % e) 
       self.song_list_xpos = None
 
     try:
       self.song_listscore_xpos = Theme.song_listscore_Xpos
       Log.debug("song_listscore_xpos found: " + str(self.song_listscore_xpos))
-    except Exception, e:
+    except Exception as e:
       Log.warn("Unable to load Theme song_listscore_xpos: %s" % e) 
       self.song_listscore_xpos = None
 
     try:
       self.song_listcd_cd_xpos = Theme.song_listcd_cd_Xpos
       Log.debug("song_listcd_cd_xpos found: " + str(self.song_listcd_cd_xpos))
-    except Exception, e:
+    except Exception as e:
       Log.warn("Unable to load Theme song_listcd_cd_xpos: %s" % e) 
       self.song_listcd_cd_xpos = None
 
     try:
       self.song_listcd_cd_ypos = Theme.song_listcd_cd_Ypos
       Log.debug("song_listcd_cd_ypos found: " + str(self.song_listcd_cd_ypos))
-    except Exception, e:
+    except Exception as e:
       Log.warn("Unable to load Theme song_listcd_cd_ypos: %s" % e) 
       self.song_listcd_cd_ypos = None
 
     try:
       self.song_listcd_score_xpos = Theme.song_listcd_score_Xpos
       Log.debug("song_listcd_score_xpos found: " + str(self.song_listcd_score_xpos))
-    except Exception, e:
+    except Exception as e:
       Log.warn("Unable to load Theme song_listcd_score_xpos: %s" % e) 
       self.song_listcd_score_xpos = None
 
     try:
       self.song_listcd_score_ypos = Theme.song_listcd_score_Ypos
       Log.debug("song_listcd_score_ypos found: " + str(self.song_listcd_score_ypos))
-    except Exception, e:
+    except Exception as e:
       Log.warn("Unable to load Theme song_listcd_score_ypos: %s" % e) 
       self.song_listcd_score_ypos = None
 
     try:
       self.song_listcd_list_xpos = Theme.song_listcd_list_Xpos
       Log.debug("song_listcd_list_xpos found: " + str(self.song_listcd_list_xpos))
-    except Exception, e:
+    except Exception as e:
       Log.warn("Unable to load Theme song_listcd_list_xpos: %s" % e) 
       self.song_listcd_list_xpos = None
 
@@ -939,7 +944,7 @@ class SongChooser(Layer, KeyListener):
       else:
         #Log.debug("Dialogs.isInt: " + str(possibleInt) + " = FALSE")
         return False
-    except Exception, e:
+    except Exception as e:
       return False
       #Log.debug("Dialogs.isInt: " + str(possibleInt) + " = FALSE, exception: " + str(e) )
       
@@ -1168,17 +1173,17 @@ class SongChooser(Layer, KeyListener):
 #      if self.selectedIndex < len(self.items) - 1:
 #        self.loadItemLabel(self.selectedIndex + 1)
     
-  def keyPressed(self, key, unicode): #racer: drum nav.
+  def keyPressed(self, key, str): #racer: drum nav.
     if not self.items or self.accepted:
       return
 
     self.lastTime = self.time
     c = self.engine.input.controls.getMapping(key)
-    if self.searching == True and unicode and ord(unicode) > 31 and not self.accepted:
-      self.searchText += unicode
+    if self.searching == True and str and ord(str) > 31 and not self.accepted:
+      self.searchText += str
       self.doSearch()
     elif self.searching == False and ((key >= ord('a') and key <= ord('z')) or (key >= ord('A') and key <= ord('Z')) or (key >= ord('0') and key <= ord('9'))):
-      k1 = unicode
+      k1 = str
       k2 = k1.capitalize()
       found = 0
       
@@ -1657,13 +1662,13 @@ class SongChooser(Layer, KeyListener):
         #MFH - auto background image scaling
         imgwidth = self.background.width1()
         wfactor = 640.000/imgwidth
-        self.engine.drawImage(self.background, scale = (wfactor,-wfactor), coord = (w/2,h/2))
+        self.engine.drawImage(self.background, scale = (wfactor,-wfactor), coord = (old_div(w,2),old_div(h,2)))
       else:
         imgwidth = self.paper.width1()
         wfactor = 640.000/imgwidth
         imgheight = self.paper.height1()
         if self.background != None:
-          self.engine.drawImage(self.background, scale = (.5,-.5), coord = (w/2,h/2))
+          self.engine.drawImage(self.background, scale = (.5,-.5), coord = (old_div(w,2),old_div(h,2)))
         else:
           self.background = None
   
@@ -1674,9 +1679,9 @@ class SongChooser(Layer, KeyListener):
           else:
             y = h*(self.selectedIndex-2)*2/16.06  #worldrave - Tweaked the number so the image doesn't move off sync more and more as the paper moves down.
           
-          papercoord = (w/2,(h - (w*(imgheight/imgwidth))/2) + y)
+          papercoord = (old_div(w,2),(h - old_div((w*(old_div(imgheight,imgwidth))),2)) + y)
         else:
-          papercoord = (w/2,h/2)
+          papercoord = (old_div(w,2),old_div(h,2))
 
         self.engine.drawImage(self.paper, scale = (wfactor,-wfactor), coord = papercoord)
   
@@ -1746,7 +1751,7 @@ class SongChooser(Layer, KeyListener):
             if not self.matchesSearch(item):
               continue
           
-            c = math.sin(self.itemAngles[i] * math.pi / 180)
+            c = math.sin(old_div(self.itemAngles[i] * math.pi, 180))
           
             if isinstance(item, Song.SongInfo):
               h = c * self.cassetteWidth + (1 - c) * self.cassetteHeight
@@ -1763,16 +1768,16 @@ class SongChooser(Layer, KeyListener):
   
   
           
-            d = (y + h * .5 + self.camera.origin[1]) / (4 * (self.camera.target[2] - self.camera.origin[2]))
+            d = old_div((y + h * .5 + self.camera.origin[1]), (4 * (self.camera.target[2] - self.camera.origin[2])))
     
             if i == self.selectedIndex:
-              self.selectedOffset = y + h / 2
+              self.selectedOffset = y + old_div(h, 2)
               Theme.setSelectedColor()
             else:
               Theme.setBaseColor()
             
             #MFH - I think this is where CD songs are positioned --- Nope!
-            glTranslatef(0, -h / 2, 0)
+            glTranslatef(0, old_div(-h, 2), 0)
             #glTranslatef(self.song_cd_xpos, -h / 2, 0)
             
           
@@ -1813,7 +1818,7 @@ class SongChooser(Layer, KeyListener):
   
             glPopMatrix()
           
-            glTranslatef(0, -h / 2, 0)
+            glTranslatef(0, old_div(-h, 2), 0)
             y += h
           glDisable(GL_DEPTH_TEST)
           glDisable(GL_CULL_FACE)
@@ -1955,7 +1960,7 @@ class SongChooser(Layer, KeyListener):
                 font.render(Song.difficulties[d.id].text,     (x, y),           scale = scale) # akedrou: This is absolute nonsense, but needed for translation because of caching!
 
                 starscale = 0.02
-                stary = 1.0 - y/self.engine.data.fontScreenBottom
+                stary = 1.0 - old_div(y,self.engine.data.fontScreenBottom)
                 self.engine.drawStarScore(screenw, screenh, x+.01, stary-2*h, stars, starscale, hqStar = True) #volshebnyi
 
 #-                # evilynux - Fixed star size following Font render bugfix
@@ -1980,7 +1985,7 @@ class SongChooser(Layer, KeyListener):
                       score = "%s %.1f%%" % (score, (float(notesHit) / notesTotal) * 100.0)
                     if noteStreak != 0:
                       score = "%s (%d)" % (score, noteStreak)
-                font.render(unicode(score), (x + .15, y),     scale = scale)
+                font.render(str(score), (x + .15, y),     scale = scale)
                 font.render(name,       (x + .15, y + h),     scale = scale)
                 y += 2 * h + f / 4.0
             elif isinstance(item, Song.LibraryInfo):
@@ -2212,9 +2217,9 @@ class SongChooser(Layer, KeyListener):
                   glColor3f(c1,c2,c3)
                   # evilynux - tweaked position to fit hit% and note streak
                   if self.extraStats:
-                    lfont.render(text, (self.song_listscore_xpos-w-.02, .0925*(i+1)-pos[0]*.0925+.1575-h/2), scale=scale)
+                    lfont.render(text, (self.song_listscore_xpos-w-.02, .0925*(i+1)-pos[0]*.0925+.1575-old_div(h,2)), scale=scale)
                   else:
-                    lfont.render(text, (self.song_listscore_xpos-w-.02, .0925*(i+1)-pos[0]*.0925+.2-h/2), scale=scale)
+                    lfont.render(text, (self.song_listscore_xpos-w-.02, .0925*(i+1)-pos[0]*.0925+.2-old_div(h,2)), scale=scale)
                   if not item.frets == "":
                     suffix = ", ("+item.frets+")"
                   else:
@@ -2270,8 +2275,8 @@ class SongChooser(Layer, KeyListener):
                     stary = .0925*(i+1)-pos[0]*.0925+.2-0.034
                   #stary = 0.5
                   starscale = 0.03
-                  stary = 1.0 - (stary / self.engine.data.fontScreenBottom)
-                  self.engine.drawStarScore(screenw, screenh, starx, stary - h/2, stars, starscale, horiz_spacing = 1.0, hqStar = True) #MFH
+                  stary = 1.0 - (old_div(stary, self.engine.data.fontScreenBottom))
+                  self.engine.drawStarScore(screenw, screenh, starx, stary - old_div(h,2), stars, starscale, horiz_spacing = 1.0, hqStar = True) #MFH
 
                   scale = 0.0014
                   # evilynux - score color
@@ -2396,7 +2401,7 @@ class SongChooser(Layer, KeyListener):
   
                 if i == self.selectedIndex:
                   w, h = font.getStringSize(text)
-                  font.render(text, (.5-w/2, .15))
+                  font.render(text, (.5-old_div(w,2), .15))
                 
                 if i == self.selectedIndex:
                   glColor4f(.7,.5,.25,1)
@@ -2478,9 +2483,9 @@ class SongChooser(Layer, KeyListener):
                   glColor3f(c1,c2,c3)
                   if self.extraStats:
                     # evilynux - tweaked position to fit hit% and note streak
-                    font.render(text, (self.song_listscore_xpos-w-.025, .0935*(i+1)-pos[0]*.0935+.185-h/2), scale=scale)
+                    font.render(text, (self.song_listscore_xpos-w-.025, .0935*(i+1)-pos[0]*.0935+.185-old_div(h,2)), scale=scale)
                   else:
-                    font.render(text, (self.song_listscore_xpos-w-.025, .0935*(i+1)-pos[0]*.0935+.2-h/2), scale=scale)
+                    font.render(text, (self.song_listscore_xpos-w-.025, .0935*(i+1)-pos[0]*.0935+.2-old_div(h,2)), scale=scale)
                   
                   if not item.frets == "":
                     suffix = ", ("+item.frets+")"
@@ -2520,7 +2525,7 @@ class SongChooser(Layer, KeyListener):
                     stary = .0935*(i+1)-pos[0]*.0935+.2-0.0145
                   #stary = 0.5
                   starscale = 0.02
-                  stary = 1.0 - (stary / self.engine.data.fontScreenBottom)
+                  stary = 1.0 - (old_div(stary, self.engine.data.fontScreenBottom))
                   if i < pos[1]:
                     self.engine.drawStarScore(screenw, screenh, starx, stary, stars, starscale) #MFH
 
@@ -2587,8 +2592,8 @@ class SongChooser(Layer, KeyListener):
             glDepthMask(1)
                 
             offset = 10 * (v ** 2)
-            self.camera.origin = (-9,(5.196/self.engine.view.aspectRatio) - (5.196*2/self.engine.view.aspectRatio)*self.song_listcd_cd_ypos,(5.196*self.engine.view.aspectRatio)-(5.196*2*self.engine.view.aspectRatio)*self.song_listcd_cd_xpos)
-            self.camera.target = ( 0,(5.196/self.engine.view.aspectRatio) - (5.196*2/self.engine.view.aspectRatio)*self.song_listcd_cd_ypos,(5.196*self.engine.view.aspectRatio)-(5.196*2*self.engine.view.aspectRatio)*self.song_listcd_cd_xpos)
+            self.camera.origin = (-9,(5.196/self.engine.view.aspectRatio) - (old_div(5.196*2,self.engine.view.aspectRatio))*self.song_listcd_cd_ypos,(5.196*self.engine.view.aspectRatio)-(5.196*2*self.engine.view.aspectRatio)*self.song_listcd_cd_xpos)
+            self.camera.target = ( 0,(5.196/self.engine.view.aspectRatio) - (old_div(5.196*2,self.engine.view.aspectRatio))*self.song_listcd_cd_ypos,(5.196*self.engine.view.aspectRatio)-(5.196*2*self.engine.view.aspectRatio)*self.song_listcd_cd_xpos)
             self.camera.apply()
                 
             y = 0.0
@@ -2605,7 +2610,7 @@ class SongChooser(Layer, KeyListener):
               self.renderLibrary(item.color, self.itemLabels[i])
             glPopMatrix()
             
-            glTranslatef(0, -h / 2, 0)
+            glTranslatef(0, old_div(-h, 2), 0)
             y += h
 
             glDisable(GL_DEPTH_TEST)
@@ -2844,7 +2849,7 @@ class SongChooser(Layer, KeyListener):
                       lfont.render(Song.difficulties[d.id].text,     (x, y),           scale = scale) # akedrou: This is absolute nonsense, but needed for translation because of caching!
 
                       starscale = 0.02
-                      stary = 1.0 - (y / self.engine.data.fontScreenBottom) - h
+                      stary = 1.0 - (old_div(y, self.engine.data.fontScreenBottom)) - h
                       self.engine.drawStarScore(screenw, screenh, x+.01, stary-h, stars, starscale) #MFH
 
 #-                      if stars == 6 and self.theme == 2:
@@ -2867,7 +2872,7 @@ class SongChooser(Layer, KeyListener):
                             score = "%s %.1f%%" % (score, (float(notesHit) / notesTotal) * 100.0)
                           if noteStreak != 0:
                             score = "%s (%d)" % (score, noteStreak)
-                      lfont.render(unicode(score), (x + .15, y),     scale = scale)
+                      lfont.render(str(score), (x + .15, y),     scale = scale)
                       lfont.render(name,       (x + .15, y + h),     scale = scale)
                       y += 2 * h + f / 4.0
             
@@ -2876,7 +2881,7 @@ class SongChooser(Layer, KeyListener):
               imgwidth = self.selected.width1()
               self.engine.drawImage(self.selected, scale = (.64, -1.05), coord = (self.song_listcd_list_xpos * w + (imgwidth*.64/2), y*1.2-h*.215))
             else:
-              self.engine.drawImage(self.selectedlistcd, scale = (1,-1), coord =(self.song_listcd_list_xpos * w + (imgwidth/2), y*1.2-h*.215))
+              self.engine.drawImage(self.selectedlistcd, scale = (1,-1), coord =(self.song_listcd_list_xpos * w + (old_div(imgwidth,2)), y*1.2-h*.215))
             
             glColor4f(1,1,1,1)
             text = self.library
@@ -3062,8 +3067,8 @@ class SongChooser(Layer, KeyListener):
                       
 
                       starscale = 0.02
-                      starx = x + starscale/2
-                      stary = 1.0 - (y / self.engine.data.fontScreenBottom) - h - starscale
+                      starx = x + old_div(starscale,2)
+                      stary = 1.0 - (old_div(y, self.engine.data.fontScreenBottom)) - h - starscale
                       self.engine.drawStarScore(screenw, screenh, starx, stary, stars, starscale) #MFH
 
 #-                      if stars == 7 and self.theme == 2:
@@ -3091,7 +3096,7 @@ class SongChooser(Layer, KeyListener):
                             score = "%s %.1f%%" % (score, (float(notesHit) / notesTotal) * 100.0)
                           if noteStreak != 0:
                             score = "%s (%d)" % (score, noteStreak)
-                      font.render(unicode(score), (x + .15, y),     scale = scale)
+                      font.render(str(score), (x + .15, y),     scale = scale)
                       font.render(name,       (x + .15, y + h),     scale = scale)
                       y += 2 * h + f / 4.0
               
@@ -3575,7 +3580,7 @@ class FileChooser(BackgroundLayer, KeyListener):
   def getDisks(self):
     import win32file, string
     driveLetters=[]
-    for drive in string.letters[len(string.letters) / 2:]:
+    for drive in string.letters[old_div(len(string.letters), 2):]:
       if win32file.GetDriveType(drive + ":") == win32file.DRIVE_FIXED:
         driveLetters.append(drive + ":\\")
     return driveLetters
@@ -3645,7 +3650,7 @@ class FileChooser(BackgroundLayer, KeyListener):
 
     # render the background
 
-    t = self.time / 100
+    t = old_div(self.time, 100)
     self.engine.view.setViewport(1,0)
     w, h, = self.engine.view.geometry[2:4]
     r = .5
@@ -3655,13 +3660,13 @@ class FileChooser(BackgroundLayer, KeyListener):
       #MFH - auto background scaling 
       imgwidth = self.neckBlackBack.width1()
       wfactor = 640.000/imgwidth
-      self.engine.drawImage(self.neckBlackBack, scale = (wfactor,-wfactor), coord = (w/2,h/2))
+      self.engine.drawImage(self.neckBlackBack, scale = (wfactor,-wfactor), coord = (old_div(w,2),old_div(h,2)))
 
 
     #MFH - auto background scaling 
     imgwidth = self.background.width1()
     wfactor = 640.000/imgwidth
-    self.engine.drawImage(self.background, scale = (wfactor,-wfactor), coord = (w/2,h/2))
+    self.engine.drawImage(self.background, scale = (wfactor,-wfactor), coord = (old_div(w,2),old_div(h,2)))
 
 
       
@@ -3824,7 +3829,7 @@ class NeckChooser(Layer, KeyListener):
     self.accepted = False
     self.engine.view.popLayer(self)
   
-  def keyPressed(self, key, unicode):
+  def keyPressed(self, key, str):
     c = self.engine.input.controls.getMapping(key)
     if c in Player.key1s or key == pygame.K_RETURN:
       self.chooseNeck()
@@ -3852,7 +3857,7 @@ class NeckChooser(Layer, KeyListener):
   def render(self, visibility, topMost):
    v = (1 - visibility) ** 2
    # render the background
-   t = self.time / 100
+   t = old_div(self.time, 100)
    self.engine.view.setViewport(1,0)
    w, h, = self.engine.view.geometry[2:4]
    r = .5
@@ -3863,7 +3868,7 @@ class NeckChooser(Layer, KeyListener):
      #MFH - auto background scaling
      imgwidth = self.neckBlackBack.width1()
      wfactor = 640.000/imgwidth
-     self.engine.drawImage(self.neckBlackBack, scale = (wfactor,-wfactor), coord = (w/2,h/2))
+     self.engine.drawImage(self.neckBlackBack, scale = (wfactor,-wfactor), coord = (old_div(w,2),old_div(h,2)))
 
    currentNeck = self.necks[int(self.selectedNeck)+2]
    lastNeck1 = self.necks[int(self.selectedNeck)]
@@ -3920,9 +3925,9 @@ class NeckChooser(Layer, KeyListener):
 
    wfactor = currentNeck.widthf(pixelw = self.wfac)
    if self.theme != 2:
-     neckcoord = (w/1.31,h/2)
+     neckcoord = (w/1.31,old_div(h,2))
    else:
-     neckcoord = (w/1.22,h/2)
+     neckcoord = (w/1.22,old_div(h,2))
    self.engine.drawImage(currentNeck, scale = (-wfactor,wfactor), coord = neckcoord)
    
 
@@ -3944,7 +3949,7 @@ class NeckChooser(Layer, KeyListener):
    #MFH - auto background scaling
    imgwidth = self.neckBG.width1()
    wfactor = 640.000/imgwidth
-   self.engine.drawImage(self.neckBG, scale = (wfactor,-wfactor), coord = (w/2,h/2))
+   self.engine.drawImage(self.neckBG, scale = (wfactor,-wfactor), coord = (old_div(w,2),old_div(h,2)))
 
   
    self.engine.view.setOrthogonalProjection(normalize = True)
@@ -4120,7 +4125,7 @@ class AvatarChooser(Layer, KeyListener):
     self.accepted = False
     self.engine.view.popLayer(self)
 
-  def keyPressed(self, key, unicode):
+  def keyPressed(self, key, str):
     c = self.engine.input.controls.getMapping(key)
     if c in Player.key1s or key == pygame.K_RETURN:
       self.accepted = True
@@ -4176,7 +4181,7 @@ class AvatarChooser(Layer, KeyListener):
 
   def render(self, visibility, topMost):
     v = (1 - visibility) ** 2
-    t = self.time / 100
+    t = old_div(self.time, 100)
     self.engine.view.setViewport(1,0)
     self.engine.view.setOrthogonalProjection(normalize = True)
     w, h, = self.engine.view.geometry[2:4]
@@ -4184,7 +4189,7 @@ class AvatarChooser(Layer, KeyListener):
     try:
       if self.background:
         wFactor = 640.000/self.background.width1()
-        self.engine.drawImage(self.background, scale = (wFactor, -wFactor), coord = (w/2,h/2))
+        self.engine.drawImage(self.background, scale = (wFactor, -wFactor), coord = (old_div(w,2),old_div(h,2)))
       else:
         fadeScreen(v)
       Theme.setBaseColor(1 - v)
@@ -4204,11 +4209,11 @@ class AvatarChooser(Layer, KeyListener):
       nextAv    = self.avatars[nextAvi]
       nextAv2   = self.avatars[nextAv2i]
 
-      self.x1 = w*(0.07-self.dist/2)
-      self.x2 = w*(0.17-self.dist/2)
-      self.x3 = w*(0.24-self.dist/2)
-      self.x4 = w*(0.17-self.dist/2)
-      self.x5 = w*(0.07-self.dist/2)
+      self.x1 = w*(0.07-old_div(self.dist,2))
+      self.x2 = w*(0.17-old_div(self.dist,2))
+      self.x3 = w*(0.24-old_div(self.dist,2))
+      self.x4 = w*(0.17-old_div(self.dist,2))
+      self.x5 = w*(0.07-old_div(self.dist,2))
       self.y1 = h*(0.75+Theme.avatarSelectWheelY)
       self.y2 = h*(0.68+Theme.avatarSelectWheelY)
       self.y3 = h*(0.5+Theme.avatarSelectWheelY)
@@ -4322,7 +4327,7 @@ class ItemChooser(BackgroundLayer, KeyListener):
     v = (1 - visibility) ** 2
 
     # render the background
-    t = self.time / 100
+    t = old_div(self.time, 100)
     self.engine.view.setViewport(1,0)
     w, h, = self.engine.view.geometry[2:4]
     r = .5
@@ -4330,7 +4335,7 @@ class ItemChooser(BackgroundLayer, KeyListener):
     #MFH - auto background scaling 
     imgwidth = self.background.width1()
     wfactor = 640.000/imgwidth
-    self.engine.drawImage(self.background, scale = (wfactor,-wfactor), coord = (w/2,h/2))
+    self.engine.drawImage(self.background, scale = (wfactor,-wfactor), coord = (old_div(w,2),old_div(h,2)))
 
       
     self.engine.view.setOrthogonalProjection(normalize = True)
@@ -4456,28 +4461,28 @@ class ControlActivator(Layer, KeyListener):
     self.partSize = Theme.controlActivatePartSize
     try:
       self.engine.loadImgDrawing(self, "guitar", os.path.join("themes", themename, "guitar.png"))
-      self.guitarScale = self.partSize/self.guitar.width1()
+      self.guitarScale = old_div(self.partSize,self.guitar.width1())
     except IOError:
       self.engine.loadImgDrawing(self, "guitar", "guitar.png")
-      self.guitarScale = self.partSize/self.guitar.width1()
+      self.guitarScale = old_div(self.partSize,self.guitar.width1())
     try:
       self.engine.loadImgDrawing(self, "bass", os.path.join("themes", themename, "bass.png"))
-      self.bassScale = self.partSize/self.bass.width1()
+      self.bassScale = old_div(self.partSize,self.bass.width1())
     except IOError:
       self.engine.loadImgDrawing(self, "bass", "bass.png")
-      self.bassScale = self.partSize/self.bass.width1()
+      self.bassScale = old_div(self.partSize,self.bass.width1())
     try:
       self.engine.loadImgDrawing(self, "drum", os.path.join("themes", themename, "drum.png"))
-      self.drumScale = self.partSize/self.drum.width1()
+      self.drumScale = old_div(self.partSize,self.drum.width1())
     except IOError:
       self.engine.loadImgDrawing(self, "drum", "drum.png")
-      self.drumScale = self.partSize/self.drum.width1()
+      self.drumScale = old_div(self.partSize,self.drum.width1())
     try:
       self.engine.loadImgDrawing(self, "mic", os.path.join("themes", themename, "mic.png"))
-      self.micScale = self.partSize/self.mic.width1()
+      self.micScale = old_div(self.partSize,self.mic.width1())
     except IOError:
       self.engine.loadImgDrawing(self, "mic", "mic.png")
-      self.micScale = self.partSize/self.mic.width1()
+      self.micScale = old_div(self.partSize,self.mic.width1())
   
   def shown(self):
     if self.controlNum < self.minPlayers:
@@ -4542,7 +4547,7 @@ class ControlActivator(Layer, KeyListener):
           self.selectedIndex = i
           break
   
-  def keyPressed(self, key, unicode):
+  def keyPressed(self, key, str):
     c = self.engine.input.controls.getMapping(key)
     if key == pygame.K_RETURN:
       if (self.ready and self.playerNum >= self.maxPlayers) or (self.playerNum >= self.minPlayers and self.blockedItems == [0,1,2,3]):
@@ -4583,7 +4588,7 @@ class ControlActivator(Layer, KeyListener):
           break
       else:
         if self.selectedIndex < 0:
-          a = range(4)
+          a = list(range(4))
           a.reverse()
           for i in a:
             if i in self.blockedItems:
@@ -4668,15 +4673,15 @@ class ControlActivator(Layer, KeyListener):
     v = (1-visibility)**2
     try:
       if self.background:
-        self.engine.drawImage(self.background, scale = (self.bgScale,-self.bgScale), coord = (w/2,h/2))
+        self.engine.drawImage(self.background, scale = (self.bgScale,-self.bgScale), coord = (old_div(w,2),old_div(h,2)))
       Theme.setBaseColor(1-v)
       wText, hText = descFont.getStringSize(self.tsInfo, scale = Theme.controlDescriptionScale)
-      descFont.render(self.tsInfo, (Theme.controlDescriptionX-wText/2, Theme.controlDescriptionY), scale = Theme.controlDescriptionScale)
+      descFont.render(self.tsInfo, (Theme.controlDescriptionX-old_div(wText,2), Theme.controlDescriptionY), scale = Theme.controlDescriptionScale)
       for i, control in enumerate(self.controls):
         if self.selectedIndex == i:
           if self.selected:
             Theme.setBaseColor(1-v)
-            self.engine.drawImage(self.selected, scale = (.5,-.5), coord = (w*self.selectX,h*(1-(self.selectY+self.selectSpace*i)/self.engine.data.fontScreenBottom)))
+            self.engine.drawImage(self.selected, scale = (.5,-.5), coord = (w*self.selectX,h*(1-old_div((self.selectY+self.selectSpace*i),self.engine.data.fontScreenBottom))))
           else:
             Theme.setSelectedColor(1-v)
         elif i in self.blockedItems:
@@ -4684,17 +4689,17 @@ class ControlActivator(Layer, KeyListener):
         else:
           Theme.setBaseColor(1-v)
         wText, hText = font.getStringSize(control, scale = self.selectScale)
-        font.render(control, (self.controlSelectX-wText, self.selectY-(hText/2)+self.selectSpace*i), scale = self.selectScale)
+        font.render(control, (self.controlSelectX-wText, self.selectY-(old_div(hText,2))+self.selectSpace*i), scale = self.selectScale)
         color = (1, 1, 1, 1)
         if i in self.blockedItems:
           color = (.3, .3, .3, 1)
         if self.engine.input.controls.type[i] in GUITARTYPES:
-          self.engine.drawImage(self.guitar, scale = (self.guitarScale, -self.guitarScale), coord = (w*self.controlPartX-(self.partSize*1.1), h*(1-(self.selectY+self.selectSpace*i)/self.engine.data.fontScreenBottom)), color = color)
-          self.engine.drawImage(self.bass, scale = (self.bassScale, -self.bassScale), coord = (w*self.controlPartX+(self.partSize*1.1), h*(1-(self.selectY+self.selectSpace*i)/self.engine.data.fontScreenBottom)), color = color)
+          self.engine.drawImage(self.guitar, scale = (self.guitarScale, -self.guitarScale), coord = (w*self.controlPartX-(self.partSize*1.1), h*(1-old_div((self.selectY+self.selectSpace*i),self.engine.data.fontScreenBottom))), color = color)
+          self.engine.drawImage(self.bass, scale = (self.bassScale, -self.bassScale), coord = (w*self.controlPartX+(self.partSize*1.1), h*(1-old_div((self.selectY+self.selectSpace*i),self.engine.data.fontScreenBottom))), color = color)
         elif self.engine.input.controls.type[i] in DRUMTYPES:
-          self.engine.drawImage(self.drum, scale = (self.drumScale, -self.drumScale), coord = (w*self.controlPartX, h*(1-(self.selectY+self.selectSpace*i)/self.engine.data.fontScreenBottom)), color = color)
+          self.engine.drawImage(self.drum, scale = (self.drumScale, -self.drumScale), coord = (w*self.controlPartX, h*(1-old_div((self.selectY+self.selectSpace*i),self.engine.data.fontScreenBottom))), color = color)
         elif self.engine.input.controls.type[i] in MICTYPES:
-          self.engine.drawImage(self.mic, scale = (self.micScale, -self.micScale), coord = (w*self.controlPartX, h*(1-(self.selectY+self.selectSpace*i)/self.engine.data.fontScreenBottom)), color = color)
+          self.engine.drawImage(self.mic, scale = (self.micScale, -self.micScale), coord = (w*self.controlPartX, h*(1-old_div((self.selectY+self.selectSpace*i),self.engine.data.fontScreenBottom))), color = color)
       Theme.setBaseColor(1-v)
       for j, i in enumerate(self.selectedItems):
         if self.engine.input.controls.type[i] in GUITARTYPES:
@@ -4705,14 +4710,14 @@ class ControlActivator(Layer, KeyListener):
         elif self.engine.input.controls.type[i] in MICTYPES:
           self.engine.drawImage(self.mic, scale = (self.micScale*self.partBig, -self.micScale*self.partBig), coord = (w*(self.checkX+self.checkSpace*j), h*self.checkY))
         wText, hText = checkFont.getStringSize(self.controls[i], scale = self.checkScale)
-        checkFont.render(self.controls[i], ((self.checkX+self.checkSpace*j)-wText/2, self.checkYText*self.engine.data.fontScreenBottom), scale = self.checkScale)
+        checkFont.render(self.controls[i], ((self.checkX+self.checkSpace*j)-old_div(wText,2), self.checkYText*self.engine.data.fontScreenBottom), scale = self.checkScale)
       if self.ready:
         if self.readyImage:
           self.engine.drawImage(self.readyImage, scale = (self.readyScale, -self.readyScale), coord = (w*.5, h*.5), color = (1, 1, 1, self.fader))
         else:
           Theme.setBaseColor(self.fader)
           wText, hText = bigFont.getStringSize(self.tsReady, scale = .001)
-          bigFont.render(self.tsReady, (.5-wText/2, .3), scale = .001)
+          bigFont.render(self.tsReady, (.5-old_div(wText,2), .3), scale = .001)
     finally:
       self.engine.view.resetProjection()
 
@@ -4741,7 +4746,7 @@ class BpmEstimator(Layer, KeyListener):
     self.engine.input.removeKeyListener(self)
     self.song.fadeout(1000)
     
-  def keyPressed(self, key, unicode):
+  def keyPressed(self, key, str):
     if self.accepted:
       return True
       
@@ -4903,7 +4908,7 @@ class KeyTester(Layer, KeyListener):
       del self.mic
     self.engine.input.removeKeyListener(self)
     
-  def keyPressed(self, key, unicode):
+  def keyPressed(self, key, str):
     if self.accepted:
       return True
     if key == pygame.K_ESCAPE:
@@ -4961,22 +4966,22 @@ class KeyTester(Layer, KeyListener):
     
     if self.controls.getState(self.keyList[Player.UP]):
       if self.controls.getState(self.keyList[Player.LEFT]):
-        rotateArrow = math.pi/4
+        rotateArrow = old_div(math.pi,4)
       elif self.controls.getState(self.keyList[Player.RIGHT]):
-        rotateArrow = -math.pi/4
+        rotateArrow = old_div(-math.pi,4)
       else:
         rotateArrow = 0.0
     elif self.controls.getState(self.keyList[Player.DOWN]):
       if self.controls.getState(self.keyList[Player.LEFT]):
-        rotateArrow = 3*math.pi/4
+        rotateArrow = old_div(3*math.pi,4)
       elif self.controls.getState(self.keyList[Player.RIGHT]):
-        rotateArrow = -3*math.pi/4
+        rotateArrow = old_div(-3*math.pi,4)
       else:
         rotateArrow = math.pi
     elif self.controls.getState(self.keyList[Player.LEFT]):
-      rotateArrow = math.pi/2
+      rotateArrow = old_div(math.pi,2)
     elif self.controls.getState(self.keyList[Player.RIGHT]):
-      rotateArrow = -math.pi/2
+      rotateArrow = old_div(-math.pi,2)
     else:
       rotateArrow = None
     
@@ -5045,7 +5050,7 @@ class KeyTester(Layer, KeyListener):
             Theme.setSelectedColor(1 - v)
           else:
             glColor3f(.4, .4, .4)
-          font.render(text, (.25-wText/2, .45 + v))
+          font.render(text, (.25-old_div(wText,2), .45 + v))
           starC = (1-self.starpower)*.5*w*self.analogBarScale
           self.engine.drawImage(self.analogBar, scale = (self.analogBarScale*self.starpower, -self.analogBarScale), coord = ((w*.25)-starC, h*.3), rect = (0, self.starpower, 0, 1), stretched = 11)
           self.engine.drawImage(self.analogBox, scale = (self.analogBoxScale, -self.analogBoxScale), coord = (w*.25, h*.3), stretched = 11)
@@ -5054,7 +5059,7 @@ class KeyTester(Layer, KeyListener):
             Theme.setSelectedColor(1 - v)
           else:
             glColor3f(.4, .4, .4)
-          font.render(text, (.25-wText/2, .45 + v))
+          font.render(text, (.25-old_div(wText,2), .45 + v))
         
       if self.controls.getState(self.keyList[Player.CANCEL]):
         glColor3f(.6, 0, 0)
@@ -5062,7 +5067,7 @@ class KeyTester(Layer, KeyListener):
         glColor3f(.4, .4, .4)
       text = self.names[5]
       wText, hText = font.getStringSize(text)
-      font.render(text, (.333-wText/2, .28 + v))
+      font.render(text, (.333-old_div(wText,2), .28 + v))
       
       if self.controls.getState(self.keyList[Player.START]):
         glColor3f(0, .6, 0)
@@ -5070,7 +5075,7 @@ class KeyTester(Layer, KeyListener):
         glColor3f(.4, .4, .4)
       text = self.names[4]
       wText, hText = font.getStringSize(text)
-      font.render(text, (.667-wText/2, .28 + v))
+      font.render(text, (.667-old_div(wText,2), .28 + v))
       
       if self.type < 2 or self.type == 4:
         
@@ -5087,7 +5092,7 @@ class KeyTester(Layer, KeyListener):
               text = self.tsFret
             text = "%s #%d" % (text, (i + 1))
             wText, hText = font.getStringSize(text)
-            font.render(text, ((.2 + .15 * i)-wText/2, .4 + v))
+            font.render(text, ((.2 + .15 * i)-old_div(wText,2), .4 + v))
         else:
           for i in range(5):
             if self.slideActive == i or (self.midFret and self.slideActive == i + 1) or (self.controls.getState(self.keyList[Player.KEY1A]) and self.type == 1):
@@ -5100,12 +5105,12 @@ class KeyTester(Layer, KeyListener):
               glColor3f(.4, .4, .4)
             text = "%s #%d" % (text, (i + 1))
             wText, hText = font.getStringSize(text)
-            font.render(text, ((.2 + .15 * i)-wText/2, .4 + v))
+            font.render(text, ((.2 + .15 * i)-old_div(wText,2), .4 + v))
             if self.midFret and self.slideActive == i:
               Theme.setSelectedColor(1 - v)
               text = self.tsSlide
               wText, hText = font.getStringSize(text)
-              font.render(text, ((.125 + .15 * i)-wText/2, .35 + v))
+              font.render(text, ((.125 + .15 * i)-old_div(wText,2), .35 + v))
 
         #evilynux - Compute analog killswitch value
         wText, hText = font.getStringSize(self.names[Player.KILL])
@@ -5125,7 +5130,7 @@ class KeyTester(Layer, KeyListener):
             Theme.setSelectedColor(1 - v)
           else:
             glColor3f(.4, .4, .4)
-          font.render(self.names[Player.KILL], (.75-wText/2, .45 + v))
+          font.render(self.names[Player.KILL], (.75-old_div(wText,2), .45 + v))
           whammyC = (1-self.whammy)*.5*w*self.analogBarScale
           self.engine.drawImage(self.analogBar, scale = (self.analogBarScale*self.whammy, -self.analogBarScale), coord = (w*.75-whammyC, h*.3), rect = (0, self.whammy, 0, 1), stretched = 11)
         else:
@@ -5133,7 +5138,7 @@ class KeyTester(Layer, KeyListener):
             Theme.setSelectedColor(1 - v)
           else:
             glColor3f(.4, .4, .4)
-          font.render(self.names[Player.KILL], (.75-wText/2, .45 + v))
+          font.render(self.names[Player.KILL], (.75-old_div(wText,2), .45 + v))
         
         self.engine.drawImage(self.analogBox, scale = (self.analogBoxScale, -self.analogBoxScale), coord = (w*.75, h*.3), stretched = 11)
         if self.controls.getState(self.keyList[Player.ACTION1]) or self.controls.getState(self.keyList[Player.ACTION2]):
@@ -5141,7 +5146,7 @@ class KeyTester(Layer, KeyListener):
         else:
           glColor3f(.4, .4, .4)
         wText, hText = font.getStringSize(self.names[Player.ACTION1])
-        font.render(self.names[Player.ACTION1], (.5-wText/2, .55 + v))
+        font.render(self.names[Player.ACTION1], (.5-old_div(wText,2), .55 + v))
 
       elif self.type == 5:
         Theme.setBaseColor(1 - v)
@@ -5153,7 +5158,7 @@ class KeyTester(Layer, KeyListener):
           colorval = min(1.0, .4 + max(0.0, (peakvol+30.0) * .6 / 25.0))
           glColor3f(colorval, colorval, colorval)
         else:
-          glColor3f(1.0, max(0.0, min(1.0, (peakvol/-5.0))), max(0.0, min(1.0, (peakvol/-5.0))))
+          glColor3f(1.0, max(0.0, min(1.0, (old_div(peakvol,-5.0)))), max(0.0, min(1.0, (old_div(peakvol,-5.0)))))
         font.render('%5.3f dB' % peakvol, (.55, .4 + v))
 
         if self.mic.getTap():
@@ -5196,7 +5201,7 @@ class KeyTester(Layer, KeyListener):
             text = self.tsDrum
             text = "%s #%d" % (text, (i + 1))
             wText, hText = font.getStringSize(text)
-            font.render(text, ((.2 + .2 * i)-wText/2, .4 + v))
+            font.render(text, ((.2 + .2 * i)-old_div(wText,2), .4 + v))
         else:
           drumList = [self.keyList[Player.DRUM1], self.keyList[Player.DRUM1A], self.keyList[Player.DRUM2], self.keyList[Player.DRUM2A], \
                       self.keyList[Player.DRUM3], self.keyList[Player.DRUM3A], self.keyList[Player.DRUM4], self.keyList[Player.DRUM4A], \
@@ -5209,14 +5214,14 @@ class KeyTester(Layer, KeyListener):
             text = self.tsDrum
             text = "%s #%d" % (text, (i + 1))
             wText, hText = font.getStringSize(text)
-            font.render(text, ((.2 + .15 * i)-wText/2, .4 + v))
+            font.render(text, ((.2 + .15 * i)-old_div(wText,2), .4 + v))
   
         if self.controls.getState(self.keyList[Player.DRUMBASS]) or self.controls.getState(self.keyList[Player.DRUMBASSA]):
           glColor3f(*self.bassColor)
         else:
           glColor3f(.4, .4, .4)
         wText, hText = font.getStringSize(self.names[Player.DRUMBASS])
-        font.render(self.names[Player.DRUMBASS], (.5-wText/2, .5 + v))
+        font.render(self.names[Player.DRUMBASS], (.5-old_div(wText,2), .5 + v))
         
     finally:
       self.engine.view.resetProjection()
@@ -5430,7 +5435,7 @@ class LoadingSplashScreen(Layer, KeyListener):
   def shown(self):
     self.engine.input.addKeyListener(self, priority = True)
 
-  def keyPressed(self, key, unicode):
+  def keyPressed(self, key, str):
     return True
     
   def hidden(self):
@@ -5451,13 +5456,13 @@ class LoadingSplashScreen(Layer, KeyListener):
       v = (1 - visibility) ** 2
       fadeScreen(v)
       w, h = self.engine.view.geometry[2:4]
-      self.engine.drawImage(self.engine.data.loadingImage, scale = (1.0,-1.0), coord = (w/2,h/2), stretched = 3)
+      self.engine.drawImage(self.engine.data.loadingImage, scale = (1.0,-1.0), coord = (old_div(w,2),old_div(h,2)), stretched = 3)
       
       Theme.setBaseColor(1 - v)
       w, h = font.getStringSize(self.text, scale=self.fScale)
       
       x = self.loadingx
-      y = self.loadingy - h / 2 + v * .5
+      y = self.loadingy - old_div(h, 2) + v * .5
       
       #akedrou - support for Loading Text Color
       c1,c2,c3 = self.textColor
@@ -5501,7 +5506,7 @@ def isInt(possibleInt):
     else:
       #Log.debug("Dialogs.isInt: " + str(possibleInt) + " = FALSE")
       return False
-  except Exception, e:
+  except Exception as e:
     return False
     #Log.debug("Dialogs.isInt: " + str(possibleInt) + " = FALSE, exception: " + str(e) )
 

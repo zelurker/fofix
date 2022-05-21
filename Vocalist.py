@@ -1,3 +1,4 @@
+from __future__ import division
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
@@ -21,6 +22,10 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import Log
 import os
 from Language import _
@@ -39,7 +44,7 @@ from Svg import ImgDrawing
 diffMod    = {0: 1.4, 1: 1.6, 2: 1.75, 3: 1.9}
 baseScores = {0: 1000, 1: 800, 2: 400, 3: 200}
 
-class Vocalist:
+class Vocalist(object):
   def __init__(self, engine, playerObj, editorMode = False, player = 0):
     self.engine = engine
     self.mic = Microphone(self.engine, playerObj.controller)
@@ -200,9 +205,9 @@ class Vocalist:
     
     height = self.vocalMeter.height1()
     vocalSize = Theme.vocalMeterSize
-    self.vocalMeterScale = (vocalSize/height)*.5
+    self.vocalMeterScale = (old_div(vocalSize,height))*.5
     self.vocalFillWidth = self.vocalFill.width1()*self.vocalMeterScale/640.000
-    olFactor = height/Theme.vocalFillupFactor
+    olFactor = old_div(height,Theme.vocalFillupFactor)
     self.vocalFillupCenterX = int(Theme.vocalFillupCenterX*olFactor)
     self.vocalFillupCenterY = int(Theme.vocalFillupCenterY*olFactor)
     self.vocalFillupInRadius = int(Theme.vocalFillupInRadius*olFactor)
@@ -286,28 +291,28 @@ class Vocalist:
       bpm = 200
     self.currentBpm = bpm
     if self.nstype == 0:    #BPM mode
-      self.currentPeriod = (60000.0/bpm)/self.speed
+      self.currentPeriod = old_div((60000.0/bpm),self.speed)
     elif self.nstype == 1:   #Difficulty mode
       if self.difficulty == 0:    #expert
-        self.currentPeriod = 333/self.speed
+        self.currentPeriod = old_div(333,self.speed)
       elif self.difficulty == 1:
-        self.currentPeriod = 417/self.speed
+        self.currentPeriod = old_div(417,self.speed)
       elif self.difficulty == 2:
-        self.currentPeriod = 500/self.speed
+        self.currentPeriod = old_div(500,self.speed)
       else:   #easy
-        self.currentPeriod = 583/self.speed
+        self.currentPeriod = old_div(583,self.speed)
     elif self.nstype == 2:   #BPM & Diff mode
       if self.difficulty == 0:    #expert
-        self.currentPeriod = (40000.0/bpm)/self.speed
+        self.currentPeriod = old_div((40000.0/bpm),self.speed)
       elif self.difficulty == 1:
-        self.currentPeriod = (50000.0/bpm)/self.speed
+        self.currentPeriod = old_div((50000.0/bpm),self.speed)
       elif self.difficulty == 2:
-        self.currentPeriod = (60000.0/bpm)/self.speed
+        self.currentPeriod = old_div((60000.0/bpm),self.speed)
       else:   #easy
-        self.currentPeriod = (70000.0/bpm)/self.speed
+        self.currentPeriod = old_div((70000.0/bpm),self.speed)
     self.neckSpeed         = self.currentPeriod
-    self.earlyMargin       = 250 - bpm/5 - 70*self.hitw
-    self.lateMargin        = 250 - bpm/5 - 70*self.hitw
+    self.earlyMargin       = 250 - old_div(bpm,5) - 70*self.hitw
+    self.lateMargin        = 250 - old_div(bpm,5) - 70*self.hitw
   
   def getMultVals(self):
     if not self.starPowerActive:
@@ -441,13 +446,13 @@ class Vocalist:
     if players == 1:
       addY = .7
       addYText = .725*self.engine.data.fontScreenBottom
-      vsheetpos = (h*(1-addY))-(h*(height/2))
-      tappos = (h*(1-(addY-.02)))-(h*(height/2))
+      vsheetpos = (h*(1-addY))-(h*(old_div(height,2)))
+      tappos = (h*(1-(addY-.02)))-(h*(old_div(height,2)))
     else:
       addY = 0
       addYText = .025*self.engine.data.fontScreenBottom
-      vsheetpos = (h*(1-addY))-(h*(height/2))
-      tappos = (h*(1-(addY-.02)))-(h*(height/2))
+      vsheetpos = (h*(1-addY))-(h*(old_div(height,2)))
+      tappos = (h*(1-(addY-.02)))-(h*(old_div(height,2)))
     if not song:
       return
     glColor4f(1,1,1,1)
@@ -508,10 +513,10 @@ class Vocalist:
             if self.lyricMode == 0:
               x = time - pos
               if x < self.currentPeriod * 6 and x > -(self.currentPeriod * 2):
-                noteX = (x/(self.currentPeriod * 8))+.25
+                noteX = (old_div(x,(self.currentPeriod * 8)))+.25
                 self.engine.drawImage(self.vocalTapNote, scale = (.5,-.5), coord = (w*noteX,tappos))
             elif self.lyricMode == 1 or self.lyricMode == 2:
-              noteX = (.75*(time - phraseTime)/phraseLength)+.12
+              noteX = (old_div(.75*(time - phraseTime),phraseLength))+.12
               self.engine.drawImage(self.vocalTapNote, scale = (.5,-.5), coord = (w*noteX,tappos))
         else:
           now = False
@@ -526,8 +531,8 @@ class Vocalist:
             xStart = time - pos
             xEnd = time + event.length - pos
             if xStart < self.currentPeriod * 6 and xEnd > -(self.currentPeriod * 2):
-              xStartPos = (xStart/(self.currentPeriod * 8))+.25
-              xEndPos = (xEnd/(self.currentPeriod * 8))+.25
+              xStartPos = (old_div(xStart,(self.currentPeriod * 8)))+.25
+              xEndPos = (old_div(xEnd,(self.currentPeriod * 8)))+.25
               if event.speak or event.extra:
                 val = .5
               else:
@@ -574,8 +579,8 @@ class Vocalist:
             xStart = time - phraseTime
             xEnd = time - phraseTime + event.length
             if xStart < self.currentPeriod * 6 and xEnd > -(self.currentPeriod * 2):
-              xStartPos = (.75*(xStart/phraseLength))+.12
-              xEndPos = (.75*xEnd/phraseLength)+.12
+              xStartPos = (.75*(old_div(xStart,phraseLength)))+.12
+              xEndPos = (old_div(.75*xEnd,phraseLength))+.12
               if event.speak or event.extra:
                 val = .5
               else:
@@ -622,14 +627,14 @@ class Vocalist:
             if not event.played:
               x = time - pos
               if x > -(self.currentPeriod * 2):
-                noteX = (x/(self.currentPeriod * 8))+.25
+                noteX = (old_div(x,(self.currentPeriod * 8)))+.25
                 self.engine.drawImage(self.vocalTapNote, scale = (.5,-.5), coord = (w*noteX,tappos))
           else:
             xStart = time - pos
             xEnd = time + event.length - pos
             if xEnd > -(self.currentPeriod * 2):
-              xStartPos = (xStart/(self.currentPeriod * 8))+.25
-              xEndPos = (xEnd/(self.currentPeriod * 8))+.25
+              xStartPos = (old_div(xStart,(self.currentPeriod * 8)))+.25
+              xEndPos = (old_div(xEnd,(self.currentPeriod * 8)))+.25
               if event.speak or event.extra:
                 val = .5
               else:
@@ -670,7 +675,7 @@ class Vocalist:
           if self.nextPhrase[1].tapPhrase:
             x = time - pos
             if x < self.currentPeriod * 6:
-              noteX = (x/(self.currentPeriod * 8))+.25
+              noteX = (old_div(x,(self.currentPeriod * 8)))+.25
               self.engine.drawImage(self.vocalTapNote, scale = (.5,-.5), coord = (w*noteX,tappos))
           else:
             if self.nextPhrase[1].star:
@@ -680,8 +685,8 @@ class Vocalist:
             xStart = time - pos
             xEnd = time + event.length - pos
             if xStart < self.currentPeriod * 6:
-              xStartPos = (xStart/(self.currentPeriod * 8))+.25
-              xEndPos = (xEnd/(self.currentPeriod * 8))+.25
+              xStartPos = (old_div(xStart,(self.currentPeriod * 8)))+.25
+              xEndPos = (old_div(xEnd,(self.currentPeriod * 8)))+.25
               if event.speak or event.extra:
                 val = .5
               else:
@@ -749,20 +754,20 @@ class Vocalist:
     if self.lyricMode == 1 or self.lyricMode == 2:
       self.engine.drawImage(self.vocalBar, scale = (.5,-.5), coord = (w*.87,tappos))
       if self.activePhrase: #this checks the previous phrase or the current
-        noteX = (.75*(pos - phraseTime)/phraseLength)+.12
+        noteX = (old_div(.75*(pos - phraseTime),phraseLength))+.12
         if self.activePhrase.tapPhrase:
           self.engine.drawImage(self.vocalTap, scale = (.5,-.5), coord = (w*noteX,tappos))
         else:
-          self.engine.drawImage(self.vocalArrow, scale = (self.vocalLyricSheetWFactor,-self.vocalLyricSheetWFactor), coord = (w*noteX-(self.arrowW/2),h*baseY), color = (1,1,1,self.arrowVis/500.0))
+          self.engine.drawImage(self.vocalArrow, scale = (self.vocalLyricSheetWFactor,-self.vocalLyricSheetWFactor), coord = (w*noteX-(old_div(self.arrowW,2)),h*baseY), color = (1,1,1,self.arrowVis/500.0))
         self.engine.drawImage(self.vocalBar, scale = (.5,-.5), coord = (w*noteX,tappos))
     elif self.lyricMode == 0:
       if self.phrase and self.tapPhraseActive: #this checks the next phrase /or/ the current
         self.engine.drawImage(self.vocalTap, scale = (.5,-.5), coord = (w*.25,tappos))
       else:
         if self.currentNoteItem and (self.currentNoteItem.speak or self.currentNoteItem.extra):
-          self.engine.drawImage(self.vocalSplitArrow, scale = (self.vocalLyricSheetWFactor,-self.vocalLyricSheetWFactor), coord = (w*.25-(self.arrowW/2),h*(.8355-addY)), color = (1,1,1,self.arrowVis/500.0))
+          self.engine.drawImage(self.vocalSplitArrow, scale = (self.vocalLyricSheetWFactor,-self.vocalLyricSheetWFactor), coord = (w*.25-(old_div(self.arrowW,2)),h*(.8355-addY)), color = (1,1,1,self.arrowVis/500.0))
         else:
-          self.engine.drawImage(self.vocalArrow, scale = (self.vocalLyricSheetWFactor,-self.vocalLyricSheetWFactor), coord = (w*.25-(self.arrowW/2),h*baseY), rot = rotate, color = (1,1,1,self.arrowVis/500.0))
+          self.engine.drawImage(self.vocalArrow, scale = (self.vocalLyricSheetWFactor,-self.vocalLyricSheetWFactor), coord = (w*.25-(old_div(self.arrowW,2)),h*baseY), rot = rotate, color = (1,1,1,self.arrowVis/500.0))
       a = [0] #this sticks a bar in at the beginning, so at least you know the vocal code is aware the song started.
       if self.lastPhrase:
         a.extend([self.lastPhrase[0], self.lastPhrase[0]+self.lastPhrase[1].length])
@@ -777,7 +782,7 @@ class Vocalist:
         tLast = t
         x = t - pos
         if x < self.currentPeriod * 6 and x > -(self.currentPeriod * 2):
-          xPos = (x/(self.currentPeriod * 8))+.25
+          xPos = (old_div(x,(self.currentPeriod * 8)))+.25
           if t < pos:
             v = (xPos*4)
           else:
@@ -804,10 +809,10 @@ class Vocalist:
       if self.lyricMode == 1 or self.lyricMode == 2:
         xStart = -(self.currentPeriod*2)
         xEnd   = self.currentPeriod*6
-        noteX = (.75*(pos - startTime)/(endTime - startTime))+.12
+        noteX = (old_div(.75*(pos - startTime),(endTime - startTime)))+.12
       if xStart < self.currentPeriod * 6 or xEnd > -(self.currentPeriod*2):
-        xStartPos = (xStart/(self.currentPeriod*8))+.25
-        xEndPos = (xEnd/(self.currentPeriod*8))+.25
+        xStartPos = (old_div(xStart,(self.currentPeriod*8)))+.25
+        xEndPos = (old_div(xEnd,(self.currentPeriod*8)))+.25
         if self.vocalLyricSheetSP:
           width = (xEndPos-xStartPos)*w
           widthImg = self.vocalSheetSPWidth
@@ -826,7 +831,7 @@ class Vocalist:
             else:
               partUsed = float(width)/float(widthImg)
               width = 0
-            self.engine.drawImage(self.vocalLyricSheetSP, scale = (self.vocalLyricSheetWFactor*partUsed,-self.vocalLyricSheetWFactor), coord = (xStartPos+(widthImg*partUsed/2),vsheetpos), rect = (0,partUsed,0,1))
+            self.engine.drawImage(self.vocalLyricSheetSP, scale = (self.vocalLyricSheetWFactor*partUsed,-self.vocalLyricSheetWFactor), coord = (xStartPos+(old_div(widthImg*partUsed,2)),vsheetpos), rect = (0,partUsed,0,1))
             xStartPos += widthImg
         if self.lyricMode == 1 or self.lyricMode == 2:
           self.engine.drawImage(self.vocalBar, scale = (.5,-.5), coord = (w*noteX,tappos))
@@ -892,7 +897,7 @@ class Vocalist:
             scorePt = self.phraseTapsHit * self.baseScore
             taps = self.phraseTapsHit
           else:
-            score = (self.phraseInTune/self.phraseNoteTime)
+            score = (old_div(self.phraseInTune,self.phraseNoteTime))
             scorePt = int(score * self.vocalBaseScore)
             taps = 0
           if not self.coOpRestart and not self.coOpFailed:
@@ -947,7 +952,7 @@ class Vocalist:
           scorePt = self.phraseTapsHit * self.baseScore
           taps = self.phraseTapsHit
         else:
-          score = (self.phraseInTune/self.phraseNoteTime)
+          score = (old_div(self.phraseInTune,self.phraseNoteTime))
           scorePt = int(score * self.vocalBaseScore)
           taps = 0
         if not self.coOpFailed and not self.coOpRestart:
@@ -987,7 +992,7 @@ class Vocalist:
         oldPhraseNum = self.phraseIndex - 2
         if oldPhraseNum >= 0:
           oldPhrase = track.allEvents[oldPhraseNum]
-          if pos < oldPhrase[0] + oldPhrase[1].length + (self.currentPeriod/2):
+          if pos < oldPhrase[0] + oldPhrase[1].length + (old_div(self.currentPeriod,2)):
             self.activePhrase = oldPhrase[1]
             self.oldTime = oldPhrase[0]
             self.oldLength = oldPhrase[1].length
@@ -1094,7 +1099,7 @@ class Vocalist:
             self.tapBuffer = 0 #(self.tapBufferMargin*120)/self.currentBpm
       #myfingershurt: must not decrease SP if paused.
       if self.starPowerActive == True and self.paused == False:
-        self.starPower -= ticks/self.starPowerDecreaseDivisor 
+        self.starPower -= old_div(ticks,self.starPowerDecreaseDivisor) 
         if self.starPower <= 0:
           self.starPower = 0
           self.starPowerActive = False

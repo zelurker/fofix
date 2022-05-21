@@ -2,7 +2,7 @@
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
 # modify it under the terms of the GNU General Public License       #
@@ -20,6 +20,8 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import str
+from builtins import object
 import pygame
 import os
 import sys
@@ -29,7 +31,7 @@ from PIL import Image
 import Log
 import struct
 
-class Video:
+class Video(object):
   def __init__(self, caption = "Game", icon = None):
     self.screen       = None
     self.caption      = caption
@@ -74,7 +76,7 @@ class Video:
 
     try:
       self.screen = pygame.display.set_mode(resolution, flags)
-    except Exception, e:
+    except Exception as e:
       errortype = str(e)
       if "video mode" in errortype:
         self.resolutionReset()
@@ -153,7 +155,7 @@ class Video:
     try:
       self.screen = pygame.display.set_mode((800,600), self.flags)
       self.default = True
-    except Exception, e:
+    except Exception as e:
       if self.multisamples:
         self.multisampleReset((800, 600))
       else:
@@ -166,7 +168,7 @@ class Video:
     self.multisamples = 0
     try:
       self.screen = pygame.display.set_mode(resolution, self.flags)
-    except Exception, e:
+    except Exception as e:
       if "video mode" in str(e):
         self.resolutionReset()
       else:

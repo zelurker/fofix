@@ -49,7 +49,7 @@ if language:
       else:
         return catalog.gettext(m).decode(encoding)
     _ = translate
-  except Exception, x:
+  except Exception as x:
     Log.warn("Unable to select language '%s': %s" % (language, x))
     language = None
     Config.set("game", "language", "")

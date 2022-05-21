@@ -1,8 +1,9 @@
+from __future__ import division
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #               2008 myfingershurt                                  #
 #               2008 evilynux <evilynux@gmail.com>                  #
 #                                                                   #
@@ -22,6 +23,9 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import str
+from past.utils import old_div
+from builtins import object
 import re
 import os
 from xml import sax
@@ -51,7 +55,7 @@ if not hasattr(sax.xmlreader.AttributesImpl, '__contains__'):
 
 Config.define("opengl",  "svgshaders",   bool,  False, text = "Use OpenGL SVG shaders",   options = {False: "No", True: "Yes"})
 
-class SvgGradient:
+class SvgGradient(object):
   def __init__(self, gradientDesc, transform):
     self.gradientDesc = gradientDesc
     self.transform = transform
@@ -60,7 +64,7 @@ class SvgGradient:
     m = dot(transform.matrix, self.transform.matrix)
     self.gradientDesc.SetMatrix(transform.getGMatrix(m))
 
-class SvgContext:
+class SvgContext(object):
   def __init__(self, geometry):
     self.kernel = amanith.GKernel()
     self.geometry = geometry
@@ -94,7 +98,7 @@ class SvgContext:
   def clear(self, r = 0, g = 0, b = 0, a = 0):
     self.drawBoard.Clear(r, g, b, a)
 
-class SvgRenderStyle:
+class SvgRenderStyle(object):
   def __init__(self, baseStyle = None):
     self.strokeColor = None
     self.strokeWidth = None
@@ -139,14 +143,14 @@ class SvgRenderStyle:
 
   def __cmp__(self, s):
     if s:
-      for k, v in self.__dict__.items():
+      for k, v in list(self.__dict__.items()):
         if v != getattr(s, k):
           return 1
       return 0
     return 1
 
   def __repr__(self):
-    return "<SvgRenderStyle " + " ".join(["%s:%s" % (k, v) for k, v in self.__dict__.items()]) + ">"
+    return "<SvgRenderStyle " + " ".join(["%s:%s" % (k, v) for k, v in list(self.__dict__.items())]) + ">"
 
   def applyAttributes(self, attrs, defs):
     style = attrs.get("style")
@@ -209,7 +213,7 @@ class SvgRenderStyle:
     if self.strokeLineJoin is not None:
       drawBoard.SetStrokeJoinStyle(self.strokeLineJoin)
 
-class SvgTransform:
+class SvgTransform(object):
   def __init__(self, baseTransform = None):
     self._gmatrix = amanith.GMatrix33()
     self.reset()
@@ -449,7 +453,7 @@ class SvgHandler(sax.ContentHandler):
     if self.context() == "gradient":
       self.stops.append(attrs)
 
-class SvgCache:
+class SvgCache(object):
   def __init__(self, drawBoard):
     self.drawBoard = drawBoard
     self.displayList = []
@@ -498,7 +502,7 @@ class SvgCache:
     except:
       pass
 
-class ImgDrawing:
+class ImgDrawing(object):
   def __init__(self, context, ImgData):
     self.ImgData = None
     self.texture = None
@@ -507,9 +511,7 @@ class ImgDrawing:
     self.transform = SvgTransform()
 
     # Detect the type of data passed in
-    if type(ImgData) == file:
-      self.ImgData = ImgData.read()
-    elif type(ImgData) == str:
+    if type(ImgData) == str:
       bitmapFile = ImgData.replace(".svg", ".png")
       # Load PNG files directly
       if ImgData.endswith(".png"):
@@ -532,6 +534,9 @@ class ImgDrawing:
     elif isinstance(ImgData, Image.Image): #stump: let a PIL image be passed in
       self.texture = Texture()
       self.texture.loadImageData(ImgData)
+    else: # assuming file
+      # if type(ImgData) == file:
+      self.ImgData = ImgData.read()
 
     # Make sure we have a valid texture
     if not self.texture:
@@ -580,7 +585,7 @@ class ImgDrawing:
 
   def widthf(self, pixelw):
     width = self.texture.pixelSize[0]
-    wfactor = pixelw/width
+    wfactor = old_div(pixelw,width)
     if not width == None:
       return wfactor
     else:

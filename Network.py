@@ -2,7 +2,7 @@
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
 # modify it under the terms of the GNU General Public License       #
@@ -20,10 +20,13 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
 from FakeNetworking import socket, asyncore
 import struct
 import time
-import StringIO
+import io
 
 import Log
 
@@ -60,7 +63,7 @@ class ObjectCollection(dict):
   def generateId(self):
     self.idCounter += 1
     return self.idCounter
-  
+
 class Connection(asyncore.dispatcher):
   def __init__(self, sock = None):
     asyncore.dispatcher.__init__(self, sock = sock)
@@ -69,7 +72,7 @@ class Connection(asyncore.dispatcher):
     self._buffer = []
     self._sentSizeField = False
     self._receivedSizeField = 0
-    self._packet = StringIO.StringIO()
+    self._packet = io.StringIO()
 
     if not sock:
       self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -81,6 +84,7 @@ class Connection(asyncore.dispatcher):
   def connect(self, host, port = PORT):
     assert self.id is None
 
+    print("connect host=",host," port ",port)
     asyncore.dispatcher.connect(self, (host, port))
 
     # do a blocking connect
@@ -93,10 +97,11 @@ class Connection(asyncore.dispatcher):
 
   def accept(self, id):
     assert self.id is None
-    
+
     self.id = id
     self._buffer.append(struct.pack("H", self.id))
     self.handleRegistration()
+    print("accept handle ok")
 
   def setServer(self, server):
     self.server = server
@@ -127,13 +132,14 @@ class Connection(asyncore.dispatcher):
             self.handlePacket(self._packet.getvalue())
           self._packet.truncate()
           self._packet.seek(0)
-    except socket.error, e:
+    except socket.error as e:
       Log.error("Socket error while receiving: %s" % str(e))
 
   def writable(self):
     return len(self._buffer) > 0
 
   def sendPacket(self, packet):
+    print("net sendpacket 1 ",packet)
     self._buffer.append(packet)
 
   def handlePacket(self, packet):
@@ -167,7 +173,7 @@ class Connection(asyncore.dispatcher):
       else:
         self._buffer = self._buffer[1:]
         self._sentSizeField = False
-    except socket.error, e:
+    except socket.error as e:
       Log.error("Socket error while sending: %s" % str(e))
 
 class Server(asyncore.dispatcher):
@@ -179,7 +185,8 @@ class Server(asyncore.dispatcher):
     self.listen(5)
     self.clients = {}
     self.__idCounter = 0
-        
+    print("server ok")
+
   def handle_accept(self):
     sock, addr = self.accept()
     self.__idCounter += 1
@@ -188,6 +195,7 @@ class Server(asyncore.dispatcher):
     conn.accept(self.__idCounter)
     self.clients[self.__idCounter] = conn
     self.handleConnectionOpen(conn)
+    print("server handle accept")
 
   def createConnection(self, sock):
     return Connection(sock = sock)
@@ -200,10 +208,11 @@ class Server(asyncore.dispatcher):
     self.handle_close()
 
   def handleClose(self):
-    for c in self.clients.values():
+    for c in list(self.clients.values()):
       c.close()
 
   def handle_close(self):
+    print("server handle close")
     return self.handleClose()
 
   def handleConnectionClose(self, connection):
@@ -211,13 +220,14 @@ class Server(asyncore.dispatcher):
       del self.clients[connection.id]
 
   def broadcastPacket(self, packet, ignore = [], meToo = True):
-    for c in self.clients.values():
+    for c in list(self.clients.values()):
       if not c.id in ignore:
         c.sendPacket(packet)
     if meToo:
-      self.clients.values()[0].handlePacket(packet)
+      list(self.clients.values())[0].handlePacket(packet)
 
   def sendPacket(self, receiverId, packet):
+    print("network sendpacket 2 ",packet)
     self.clients[receiverId].sendPacket(packet)
 
 def communicate(cycles = 1):

@@ -2,7 +2,7 @@
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
 # modify it under the terms of the GNU General Public License       #
@@ -22,11 +22,14 @@
 
 from __future__ import division
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import Log
 import Config
 from PIL import Image
 import pygame
-import StringIO
+import io
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -41,7 +44,7 @@ class TextureException(Exception):
 # certain conditions due to a bug in Python.
 cleanupQueue = []
 
-class Texture:
+class Texture(object):
   """Represents an OpenGL texture, optionally loaded from disk in any format supported by PIL"""
 
   def __init__(self, name = None, target = GL_TEXTURE_2D):

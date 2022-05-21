@@ -24,6 +24,9 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import str
+from builtins import range
+from builtins import object
 import pygame
 import Config
 import Resource
@@ -36,7 +39,7 @@ from Language import _
 #import Dialogs
 import Microphone  #stump
 
-class ConfigOption:
+class ConfigOption(object):
   def __init__(self, id, text):
     self.id   = id
     self.text = text
@@ -60,7 +63,7 @@ class ConfigOption:
 
 def sortOptionsByKey(dict):
   a = {}
-  for k in dict.keys():
+  for k in list(dict.keys()):
     a[k] = ConfigOption(k, dict[k])
   return a
 
@@ -73,10 +76,10 @@ except ImportError:
 import Log
 
 #akedrou - Redoing this, sir. Redoing this...
-CONTROL1          = [1<<n for n in xrange(20)]
-CONTROL2          = [1<<n for n in xrange(20, 40)]
-CONTROL3          = [1<<n for n in xrange(40, 60)]
-CONTROL4          = [1<<n for n in xrange(60, 80)]
+CONTROL1          = [1<<n for n in range(20)]
+CONTROL2          = [1<<n for n in range(20, 40)]
+CONTROL3          = [1<<n for n in range(40, 60)]
+CONTROL4          = [1<<n for n in range(60, 80)]
 CONTROLS          = [CONTROL1, CONTROL2, CONTROL3, CONTROL4]
 LEFT              = 0
 RIGHT             = 1
@@ -261,7 +264,7 @@ class PlayerCacheManager(object): #akedrou - basically stump's cache for the pla
   def getCache(self):
     '''Returns the Player Information Cache'''
     cachePath = playerpath
-    if self.caches.has_key(cachePath):
+    if cachePath in self.caches:
       try:
         self.caches[cachePath].commit()
         return self.caches[cachePath]
@@ -360,7 +363,7 @@ def loadPlayers():
           upname = c.get("player","name")
           del c
           playerpref.append((lefty, drumf, autok, assist, twoch, neckt, neck, part, diff, upname))
-        except IOError, e:
+        except IOError as e:
           playerpref.append((0, 0, 0, 0, 0, 0, "", 0, 2, ""))
   return 1
 
@@ -503,7 +506,7 @@ def pluginControls(activeControls):
   player2 = playerkeys[2]
   player3 = playerkeys[3]
 
-class Controls:
+class Controls(object):
   def __init__(self):
 
     self.logClassInits = Config.get("game", "log_class_inits")
@@ -770,7 +773,7 @@ class Controls:
       controlMapping = self.checkMapping(controlMapping, i)
       self.controlMapping.update(controlMapping)
       
-    self.reverseControlMapping = dict((value, key) for key, value in self.controlMapping.iteritems() )
+    self.reverseControlMapping = dict((value, key) for key, value in self.controlMapping.items() )
     
     # Multiple key support
     self.heldKeys = {}
@@ -809,10 +812,10 @@ class Controls:
     okconflict = lefts + rights + ups + downs + starts + cancels
     a = []
     b = len(self.overlap)
-    for key, value in newDict.iteritems():
+    for key, value in newDict.items():
       if key == "None":
         continue
-      if key in self.controlMapping.keys():
+      if key in list(self.controlMapping.keys()):
         if value in okconflict:
           if self.getMapping(key) in okconflict:
             continue

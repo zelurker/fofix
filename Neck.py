@@ -1,3 +1,4 @@
+from __future__ import division
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
@@ -22,6 +23,10 @@
 #####################################################################
 
 
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import Player
 from Song import Tempo, Bars
 import Theme
@@ -37,7 +42,7 @@ import os
 import Log
 import Song   #need the base song defines as well
 
-class Neck:
+class Neck(object):
   def __init__(self, engine, instrument, playerObj):
 
     self.engine         = engine
@@ -74,7 +79,7 @@ class Neck:
       #self.boardLength    = 9.0  
 
     self.beatsPerBoard  = 5.0
-    self.beatsPerUnit   = self.beatsPerBoard / self.boardLength
+    self.beatsPerUnit   = old_div(self.beatsPerBoard, self.boardLength)
 
 
     color = (1,1,1)
@@ -94,24 +99,24 @@ class Neck:
     l            = self.boardLength
 
     # evilynux - Neck vertices
-    self.board_vtx = array([[-w / 2, 0, -2],
-                            [w / 2, 0, -2],
-                            [-w/ 2, 0, -1],
-                            [w / 2, 0, -1],
-                            [-w / 2, 0, l * .7],
-                            [w / 2, 0, l * .7],
-                            [-w / 2, 0, l],
-                            [w / 2, 0, l]], dtype=float32)
+    self.board_vtx = array([[old_div(-w, 2), 0, -2],
+                            [old_div(w, 2), 0, -2],
+                            [old_div(-w, 2), 0, -1],
+                            [old_div(w, 2), 0, -1],
+                            [old_div(-w, 2), 0, l * .7],
+                            [old_div(w, 2), 0, l * .7],
+                            [old_div(-w, 2), 0, l],
+                            [old_div(w, 2), 0, l]], dtype=float32)
     # evilynux - Sidebars vertices
     w += 0.15
-    self.sidebars_vtx = array([[-w / 2, 0, -2],
-                               [w / 2, 0, -2],
-                               [-w/ 2, 0, -1],
-                               [w / 2, 0, -1],
-                               [-w / 2, 0, l * .7],
-                               [w / 2, 0, l * .7],
-                               [-w / 2, 0, l],
-                               [w / 2, 0, l]], dtype=float32)
+    self.sidebars_vtx = array([[old_div(-w, 2), 0, -2],
+                               [old_div(w, 2), 0, -2],
+                               [old_div(-w, 2), 0, -1],
+                               [old_div(w, 2), 0, -1],
+                               [old_div(-w, 2), 0, l * .7],
+                               [old_div(w, 2), 0, l * .7],
+                               [old_div(-w, 2), 0, l],
+                               [old_div(w, 2), 0, l]], dtype=float32)
 
     # evilynux - Just in case the type has became double, convert to float32
     self.board_col = self.board_col.astype(float32)
@@ -375,7 +380,7 @@ class Neck:
     self.canGuitarSolo = self.instrument.canGuitarSolo
     self.guitarSolo = False
     self.scoreMultiplier = 1
-    self.overdriveFlashCounts = self.indexFps/4   #how many cycles to display the oFlash: self.indexFps/2 = 1/2 second
+    self.overdriveFlashCounts = old_div(self.indexFps,4)   #how many cycles to display the oFlash: self.indexFps/2 = 1/2 second
     self.overdriveFlashCount = self.overdriveFlashCounts
     self.ocount = 0
     self.paused = False
@@ -387,7 +392,7 @@ class Neck:
       return
     
     def project(beat):
-      return 0.125 * beat / self.beatsPerUnit    # glorandwarf: was 0.12
+      return old_div(0.125 * beat, self.beatsPerUnit)    # glorandwarf: was 0.12
 
     v            = visibility
     w            = self.boardWidth
@@ -396,7 +401,7 @@ class Neck:
     #offset       = (pos - self.lastBpmChange) / self.currentPeriod + self.baseBeat 
     offset = 0
 
-    z  = ((time - pos) / self.currentPeriod) / self.beatsPerUnit
+    z  = old_div((old_div((time - pos), self.currentPeriod)), self.beatsPerUnit)
 
     color = (1,1,1)
 
@@ -409,34 +414,34 @@ class Neck:
     glColor4f(color[0],color[1],color[2], 0)
     glTexCoord2f(0.0, project(offset - 2 * self.beatsPerUnit))
     #glVertex3f(-w / 2, 0, -2)
-    glVertex3f(-w / 2, 0, z)   #point A
+    glVertex3f(old_div(-w, 2), 0, z)   #point A
     glTexCoord2f(1.0, project(offset - 2 * self.beatsPerUnit))
     #glVertex3f( w / 2, 0, -2)
-    glVertex3f( w / 2, 0, z)   #point B
+    glVertex3f( old_div(w, 2), 0, z)   #point B
 
     
     glColor4f(color[0],color[1],color[2], v)
     glTexCoord2f(0.0, project(offset - 1 * self.beatsPerUnit))
     #glVertex3f(-w / 2, 0, -1)
-    glVertex3f(-w / 2, 0, z+1)   #point C
+    glVertex3f(old_div(-w, 2), 0, z+1)   #point C
     glTexCoord2f(1.0, project(offset - 1 * self.beatsPerUnit))
     #glVertex3f( w / 2, 0, -1)
-    glVertex3f( w / 2, 0, z+1)   #point D
+    glVertex3f( old_div(w, 2), 0, z+1)   #point D
     
     glTexCoord2f(0.0, project(offset + l * self.beatsPerUnit * .7))
     #glVertex3f(-w / 2, 0, l * .7)
-    glVertex3f(-w / 2, 0, z+2+l * .7) #point E
+    glVertex3f(old_div(-w, 2), 0, z+2+l * .7) #point E
     glTexCoord2f(1.0, project(offset + l * self.beatsPerUnit * .7))
     #glVertex3f( w / 2, 0, l * .7)
-    glVertex3f( w / 2, 0, z+2+l * .7) #point F
+    glVertex3f( old_div(w, 2), 0, z+2+l * .7) #point F
     
     glColor4f(color[0],color[1],color[2], 0)
     glTexCoord2f(0.0, project(offset + l * self.beatsPerUnit))
     #glVertex3f(-w / 2, 0, l)
-    glVertex3f(-w / 2, 0, z+2+l)    #point G
+    glVertex3f(old_div(-w, 2), 0, z+2+l)    #point G
     glTexCoord2f(1.0, project(offset + l * self.beatsPerUnit))
     #glVertex3f( w / 2, 0, l)
-    glVertex3f( w / 2, 0, z+2+l)    #point H
+    glVertex3f( old_div(w, 2), 0, z+2+l)    #point H
     glEnd()
     
     glDisable(GL_TEXTURE_2D)
@@ -511,7 +516,7 @@ class Neck:
   def renderNeckMethod(self, visibility, offset, neck, alpha = False): #blazingamer: New neck rendering method
     
     def project(beat):
-      return 0.125 * beat / self.beatsPerUnit    # glorandwarf: was 0.12
+      return old_div(0.125 * beat, self.beatsPerUnit)    # glorandwarf: was 0.12
       
     if self.instrument.starPowerActive and self.theme == 0:#8bit
       color = Theme.fretColors[5] #self.spColor #(.3,.7,.9)
@@ -573,7 +578,7 @@ class Neck:
     w            = self.boardWidth
     l            = self.boardLength
 
-    offset       = (pos - self.lastBpmChange) / self.currentPeriod + self.baseBeat 
+    offset       = old_div((pos - self.lastBpmChange), self.currentPeriod) + self.baseBeat 
 
     #myfingershurt: every theme can have oNeck:
 
@@ -652,10 +657,10 @@ class Neck:
       shaders.setVar("fretcol",neckcol)
       shaders.update()
       glBegin(GL_TRIANGLE_STRIP)
-      glVertex3f(-w / 2, 0.1, -2)
-      glVertex3f(w / 2, 0.1, -2)
-      glVertex3f(-w / 2, 0.1, l)
-      glVertex3f(w / 2, 0.1, l)
+      glVertex3f(old_div(-w, 2), 0.1, -2)
+      glVertex3f(old_div(w, 2), 0.1, -2)
+      glVertex3f(old_div(-w, 2), 0.1, l)
+      glVertex3f(old_div(w, 2), 0.1, l)
       glEnd()
       shaders.disable()
     else:
@@ -675,7 +680,7 @@ class Neck:
       return
 
     def project(beat):
-      return 0.125 * beat / self.beatsPerUnit    # glorandwarf: was 0.12
+      return old_div(0.125 * beat, self.beatsPerUnit)    # glorandwarf: was 0.12
 
     if self.theme == 0 or self.theme == 1:
       size = 2
@@ -689,7 +694,7 @@ class Neck:
     if self.staticStrings:
       offset       = 0
     else:
-      offset       = (pos - self.lastBpmChange) / self.currentPeriod + self.baseBeat 
+      offset       = old_div((pos - self.lastBpmChange), self.currentPeriod) + self.baseBeat 
 
     track_tex  = array([[0.0, project(offset - 2 * self.beatsPerUnit)],
                          [1.0, project(offset - 2 * self.beatsPerUnit)],
@@ -712,14 +717,14 @@ class Neck:
       self.centerLines.texture.bind()
 
       
-    track_vtx       = array([[-w / 2, 0, -2+size],
-                           [w / 2, 0, -2+size],
-                           [-w / 2, 0, -1+size],
-                           [w / 2, 0, -1+size],
-                           [-w / 2, 0, l * .7],
-                           [w / 2, 0, l * .7],
-                           [-w / 2, 0, l],
-                           [w / 2, 0, l]], dtype=float32)
+    track_vtx       = array([[old_div(-w, 2), 0, -2+size],
+                           [old_div(w, 2), 0, -2+size],
+                           [old_div(-w, 2), 0, -1+size],
+                           [old_div(w, 2), 0, -1+size],
+                           [old_div(-w, 2), 0, l * .7],
+                           [old_div(w, 2), 0, l * .7],
+                           [old_div(-w, 2), 0, l],
+                           [old_div(w, 2), 0, l]], dtype=float32)
     
     if self.staticStrings:    #MFH
       color = (1,1,1)
@@ -764,13 +769,13 @@ class Neck:
       return
 
     def project(beat):
-      return 0.125 * beat / self.beatsPerUnit  # glorandwarf: was 0.12
+      return old_div(0.125 * beat, self.beatsPerUnit)  # glorandwarf: was 0.12
 
     v            = visibility
     w            = self.boardWidth + 0.15
     l            = self.boardLength
 
-    offset       = (pos - self.lastBpmChange) / self.currentPeriod + self.baseBeat 
+    offset       = old_div((pos - self.lastBpmChange), self.currentPeriod) + self.baseBeat 
 
     c = (1,1,1)
 
@@ -805,20 +810,20 @@ class Neck:
     if self.theme == 1:   
       if shaders.enable("sololight"):
         shaders.modVar("color",shaders.var["solocolor"])
-        shaders.setVar("offset",(-3.5,-w/2))
+        shaders.setVar("offset",(-3.5,old_div(-w,2)))
         glBegin(GL_TRIANGLE_STRIP)
-        glVertex3f(w / 2-1.0, 0.4, -2)
-        glVertex3f(w / 2+1.0, 0.4, -2)
-        glVertex3f(w / 2-1.0, 0.4, l)
-        glVertex3f(w / 2+1.0, 0.4, l)
+        glVertex3f(old_div(w, 2)-1.0, 0.4, -2)
+        glVertex3f(old_div(w, 2)+1.0, 0.4, -2)
+        glVertex3f(old_div(w, 2)-1.0, 0.4, l)
+        glVertex3f(old_div(w, 2)+1.0, 0.4, l)
         glEnd()   
-        shaders.setVar("offset",(-3.5,w/2))
+        shaders.setVar("offset",(-3.5,old_div(w,2)))
         shaders.setVar("time",shaders.time()+0.5)
         glBegin(GL_TRIANGLE_STRIP)
-        glVertex3f(-w / 2+1.0, 0.4, -2)
-        glVertex3f(-w / 2-1.0, 0.4, -2)
-        glVertex3f(-w / 2+1.0, 0.4, l)
-        glVertex3f(-w / 2-1.0, 0.4, l)
+        glVertex3f(old_div(-w, 2)+1.0, 0.4, -2)
+        glVertex3f(old_div(-w, 2)-1.0, 0.4, -2)
+        glVertex3f(old_div(-w, 2)+1.0, 0.4, l)
+        glVertex3f(old_div(-w, 2)-1.0, 0.4, l)
         glEnd()  
         shaders.disable()
 
@@ -842,11 +847,11 @@ class Neck:
 
       glPushMatrix()
 
-      z  = ((time - pos) / self.currentPeriod) / self.beatsPerUnit
-      z2 = ((time + event.length - pos) / self.currentPeriod) / self.beatsPerUnit
+      z  = old_div((old_div((time - pos), self.currentPeriod)), self.beatsPerUnit)
+      z2 = old_div((old_div((time + event.length - pos), self.currentPeriod)), self.beatsPerUnit)
 
       if z > self.boardLength:
-        f = (self.boardLength - z) / (self.boardLength * .2)
+        f = old_div((self.boardLength - z), (self.boardLength * .2))
       elif z < 0:
         f = min(1, max(0, 1 + z2))
       else:
@@ -862,10 +867,10 @@ class Neck:
         sw  = 0.1 #width
         self.bpm_measure.texture.bind()
 
-      bpm_vtx  = array([[-(w / 2), 0,  z + sw],
-                         [-(w / 2), 0,  z - sw],
-                         [(w / 2), 0,  z + sw],
-                         [(w / 2), 0,  z - sw]], dtype=float32)
+      bpm_vtx  = array([[-(old_div(w, 2)), 0,  z + sw],
+                         [-(old_div(w, 2)), 0,  z - sw],
+                         [(old_div(w, 2)), 0,  z + sw],
+                         [(old_div(w, 2)), 0,  z - sw]], dtype=float32)
 
       bpm_tex  = array([[0.0, 1.0],
                          [0.0, 0.0],

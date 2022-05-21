@@ -1,3 +1,4 @@
+from __future__ import division
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
@@ -29,6 +30,9 @@
 # a bit of unnecessary stuff and to make numpy do all the heavy lifting.
 # (Four lines of commentary that align perfectly... what about a fifth?)
 
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import math
 import numpy
 
@@ -66,7 +70,7 @@ class Tone(object):
 
   def __cmp__(self, rhs):
     if isinstance(rhs, float):
-      diff = self.freq / rhs - 1.0
+      diff = old_div(self.freq, rhs) - 1.0
       if abs(diff) < 0.05:
         return 0
       elif diff < 0.0:
@@ -93,16 +97,16 @@ class Analyzer(object):
 
     # Use a Hamming window.
     # The numpy function to make one isn't this precise.
-    self.window = numpy.array([0.53836 - 0.46164 * math.cos(2.0 * math.pi * i / (FFT_N - 1)) for i in range(FFT_N)])
+    self.window = numpy.array([0.53836 - 0.46164 * math.cos(old_div(2.0 * math.pi * i, (FFT_N - 1))) for i in range(FFT_N)])
 
     # Precalculate some constants used in the analysis code.
-    self.freqPerBin = self.rate / FFT_N
-    self.phaseStep = 2.0 * math.pi * self.step / FFT_N
+    self.freqPerBin = old_div(self.rate, FFT_N)
+    self.phaseStep = old_div(2.0 * math.pi * self.step, FFT_N)
     self.normCoeff = 1.0 / FFT_N
-    self.minMagnitude = pow(10, -100.0 / 20.0) / self.normCoeff  # -100 dB
+    self.minMagnitude = old_div(pow(10, -100.0 / 20.0), self.normCoeff)  # -100 dB
     # Limit the frequency range processed.
-    self.kMin = max(1, int(FFT_MINFREQ / self.freqPerBin))
-    self.kMax = min(FFT_N / 2, int(FFT_MAXFREQ / self.freqPerBin))
+    self.kMin = max(1, int(old_div(FFT_MINFREQ, self.freqPerBin)))
+    self.kMax = min(old_div(FFT_N, 2), int(old_div(FFT_MAXFREQ, self.freqPerBin)))
     self.fftLastPhase = numpy.zeros(self.kMax)
 
     self.peakDecayFactor = numpy.power(0.999, numpy.arange(4096, -1, -1))  # 4097 elements on purpose
@@ -111,7 +115,7 @@ class Analyzer(object):
     '''Add input data to buffer.'''
 
     if len(ary) > 4096:
-      raise ValueError, 'Input array is too long (4096 samples max)'
+      raise ValueError('Input array is too long (4096 samples max)')
 
     # Update the peak dB level.
     peakary = numpy.concatenate((numpy.array([self.peak]), numpy.square(ary)))
@@ -186,7 +190,7 @@ class Analyzer(object):
       if t.freq > maxfreq:
         break
       score = t.db - max(180.0, abs(t.freq - 300.0)) / 10.0
-      if self.oldfreq != 0.0 and abs(t.freq / self.oldfreq - 1.0) < 0.05:
+      if self.oldfreq != 0.0 and abs(old_div(t.freq, self.oldfreq) - 1.0) < 0.05:
         score += 10.0
       if best is not None and bestscore > score:
         break
@@ -251,14 +255,14 @@ class Analyzer(object):
         bestDiv = 1
         bestScore = 0
         for div in range(2, Tone.MAXHARM + 1):
-          if k / div > 1:
+          if old_div(k, div) > 1:
             break
-          freq = peakFreqs[k] / div  # fundamental
+          freq = old_div(peakFreqs[k], div)  # fundamental
           score = 0
           for n in range(1, min(div, 8)):
-            p = match(peakDbs, k * n / div)
+            p = match(peakDbs, old_div(k * n, div))
             score -= 1
-            if peakDbs[p] < -90.0 or abs(peakFreqs[p] / n / freq - 1.0) > 0.03:
+            if peakDbs[p] < -90.0 or abs(old_div(old_div(peakFreqs[p], n), freq) - 1.0) > 0.03:
               continue
             if n == 1:  # bonus for fundamental
               score += 4
@@ -269,17 +273,17 @@ class Analyzer(object):
         # Make the Tone object from the fundamental (freq) and all harmonics.
         t = Tone()
         count = 0
-        freq = peakFreqs[k] / bestDiv
+        freq = old_div(peakFreqs[k], bestDiv)
         t.db = peakDbs[k]
         for n in range(1, bestDiv+1):
           # Find the peak for the nth harmonic.
-          p = match(peakDbs, k * n / bestDiv)
-          if abs(peakFreqs[p] / n / freq - 1.0) > 0.03:  # fundamental?
+          p = match(peakDbs, old_div(k * n, bestDiv))
+          if abs(old_div(old_div(peakFreqs[p], n), freq) - 1.0) > 0.03:  # fundamental?
             continue
           if peakDbs[p] > t.db - 10.0:
             t.db = max(t.db, peakDbs[p])
             count += 1
-            t.freq += peakFreqs[p] / n
+            t.freq += old_div(peakFreqs[p], n)
           t.harmonics[n-1] = peakDbs[p]
           peakFreqs[p], peakDbs[p] = 0.0, NEGINF
         t.freq /= count

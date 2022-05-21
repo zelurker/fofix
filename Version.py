@@ -2,7 +2,7 @@
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
 # modify it under the terms of the GNU General Public License       #
@@ -20,6 +20,7 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import str
 import sys
 import os
 VERSION = '3.121'
@@ -45,7 +46,7 @@ def version():
     # stump: if we've been py2exe'd, read our version string from the exe.
     if sys.frozen == 'windows_exe':
       import win32api
-      us = os.path.abspath(unicode(sys.executable, sys.getfilesystemencoding()))
+      us = os.path.abspath(str(sys.executable, sys.getfilesystemencoding()))
       version = win32api.GetFileVersionInfo(us, r'\StringFileInfo\%04x%04x\ProductVersion' % win32api.GetFileVersionInfo(us, r'\VarFileInfo\Translation')[0])
     else:
       version = "%s%s" % ( VERSION, revision() )

@@ -1,8 +1,9 @@
+from __future__ import division
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
 # modify it under the terms of the GNU General Public License       #
@@ -20,6 +21,8 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import object
+from past.utils import old_div
 from Player import Player
 from View import BackgroundLayer
 from Session import MessageHandler, Message
@@ -53,7 +56,7 @@ class ActorDeleted(Message): pass
 class ActorData(Message): pass
 class ControlData(Message): pass
 
-class Actor:
+class Actor(object):
   def __init__(self, scene):
     self.scene = scene
     self.body = ode.Body(scene.world)
@@ -99,7 +102,7 @@ class Actor:
 
     # calculate the screen-space x and y coordinates
     x, y, z = gluProject(x, y, z, modelview, projection, viewport)
-    scale = self.scale / wz
+    scale = old_div(self.scale, wz)
 
     s.transform.reset()
     s.transform.translate(x, y)
@@ -238,7 +241,7 @@ class SceneClient(Scene, KeyListener):
   def hidden(self):
     self.engine.input.removeKeyListener(self)
 
-  def keyPressed(self, key, unicode):
+  def keyPressed(self, key, str):
     c = self.controls.keyPressed(key)
     if c:
       self.session.sendMessage(ControlEvent(flags = self.controls.flags))
@@ -333,7 +336,7 @@ class SceneServer(Scene):
       id = self.objects.id(actor)
       self.server.broadcastMessage(ActorData(id = id, data = actor.getState()), meToo = False)
 
-    for sender, flags in self.changedControlData.items():
+    for sender, flags in list(self.changedControlData.items()):
       self.server.broadcastMessage(ControlData(owner = sender, flags = flags))
     self.changedControlData = {}
 

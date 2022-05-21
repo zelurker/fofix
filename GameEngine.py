@@ -1,8 +1,10 @@
+from __future__ import division
+from __future__ import print_function
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #               2008 Alarian                                        #
 #               2008 myfingershurt                                  #
 #               2008 Glorandwarf                                    #
@@ -28,6 +30,11 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from past.builtins import cmp
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 from OpenGL.GL import *
 from numpy import array, float32
 import pygame
@@ -65,7 +72,7 @@ def getEngine():
     global gameEngine
     return gameEngine
 
-class ConfigOption:
+class ConfigOption(object):
   def __init__(self, id, text):
     self.id   = id
     self.text = text
@@ -84,7 +91,7 @@ class ConfigOption:
 
 def sortOptionsByKey(dict):
   a = {}
-  for k in dict.keys():
+  for k in list(dict.keys()):
     a[k] = ConfigOption(k, dict[k])
   return a
 
@@ -143,8 +150,8 @@ Config.define("audio",  "screwupvol", float,   0.25,  text = _("Screw-Up Sounds"
 
 #MFH: below are normal 0-10 volume settings.
 #akedrou - these are 1-10 (not 0-10) because a setting of 0 will trigger the "miss volume"
-Config.define("audio",  "guitarvol",  float,    1.0,  text = _("Active Track Volume"),   options = dict([(n / 100.0, "%02d/10" % (n / 10)) for n in range(10, 110, 10)]), tipText = _("Volume of the parts you are playing."))
-Config.define("audio",  "songvol",    float,    0.8,  text = _("Background Volume"),     options = dict([(n / 100.0, "%02d/10" % (n / 10)) for n in range(10, 110, 10)]), tipText = _("Volume of the parts you are not playing."))
+Config.define("audio",  "guitarvol",  float,    1.0,  text = _("Active Track Volume"),   options = dict([(n / 100.0, "%02d/10" % (old_div(n, 10))) for n in range(10, 110, 10)]), tipText = _("Volume of the parts you are playing."))
+Config.define("audio",  "songvol",    float,    0.8,  text = _("Background Volume"),     options = dict([(n / 100.0, "%02d/10" % (old_div(n, 10))) for n in range(10, 110, 10)]), tipText = _("Volume of the parts you are not playing."))
 #Config.define("audio",  "rhythmvol",  float,    1.0,  text = ("Rhythm Volume"),   options = dict([(n / 100.0, "%02d/10" % (n / 10)) for n in range(0, 110, 10)]), tipText = ("Bass, rhythm guitar, and drum volume."))
 
 Config.define("performance", "game_priority",       int,   2,      text = _("Process Priority"), options = sortOptionsByKey({0: _("Idle"), 1: _("Low"), 2: _("Normal"), 3:_("Above Normal"), 4:_("High"), 5:_("Realtime")}), tipText = _("Change this to increase the priority of the FoFiX process. Don't change this unless you know what you're doing. DO NOT set this to Realtime. Ever."))
@@ -244,7 +251,7 @@ Config.define("game",  "overlay_neck_alpha",  float,    1.0,  text = _("Overlay 
 Config.define("game",  "necks_alpha",  float,    1.0,  text = _("All Necks"),   options = dict([(n / 100.0, "%3d%s" % (n,"%")) for n in range(0, 110, 10)]), tipText = _("Set the master transparency of all necks. 100% is fully visible."))
 
 Config.define("game", "scroll_delay",             int, 500,  text = _("Scroll Delay"), options = dict([(n, n) for n in range(100, 2001, 100)]), tipText = _("Sets how long, in milliseconds, to wait before beginning to scroll."))
-Config.define("game", "scroll_rate",              int, 50,   text = _("Scroll Rate"),  options = dict([(n, 10-((n/10)-1)) for n in range(10, 101, 10)]), tipText = _("Sets how quickly menus will scroll."))
+Config.define("game", "scroll_rate",              int, 50,   text = _("Scroll Rate"),  options = dict([(n, 10-((old_div(n,10))-1)) for n in range(10, 101, 10)]), tipText = _("Sets how quickly menus will scroll."))
 
 #MFH - debug settings
 Config.define("debug",   "use_unedited_midis",          int, 1,    text = _("Use (notes-unedited.mid)"), options = {0: _("No"), 1: _("Yes")}, tipText = _("Sets whether to look for (and use) a 'notes-unedited.mid' before 'notes.mid'. There's no reason to change this."))
@@ -359,14 +366,14 @@ Config.define("game", "use_graphical_submenu", int,   1,      text = _("Graphica
 Config.define("audio",  "enable_crowd_tracks", int,  1,      text = _("Crowd Cheers"), options = sortOptionsByKey({0: _("Off (Disabled)"), 1: _("During SP Only"), 2: _("During SP & Green"), 3: _("Always On")}), tipText = _("Sets when the crowd will cheer for you (if a crowd.ogg is present). 'During SP' will have them sing along in star power, and 'During SP & Green' will have them cheering both in SP and when your rock meter is above 2/3")) #akedrou
 #Config.define("audio",  "miss_volume",         float, 0.2,    text = _("Miss Volume"), options = dict([(n / 100.0, "%d%%" % n) for n in range(0, 100, 10)]))
 #Config.define("audio",  "single_track_miss_volume",         float, 0.9,    text = _("Single Track Miss"), options = dict([(n / 100.0, "%d%%" % n) for n in range(0, 100, 10)]))
-Config.define("audio",  "miss_volume",         float, 0.2,    text = _("Miss Volume"), options = dict([(n / 100.0, "%02d/10" % (n / 10)) for n in range(0, 110, 10)]), tipText = _("Set the volume of the active track when you miss a note."))  #MFH
-Config.define("audio",  "single_track_miss_volume",         float, 0.9,    text = _("Single Track Miss"), options = dict([(n / 100.0, "%02d/10" % (n / 10)) for n in range(0, 110, 10)]), tipText = _("When playing a song with only a single track, this sets the volume of the track when you miss a note."))  #MFH
-Config.define("audio",  "menu_volume",         float, 0.6,    text = _("Menu Volume"), options = dict([(n / 100.0, "%02d/10" % (n / 10)) for n in range(0, 110, 10)]), tipText = _("Set the volume of the background menu music.")) #akedrou
+Config.define("audio",  "miss_volume",         float, 0.2,    text = _("Miss Volume"), options = dict([(n / 100.0, "%02d/10" % (old_div(n, 10))) for n in range(0, 110, 10)]), tipText = _("Set the volume of the active track when you miss a note."))  #MFH
+Config.define("audio",  "single_track_miss_volume",         float, 0.9,    text = _("Single Track Miss"), options = dict([(n / 100.0, "%02d/10" % (old_div(n, 10))) for n in range(0, 110, 10)]), tipText = _("When playing a song with only a single track, this sets the volume of the track when you miss a note."))  #MFH
+Config.define("audio",  "menu_volume",         float, 0.6,    text = _("Menu Volume"), options = dict([(n / 100.0, "%02d/10" % (old_div(n, 10))) for n in range(0, 110, 10)]), tipText = _("Set the volume of the background menu music.")) #akedrou
 
-Config.define("audio",  "crowd_volume",       float, 0.8,    text = _("Crowd Volume"), options = dict([(n / 100.0, "%02d/10" % (n / 10)) for n in range(0, 110, 10)]), tipText = _("Set the volume of the crowd.")) #akedrou
+Config.define("audio",  "crowd_volume",       float, 0.8,    text = _("Crowd Volume"), options = dict([(n / 100.0, "%02d/10" % (old_div(n, 10))) for n in range(0, 110, 10)]), tipText = _("Set the volume of the crowd.")) #akedrou
 
-Config.define("audio",  "kill_volume",         float, 0.0,    text = _("Kill Volume"), options = dict([(n / 100.0, "%02d/10" % (n / 10)) for n in range(0, 110, 10)]), tipText = _("Sets the volume when using the killswitch."))  #MFH
-Config.define("audio",  "SFX_volume",         float, 0.7,    text = _("SFX Volume"), options = dict([(n / 100.0, "%02d/10" % (n / 10)) for n in range(0, 110, 10)]), tipText = _("Sets the volume of various sound effects."))  #MFH
+Config.define("audio",  "kill_volume",         float, 0.0,    text = _("Kill Volume"), options = dict([(n / 100.0, "%02d/10" % (old_div(n, 10))) for n in range(0, 110, 10)]), tipText = _("Sets the volume when using the killswitch."))  #MFH
+Config.define("audio",  "SFX_volume",         float, 0.7,    text = _("SFX Volume"), options = dict([(n / 100.0, "%02d/10" % (old_div(n, 10))) for n in range(0, 110, 10)]), tipText = _("Sets the volume of various sound effects."))  #MFH
 
 
 # evilynux - Preload glyph cache may require more VRAM. Disable it if you're low on VRAM e.g. less than 64MB
@@ -420,7 +427,7 @@ class FullScreenSwitcher(KeyListener):
     self.engine = engine
     self.altStatus = False
 
-  def keyPressed(self, key, unicode):
+  def keyPressed(self, key, str):
     if key == pygame.K_LALT:
       self.altStatus = True
     elif key == pygame.K_RETURN and self.altStatus:
@@ -553,15 +560,15 @@ class GameEngine(Engine):
 
     Log.debug("Initializing video.")
     #myfingershurt: ensuring windowed mode starts up in center of the screen instead of cascading positions:
-    os.environ['SDL_VIDEO_WINDOW_POS'] = 'center'
 
     width, height = [int(s) for s in self.config.get("video", "resolution").split("x")]
     self.x = Config.get("video","x")
     self.y = Config.get("video","y")
-    os.environ['SDL_VIDEO_WINDOW_POS'] = str(self.x)+","+str(self.y)
     fullscreen    = self.config.get("video", "fullscreen")
     multisamples  = self.config.get("video", "multisamples")
+    print("appel setMode ",width,"x",height," multisamples = ",multisamples)
     self.video.setMode((width, height), fullscreen = fullscreen, multisamples = multisamples)
+    print("ok")
 
     if self.video.default:
       self.config.set("video", "fullscreen", False)
@@ -631,7 +638,7 @@ class GameEngine(Engine):
         thisIsAnAnimatedStageFolder = False
         try:
           aniStageFolderListing = os.listdir(os.path.join(stagespath,name))
-        except Exception, e:
+        except Exception as e:
           #Log.debug(name + " is not a folder, cannot list contents: " + str(e))
           thisIsAnAnimatedStageFolder = False
         for aniFile in aniStageFolderListing:
@@ -712,7 +719,7 @@ class GameEngine(Engine):
         self.audioSpeedFactor = factor
         pygame.init()
         Log.debug("Initializing pygame.mixer & audio system at " + str(self.frequency*factor) + " Hz." )
-      except Exception, e:
+      except Exception as e:
         Log.error("Failed to initialize or re-initialize pygame.mixer & audio system - crash imminent!")
 
   # evilynux - This stops the crowd cheers if they're still playing (issue 317).
@@ -884,15 +891,15 @@ class GameEngine(Engine):
     if stretched == 0: #don't sctretch
       image.transform.scale(scale[0],scale[1])
     elif stretched == 1: # fit to width
-      image.transform.scale(scale[0] / image.width1() * 640,scale[1])
+      image.transform.scale(old_div(scale[0], image.width1()) * 640,scale[1])
     elif stretched == 2: # fit to height
-      image.transform.scale(scale[0],scale[1] / image.height1() * 480)
+      image.transform.scale(scale[0],old_div(scale[1], image.height1()) * 480)
     elif stretched == 11: # fit to width and keep ratio
-      image.transform.scale(scale[0] / image.width1() * 640,scale[1] / image.width1() * 640)
+      image.transform.scale(old_div(scale[0], image.width1()) * 640,old_div(scale[1], image.width1()) * 640)
     elif stretched == 12: # fit to height and keep ratio
-      image.transform.scale(scale[0] / image.height1() * 480,scale[1] / image.height1() * 480)
+      image.transform.scale(old_div(scale[0], image.height1()) * 480,old_div(scale[1], image.height1()) * 480)
     else: # fit to screen
-      image.transform.scale(scale[0] / image.width1() * 640,scale[1] / image.height1() * 480)
+      image.transform.scale(old_div(scale[0], image.width1()) * 640,old_div(scale[1], image.height1()) * 480)
     image.transform.translate(coord[0],coord[1])
     image.draw(color = color, rect = rect, lOffset = lOffset, rOffset = rOffset)
 
@@ -1063,7 +1070,7 @@ class GameEngine(Engine):
       sys.exit(0)
     except SystemExit:
       sys.exit(0)
-    except Exception, e:
+    except Exception as e:
       def clearMatrixStack(stack):
         try:
           glMatrixMode(stack)
@@ -1091,6 +1098,6 @@ class GameEngine(Engine):
         self.disconnect(session)
       self.stopServer()
 
-      Dialogs.showMessage(self, str(e.__class__.__name__) + ": " + unicode(e))
+      Dialogs.showMessage(self, str(e.__class__.__name__) + ": " + str(e))
       self.handlingException = False
       return True

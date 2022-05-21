@@ -2,7 +2,7 @@
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
 # modify it under the terms of the GNU General Public License       #
@@ -20,10 +20,12 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from future import standard_library
+standard_library.install_aliases()
 import Network
 import Engine
 import Log
-import cPickle as pickle
+import pickle as pickle
 
 from Session import ServerSession, MessageBroker
 from World import WorldServer
@@ -54,7 +56,7 @@ class Server(Network.Server, Engine.Task):
       pass
 
   def broadcastMessage(self, message, meToo = True, ignore = []):
-    for id, session in self.sessions.items():
+    for id, session in list(self.sessions.items()):
       if id in ignore: continue
       session.sendMessage(message)
     if meToo:

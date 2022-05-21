@@ -1,8 +1,9 @@
+from __future__ import print_function
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
 # modify it under the terms of the GNU General Public License       #
@@ -20,8 +21,12 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 import pickle
-from StringIO import StringIO
+from io import StringIO
 
 class Serializer(pickle.Pickler):
   def persistent_id(self, obj):
@@ -43,7 +48,7 @@ def serialize(data):
 def unserialize(manager, data):
   return Unserializer(manager, StringIO(data)).load()
 
-class Manager:
+class Manager(object):
   MSG_CREATE = 0
   MSG_CHANGE = 1
   MSG_DELETE = 2
@@ -87,8 +92,8 @@ class Manager:
   def getChanges(self, everything = False):
     data = []
     if everything:
-      data += [(self.MSG_CREATE, [(id, data) for id, data in self.__creationData.items()])]
-      data += [(self.MSG_CHANGE, [(o.id, o.getChanges(everything = True)) for o in self.objects.values()])]
+      data += [(self.MSG_CREATE, [(id, data) for id, data in list(self.__creationData.items())])]
+      data += [(self.MSG_CHANGE, [(o.id, o.getChanges(everything = True)) for o in list(self.objects.values())])]
     else:
       if self.__created: data += [(self.MSG_CREATE, [(o.id, self.__creationData[o.id]) for o in self.__created])]
       if self.__changed: data += [(self.MSG_CHANGE, [(o.id, o.getChanges()) for o in self.__changed])]
@@ -117,15 +122,15 @@ class Manager:
           id = data
           del self.__creationData[id]
           del self.objects[id]
-      except Exception, e:
-        print "Exception %s while processing incoming changes from manager %s." % (str(e), managerId)
+      except Exception as e:
+        print("Exception %s while processing incoming changes from manager %s." % (str(e), managerId))
         raise
 
 def enableGlobalManager():
   global manager
   manager = Manager()
 
-class Message:
+class Message(object):
   classes = {}
   
   def __init__(self):

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
@@ -19,16 +20,20 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,        #
 # MA  02110-1301, USA.                                              #
 #####################################################################
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 import unittest
 try:
   import hashlib
 except ImportError:
   import sha
-  class hashlib:
+  class hashlib(object):
     sha1 = sha.sha
 import Cerealizer
 import binascii
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 class CerealizerTest(unittest.TestCase):
   def setUp(self):
@@ -81,10 +86,10 @@ class CerealizerTest(unittest.TestCase):
                  "61333133633264310a72310a69300a310a72320a72300a"
     scores = Cerealizer.loads(binascii.unhexlify(scoresHash))
     self.assertEqual(scores[0][0][2], "Azzco")
-    print scores[0][0] # Shows that name string IS UTF8 encoded
-    print scores[0][0][2]
+    print(scores[0][0]) # Shows that name string IS UTF8 encoded
+    print(scores[0][0][2])
     score = scores[0][0][0], scores[0][0][1], str(scores[0][0][2]), scores[0][0][3]
-    print score
+    print(score)
 
 if __name__ == "__main__":
   unittest.main()

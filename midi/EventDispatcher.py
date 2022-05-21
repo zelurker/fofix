@@ -1,17 +1,19 @@
 # -*- coding: ISO-8859-1 -*-
 
 # std library
+from __future__ import absolute_import
+from builtins import object
 from struct import unpack
 
 # custom
-from DataTypeConverters import readBew, readVar, varLen, toBytes
+from .DataTypeConverters import readBew, readVar, varLen, toBytes
 
 # uhh I don't really like this, but there are so many constants to
 # import otherwise
-from constants import *
+from .constants import *
 
 
-class EventDispatcher:
+class EventDispatcher(object):
 
 
     def __init__(self, outstream):
@@ -132,7 +134,7 @@ class EventDispatcher:
 
         else:
 
-            raise ValueError, 'Illegal channel message!'
+            raise ValueError('Illegal channel message!')
 
 
 
@@ -261,7 +263,7 @@ class EventDispatcher:
             try:
                 nn, dd, cc, bb = toBytes(data)
                 stream.time_signature(nn, dd, cc, bb)
-            except ValueError, e:
+            except ValueError as e:
                 pass
 
         # KEY_SIGNATURE = 0x59 (59 02 sf mi)
@@ -286,7 +288,7 @@ class EventDispatcher:
 if __name__ == '__main__':
 
 
-    from MidiToText import MidiToText
+    from .MidiToText import MidiToText
 
     outstream = MidiToText()
     dispatcher = EventDispatcher(outstream)

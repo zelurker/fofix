@@ -2,7 +2,7 @@
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
 # modify it under the terms of the GNU General Public License       #
@@ -22,19 +22,20 @@
 
 """Mock amanith implementation that does next to nothing."""
 
+from builtins import object
 from OpenGL.GL import *
 
 G_LOW_RENDERING_QUALITY    = 0
 G_NORMAL_RENDERING_QUALITY = 1
 G_HIGH_RENDERING_QUALITY   = 2
 
-class GKernel:
+class GKernel(object):
   pass
 
-class GMatrix33:
+class GMatrix33(object):
   pass
 
-class GOpenGLBoard:
+class GOpenGLBoard(object):
   def __init__(*a, **b):
     pass
 

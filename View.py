@@ -2,7 +2,7 @@
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #               2008 QQStarS                                        #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
@@ -32,10 +32,10 @@ from Task import Task
 class Layer(Task):
   def render(self, visibility, topMost):
     pass
-    
+
   def shown(self):
     pass
-  
+
   def hidden(self):
     pass
 
@@ -66,7 +66,7 @@ class View(Task):
 
   def pushLayer(self, layer):
     Log.debug("View: Push: %s" % layer.__class__.__name__)
-    
+
     if not layer in self.layers:
       self.layers.append(layer)
       self.incoming.append(layer)
@@ -87,7 +87,7 @@ class View(Task):
 
   def popLayer(self, layer):
     Log.debug("View: Pop: %s" % layer.__class__.__name__)
-    
+
     if layer in self.incoming:
       self.incoming.remove(layer)
     if layer in self.layers and not layer in self.outgoing:
@@ -99,16 +99,16 @@ class View(Task):
 
   def isTransitionInProgress(self):
     return self.incoming or self.outgoing
-    
+
   def run(self, ticks):
     if not self.layers:
       return
 
     topLayer = self.topLayer()
-    
+
     #t = ticks / self.transitionTime
     t = self.engine.clock.get_time() / self.transitionTime
-    
+
     for layer in list(self.layers):
       if not layer in self.visibility:
         continue
@@ -145,7 +145,7 @@ class View(Task):
       # aspect ratio correction
       h *= (float(w) / float(h)) / (4.0 / 3.0)
       viewport = [0, 0, 1, h / w]
-  
+
     if yIsDown:
       glOrtho(viewport[0], viewport[2] - viewport[0],
               viewport[3] - viewport[1], viewport[1], -100, 100);
@@ -155,7 +155,7 @@ class View(Task):
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-  
+
   def resetProjection(self):
     glMatrixMode(GL_PROJECTION)
     glPopMatrix()
@@ -193,18 +193,18 @@ class View(Task):
     geometry = list(self.savedGeometry)
     if screens != 1:
       geometry[0] = int(geometry[0]+(screen*geometry[2]/screens))
-      geometry[2] = int(geometry[2]/screens) 
+      geometry[2] = int(geometry[2]/screens)
       geometry[1] = int(geometry[1])#+(geometry[3]/screens*2/3)) #QQstarS
       geometry[3] = int((geometry[3]/screens)*1.5) #QQstarS: make the Y postion smaller
     geometry = tuple(geometry)
     self.geometry = geometry
 
     glViewport(int(geometry[0]), int(geometry[1]), int(geometry[2]), int(geometry[3]))
-    glScissor(int(geometry[0]), int(geometry[1]), int(geometry[2]), int(geometry[3]))    
+    glScissor(int(geometry[0]), int(geometry[1]), int(geometry[2]), int(geometry[3]))
 
   def resetGeometry(self):
     assert self.savedGeometry
-    
+
     self.savedGeometry, geometry = None, self.savedGeometry
     self.geometry = geometry
     glViewport(int(geometry[0]), int(geometry[1]), int(geometry[2]), int(geometry[3]))

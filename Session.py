@@ -2,7 +2,7 @@
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
 # modify it under the terms of the GNU General Public License       #
@@ -20,8 +20,13 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import zip
+from builtins import object
 import pickle
-from StringIO import StringIO
+from io import BytesIO
 
 import Network
 import Engine
@@ -37,22 +42,22 @@ except:
     seq.reverse()
     return seq
 
-class Message:
+class Message(object):
   def __init__(self, **args):
-    for key, value in args.items():
+    for key, value in list(args.items()):
       setattr(self, key, value)
 
   def __repr__(self):
-    return "<Message %s %s>" % (str(self.__class__), " ".join(["%s='%s'" % (k, v) for k, v in self.__dict__.items()]))
-  
-class MessageBroker:
+    return "<Message %s %s>" % (str(self.__class__), " ".join(["%s='%s'" % (k, v) for k, v in list(self.__dict__.items())]))
+
+class MessageBroker(object):
   def __init__(self):
     self.messageHandlers = []
 
   def addMessageHandler(self, handler):
     if handler not in self.messageHandlers:
       self.messageHandlers.append(handler)
-    
+
   def removeMessageHandler(self, handler):
     if handler in self.messageHandlers:
       self.messageHandlers.remove(handler)
@@ -64,7 +69,7 @@ class MessageBroker:
     for handler in reversed(self.messageHandlers):
       try:
         handler.handleMessage(sender, message)
-      except Exception, e:
+      except Exception as e:
         import traceback
         traceback.print_exc()
 
@@ -76,7 +81,7 @@ class MessageBroker:
     for handler in self.messageHandlers:
       handler.handleSessionClosed(session)
 
-class MessageHandler:
+class MessageHandler(object):
   def handleMessage(self, sender, message):
     f = None
     try:
@@ -92,13 +97,13 @@ class MessageHandler:
   def handleSessionClosed(self, session):
     pass
 
-class Phrasebook:
+class Phrasebook(object):
   def __init__(self):
     self.receivedClasses = {}
     self.sentClasses = {}
 
   def serialize(data):
-    s = StringIO()
+    s = BytesIO()
     pickle.Pickler(s, protocol = 2).dump(data)
     return s.getvalue()
   serialize = staticmethod(serialize)
@@ -116,17 +121,17 @@ class Phrasebook:
     elif id in self.receivedClasses:
       message = self.receivedClasses[id][0]()
       if len(data) > 1:
-        message.__dict__.update(dict(zip(self.receivedClasses[id][1], data[1:])))
+        message.__dict__.update(dict(list(zip(self.receivedClasses[id][1], data[1:]))))
       return message
     else:
       Log.warn("Message with unknown class received: %d" % id)
 
   def encode(self, message):
     packets = []
-    
+
     if not message.__class__ in self.sentClasses:
       id = len(self.sentClasses) + 1
-      definition = [message.__class__, message.__dict__.keys()]
+      definition = [message.__class__, list(message.__dict__.keys())]
       self.sentClasses[message.__class__] = [id] + definition
       packets.append(self.serialize([-id] + definition))
       Log.debug("%d phrases taught." % len(self.sentClasses))
@@ -146,7 +151,7 @@ class BaseSession(Network.Connection, Task.Task, MessageHandler):
 
   def __str__(self):
     return "<Session #%s at %s>" % (self.id, self.addr)
-  
+
   def isPrimary(self):
     return self.id == 1
 
@@ -162,6 +167,7 @@ class BaseSession(Network.Connection, Task.Task, MessageHandler):
   def sendMessage(self, message):
     #print "Sent by %s:%s: %s" % (self.__class__, self.id, message)
     #self.sendPacket(message.serialize())
+    print("session sendpacket")
     for packet in self.phrasebook.encode(message):
       self.sendPacket(packet)
 
@@ -174,7 +180,7 @@ class BaseSession(Network.Connection, Task.Task, MessageHandler):
 
   def isConnected(self):
     return self.id is not None
-  
+
 class ServerSession(BaseSession):
   def __init__(self, engine, sock):
     BaseSession.__init__(self, engine = engine, broker = engine.server.broker, sock = sock)
@@ -192,9 +198,9 @@ class ServerSession(BaseSession):
   def handleClose(self):
     self.broker.signalSessionClosed(self)
     BaseSession.handleClose(self)
-    
+
 class ConnectionLost(Message): pass
-    
+
 class ClientSession(BaseSession):
   def __init__(self, engine):
     BaseSession.__init__(self, engine = engine, broker = MessageBroker())

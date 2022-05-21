@@ -1,15 +1,18 @@
 # -*- coding: ISO-8859-1 -*-
 
 # standard library imports
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import sys
-from types import StringType
 from struct import unpack
-from cStringIO import StringIO
+from io import StringIO
 
 # custom import
-from DataTypeConverters import writeBew, writeVar, fromBytes
+from .DataTypeConverters import writeBew, writeVar, fromBytes
 
-class RawOutstreamFile:
+class RawOutstreamFile(object):
 
     """
 
@@ -43,7 +46,7 @@ class RawOutstreamFile:
     def write(self):
         "Writes to disc"
         if self.outfile:
-            if isinstance(self.outfile, StringType):
+            if isinstance(self.outfile, str):
                 outfile = open(self.outfile, 'wb')
                 outfile.write(self.getvalue())
                 outfile.close()

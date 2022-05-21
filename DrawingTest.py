@@ -19,6 +19,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,        #
 # MA  02110-1301, USA.                                              #
 #####################################################################
+from __future__ import division
+from __future__ import print_function
+from builtins import range
+from past.utils import old_div
 from OpenGL.GL import *
 try:
   from OpenGL.arrays import vbo
@@ -49,7 +53,7 @@ def init():
     nbSteps = 200.0
     
     for i in range(int(nbSteps)):
-      ratio = i/nbSteps;
+      ratio = old_div(i,nbSteps);
       angle = 21*ratio
       c = cos(angle)
       s = sin(angle);
@@ -73,7 +77,7 @@ def init():
       triangVbo = vbo.VBO( triangArray, usage='GL_STATIC_DRAW' )
       spiralVbo = vbo.VBO( spiralArray, usage='GL_STATIC_DRAW' )
     else:
-      print "VBO not supported, fallbacking to array-based drawing."
+      print("VBO not supported, fallbacking to array-based drawing.")
       mode = 1
 
 def draw():
@@ -168,12 +172,12 @@ def main():
         mode = (mode + 1) % 3
         if mode == 0 and not vbo_support:
           mode = (mode + 1) % 3
-          print "VBO not supported, fallbacking to %s drawing." % modeName[mode]
+          print("VBO not supported, fallbacking to %s drawing." % modeName[mode])
       elif event.type == KEYDOWN and event.key == K_LEFT:
         mode = (mode - 1) % 3
         if mode == 0 and not vbo_support:
           mode = (mode - 1) % 3
-          print "VBO not supported, fallbacking to %s drawing." % modeName[mode]
+          print("VBO not supported, fallbacking to %s drawing." % modeName[mode])
         
       ticksDiff = pygame.time.get_ticks()-ticks
 
@@ -191,10 +195,10 @@ def main():
 
       frames = frames+1
       if( ticksDiff > 2000 ):
-        fps = ((frames*1000)/(ticksDiff))
+        fps = (old_div((frames*1000),(ticksDiff)))
         ticks = pygame.time.get_ticks()
         frames = 0
-        print "mode: %s, %.2f fps" % (modeName[mode], fps)
+        print("mode: %s, %.2f fps" % (modeName[mode], fps))
       # evilynux - commented the following so we go as fast as we can
       #clock.tick(60)
 

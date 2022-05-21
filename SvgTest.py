@@ -1,8 +1,9 @@
+from __future__ import division
 #####################################################################
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
 # modify it under the terms of the GNU General Public License       #
@@ -20,6 +21,7 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from past.utils import old_div
 import unittest
 from GameEngine import GameEngine
 from Texture import Texture
@@ -38,13 +40,13 @@ class SvgTest(unittest.TestCase):
   def testRenderToTexture(self):
     scale = 4
     fullwidth, fullheight = 512, 512
-    width, height = int(fullwidth / scale), int(fullheight / scale)
+    width, height = int(old_div(fullwidth, scale)), int(old_div(fullheight, scale))
     t = Texture()
     self.e.svg.setProjection((0, 0, fullwidth, fullheight))
     
     glViewport(0, 0, width, height)
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    self.svg.transform.translate(width * scale / 2, height * scale / 2)
+    self.svg.transform.translate(old_div(width * scale, 2), old_div(height * scale, 2))
     self.svg.transform.rotate(3.141592)
     self.svg.draw()
 

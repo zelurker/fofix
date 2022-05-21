@@ -2,7 +2,7 @@
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
 # modify it under the terms of the GNU General Public License       #
@@ -89,7 +89,7 @@ class World(MessageHandler):
     scene  = self.objects[sceneId]
     player = self.objects[playerId]
     scene.addPlayer(player)
-    
+
   def handleSceneLeft(self, sender, sceneId, playerId):
     try:
       scene  = self.objects[sceneId]
@@ -97,7 +97,7 @@ class World(MessageHandler):
       scene.removePlayer(player)
     except KeyError:
       pass
-    
+
 class WorldServer(World):
   def __init__(self, engine, server):
     World.__init__(self, engine, server.broker)
@@ -112,14 +112,14 @@ class WorldServer(World):
     id = self.objects.generateId()
     self.server.broadcastMessage(SceneCreated(id = id, owner = sender, name = name, args = args))
     return id
-  
+
   def handleDeleteScene(self, sender, id):
     try:
       scene = self.objects[id]
       self.deleteScene(scene)
     except KeyError:
       pass
-  
+
   def deletePlayer(self, player):
     id = self.objects.id(player)
     self.server.broadcastMessage(PlayerLeft(id = id))
@@ -162,8 +162,11 @@ class WorldServer(World):
         self.deleteScene(scene)
 
   def handleStartGame(self, sender, args):
+    print("handleStartGame")
     self.server.broadcastMessage(GameStarted())
+    print("message ok")
     id = self.createScene(STARTUP_SCENE, **args)
+    print("createscene ",id)
     if id:
       for player in self.players:
         playerId = self.objects.id(player)
@@ -197,12 +200,12 @@ class WorldServer(World):
     except KeyError:
       pass
     World.handleSceneDeleted(self, sender, id)
-    
+
   def finishGameIfNeeded(self):
     if not self.players and not self.scenes:
       self.server.broadcastMessage(GameFinished())
     World.finishGameIfNeeded(self)
-    
+
 class WorldClient(World):
   def __init__(self, engine, session):
     World.__init__(self, engine, session.broker)
@@ -239,16 +242,17 @@ class WorldClient(World):
     self.session.sendMessage(DeleteScene(id = id))
 
   def startGame(self, **args):
+    print("send startgame message ",args)
     self.session.sendMessage(StartGame(args = args))
 
   def getLocalPlayer(self):
     for player in self.players:
       if player.owner == self.session.id:
         return player
-      
+
   def getMultiplayers(self):
     return self.players[1:len(self.players)]
-        
+
   def handleSceneCreated(self, sender, id, owner, name, args):
     try:
       scene = SceneFactory.create(engine = self.engine, name = name, owner = owner, session = self.session, **args)

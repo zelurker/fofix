@@ -1,3 +1,4 @@
+from __future__ import print_function
 # pitchbend - pitch-bend the output of the SDL mixer
 # Copyright (C) 2008-2009 John Stumpo
 #
@@ -36,6 +37,6 @@ def get_svn_info(path='.'):
 if __name__ == '__main__':
   import sys
   try:
-    print repr(get_svn_info(sys.argv[1]))
+    print(repr(get_svn_info(sys.argv[1])))
   except IndexError:
-    print repr(get_svn_info())
+    print(repr(get_svn_info()))

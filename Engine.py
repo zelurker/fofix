@@ -2,7 +2,7 @@
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # Frets on Fire                                                     #
-# Copyright (C) 2006 Sami Kyöstilä                                  #
+# Copyright (C) 2006 Sami KyÃ¶stilÃ¤                                  #
 #               2008 evilynux <evilynux@gmail.com>                  #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
@@ -21,6 +21,7 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from builtins import object
 import gc
 
 import Network
@@ -30,7 +31,7 @@ from Task import Task
 import pygame
 import Player
 
-class Engine:
+class Engine(object):
   """Main task scheduler."""
   def __init__(self, fps = 60):
     self.tasks = []
