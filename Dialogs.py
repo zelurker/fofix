@@ -2284,7 +2284,7 @@ class SongChooser(Layer, KeyListener):
                   glColor3f(c1,c2,c3)
                   # evilynux - hit% and note streak only if enabled
                   if self.extraStats:
-                    if score is not "Nil" and score > 0 and notesTotal != 0:
+                    if score != "Nil" and score > 0 and notesTotal != 0:
                       text = "%.1f%% (%d)" % ((float(notesHit) / notesTotal) * 100.0, noteStreak)
                       w, h = font.getStringSize(text, scale=scale)
                       lfont.render(text, (self.song_listscore_xpos+.1-w, .0925*(i+1)-pos[0]*.0925+.1725), scale=scale)
@@ -2536,7 +2536,7 @@ class SongChooser(Layer, KeyListener):
                   glColor3f(c1,c2,c3)
                   #evilynux - hit% and note streak if enabled
                   if self.extraStats:
-                    if score is not "Nil" and score > 0 and notesTotal != 0:
+                    if score != "Nil" and score > 0 and notesTotal != 0:
                       text = "%.1f%% (%d)" % ((float(notesHit) / notesTotal) * 100.0, noteStreak)
                       # evilynux - changed positions a little for nice note streak integration
                       w, h = font.getStringSize(text, scale=scale)
@@ -3411,7 +3411,7 @@ class SongChooser(Layer, KeyListener):
                 #evilynux - hit% and note streak if enabled
                 if self.extraStats:
                   scale = 0.0009
-                  if score is not "Nil" and score > 0 and notesTotal != 0:
+                  if score != "Nil" and score > 0 and notesTotal != 0:
                     text = "%.1f%% (%d)" % ((float(notesHit) / notesTotal) * 100.0, noteStreak)
                     w, h = font.getStringSize(text, scale=scale)
                     font.render(text, (.92-w, .0413*(i+1)-pos[0]*.0413+.163), scale=scale)
