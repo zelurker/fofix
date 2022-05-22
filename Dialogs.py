@@ -1216,7 +1216,7 @@ class SongChooser(Layer, KeyListener):
         if isinstance(self.selectedItem, Song.LibraryInfo):
           self.library = self.selectedItem.libraryName
           self.initialItem = None
-          Log.debug("New library selected: " + str(self.library) )
+          Log.debug("New library selected: " + self.library)
           self.loadCollection()
         elif isinstance(self.selectedItem, Song.SongInfo) and not self.selectedItem.getLocked():
         #else:
@@ -2184,7 +2184,7 @@ class SongChooser(Layer, KeyListener):
                 
                 # evilynux - Force uppercase display for Career titles
                 if isinstance(item, Song.TitleInfo) or isinstance(item, Song.CareerResetterInfo) or isinstance(item, Song.BlankSpaceInfo):
-                  text = string.upper(text)
+                  text = text.upper()
   
                 # evilynux - automatically scale song name
                 scale = font.scaleText(text, maxwidth = 0.440)
@@ -2241,7 +2241,7 @@ class SongChooser(Layer, KeyListener):
                   glColor3f(c1,c2,c3)
   
                   # evilynux - Force uppercase display for artist name
-                  text = string.upper(item.artist)+suffix+yeartag
+                  text = item.artist.upper()+suffix+yeartag
                   
                   # evilynux - automatically scale artist name and year
                   scale = font.scaleText(text, maxwidth = 0.440, scale = scale)

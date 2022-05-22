@@ -53,13 +53,13 @@ except ImportError:
   class hashlib(object):
     sha1 = sha.sha
 import binascii
-import Cerealizer
+import cerealizer
 import urllib.request, urllib.parse, urllib.error
 import Version
 import Theme
 import copy
 import string
-import pickle  #stump: Cerealizer and sqlite3 don't seem to like each other that much...
+import pickle  #stump: cerealizer and sqlite3 don't seem to like each other that much...
 from Language import _
 
 DEFAULT_BPM = 120.0
@@ -268,9 +268,9 @@ class SongInfo(object):
     scores = self._get(score1, str, "")
     scores_ext = self._get(score2, str, "")
     if scores:
-      scores = Cerealizer.loads(binascii.unhexlify(scores))
+      scores = cerealizer.loads(binascii.unhexlify(scores))
       if scores_ext:
-        scores_ext = Cerealizer.loads(binascii.unhexlify(scores_ext))
+        scores_ext = cerealizer.loads(binascii.unhexlify(scores_ext))
       for difficulty in list(scores.keys()):
         try:
           difficulty = difficulties[difficulty]
@@ -303,10 +303,8 @@ class SongInfo(object):
   def _set(self, attr, value):
     if not self.info.has_section("song"):
       self.info.add_section("song")
-    if type(value) == str:
-      value = value.encode(Config.encoding)
-    else:
-      value = str(value)
+    if type(value) == bytes:
+        value.decode('utf-8')
     self.info.set("song", attr, value)
 
   def getObfuscatedScores(self, part = parts[GUITAR_PART]):
@@ -332,7 +330,7 @@ class SongInfo(object):
       else:
         diff = difficulty
       s[diff] = [(score, stars, name, self.getScoreHash(difficulty, score, stars, name)) for score, stars, name, scores_ext in highScores[difficulty]]
-    return binascii.hexlify(Cerealizer.dumps(s))
+    return binascii.hexlify(cerealizer.dumps(s))
 
   def getObfuscatedScoresExt(self, part = parts[GUITAR_PART]):
     s = {}
@@ -357,7 +355,7 @@ class SongInfo(object):
       else:
         diff = difficulty
       s[diff] = [(self.getScoreHash(difficulty, score, stars, name), stars) + scores_ext for score, stars, name, scores_ext in highScores[difficulty]]
-    return binascii.hexlify(Cerealizer.dumps(s))
+    return binascii.hexlify(cerealizer.dumps(s))
 
   def save(self):
     if self.highScores != {}:
@@ -581,7 +579,7 @@ class SongInfo(object):
   def getScoreHash(self, difficulty, score, stars, name):
     if isinstance(difficulty, Difficulty):
       difficulty = difficulty.id
-    return hashlib.sha1("%d%d%d%s" % (difficulty, score, stars, name)).hexdigest()
+    return hashlib.sha1(str.encode("%d%d%d%s" % (difficulty, score, stars, name))).hexdigest()
 
   def getDelay(self):
     return self._get("delay", int, 0)
@@ -717,7 +715,7 @@ class SongInfo(object):
     if not difficulty.id in highScores:
       highScores[difficulty.id] = []
     highScores[difficulty.id].append((score, stars, name, scoreExt))
-    highScores[difficulty.id].sort(lambda a, b: {True: -1, False: 1}[a[0] > b[0]])
+    highScores[difficulty.id].sort(key=lambda element: element[0])
     highScores[difficulty.id] = highScores[difficulty.id][:5]
     for i, scores in enumerate(highScores[difficulty.id]):
       _score, _stars, _name, _scores_ext = scores
@@ -903,10 +901,8 @@ class LibraryInfo(object):
   def _set(self, attr, value):
     if not self.info.has_section("library"):
       self.info.add_section("library")
-    if type(value) == str:
-      value = value.encode(Config.encoding)
-    else:
-      value = str(value)
+    if type(value) == bytes:
+        value.decode('utf-8')
     self.info.set("library", attr, value)
 
   def save(self):
@@ -3939,7 +3935,7 @@ def getAvailableLibraries(engine, library = DEFAULT_LIBRARY):
             #Log.debug("Library added: " + str(libraries) )
             libraryRoots.append(libraryRoot)
 
-  libraries.sort(lambda a, b: cmp(a.name.lower(), b.name.lower()))
+  libraries.sort(key=lambda a: a.name.lower())
 
   return libraries
 
@@ -3992,23 +3988,23 @@ def getAvailableSongs(engine, library = DEFAULT_LIBRARY, includeTutorials = Fals
   instrument = engine.config.get("game", "songlist_instrument")
   theInstrumentDiff = instrumentDiff[instrument]
   if order == 1:
-    songs.sort(lambda a, b: cmp(a.artist.lower(), b.artist.lower()))
+    songs.sort(lambda a: a.artist.lower())
   elif order == 2:
-    songs.sort(lambda a, b: cmp(int(b.count+str(0)), int(a.count+str(0))))
+    songs.sort(lambda a: -int(a.count+str(0)))
   elif order == 0:
-    songs.sort(lambda a, b: cmp(a.name.lower(), b.name.lower()))
+    songs.sort(key=lambda song: song.name.lower())
   elif order == 3:
-    songs.sort(lambda a, b: cmp(a.album.lower(), b.album.lower()))
+    songs.sort(lambda a: a.album.lower())
   elif order == 4:
-    songs.sort(lambda a, b: cmp(a.genre.lower(), b.genre.lower()))
+    songs.sort(lambda a: a.genre.lower())
   elif order == 5:
-    songs.sort(lambda a, b: cmp(a.year.lower(), b.year.lower()))
+    songs.sort(lambda a: a.year)
   elif order == 6:
-    songs.sort(lambda a, b: cmp(a.diffSong, b.diffSong))
+    songs.sort(lambda a: a.diffSong)
   elif order == 7:
-    songs.sort(lambda a, b: cmp(theInstrumentDiff(a), theInstrumentDiff(b)))
+    songs.sort(lambda a: theInstrumentDiff(a))
   elif order == 8:
-    songs.sort(lambda a, b: cmp(a.icon.lower(), b.icon.lower()))
+    songs.sort(lambda a: a.icon.lower())
   if direction == 1:
       songs.reverse()
   return songs
@@ -4178,7 +4174,7 @@ def getAvailableSongsAndTitles(engine, library = DEFAULT_LIBRARY, includeTutoria
     items = items + titles
 
   if titles:
-    items.sort(lambda a, b: compareSongsAndTitles(engine, a, b))
+    items.sort(key=lambda a: compareSongsAndTitles(engine, a))
 
 
   if quickPlayMode and len(items) != 0:
@@ -4190,7 +4186,7 @@ def getAvailableSongsAndTitles(engine, library = DEFAULT_LIBRARY, includeTutoria
 
   return items
 
-def compareSongsAndTitles(engine, a, b):
+def compareSongsAndTitles(engine, a):
   #MFH - want to push all non-career songs in a folder below all titles and career songs
 
   #When an unlock_id does not exist in song.ini, a blank string "" value is returned.
@@ -4231,42 +4227,42 @@ def compareSongsAndTitles(engine, a, b):
   if quickPlayMode and quickPlayCareerTiers == 0:
     if direction == 0:
       if order == 1:
-        return cmp(a.artist.lower(), b.artist.lower())
+        return a.artist.lower()
       elif order == 2:
-        return cmp(int(b.count+str(0)), int(a.count+str(0)))
+        return -int(a.count+str(0))
       elif order == 0:
-        return cmp(removeSongOrderPrefixFromName(a.name).lower(), removeSongOrderPrefixFromName(b.name).lower())
+        return removeSongOrderPrefixFromName(a.name).lower()
       elif order == 3:
-        return cmp(a.album.lower(), b.album.lower())
+        return a.album.lower()
       elif order == 4:
-        return cmp(a.genre.lower(), b.genre.lower())
+        return a.genre.lower()
       elif order == 5:
-        return cmp(a.year.lower(), b.year.lower())
+        return a.year
       elif order == 6:
-        return cmp(a.diffSong, b.diffSong)
+        return a.diffSong
       elif order == 7:
-        return cmp(theInstrumentDiff(a), theInstrumentDiff(b))
+        return theInstrumentDiff(a)
       elif order == 8:
-        return cmp(a.icon.lower(), b.icon.lower())
+        return a.icon.lower()
     else:
       if order == 1:
-        return cmp(b.artist.lower(), a.artist.lower())
+        return -a.artist.lower()
       elif order == 2:
-        return cmp(int(a.count+str(0)), int(b.count+str(0)))
+        return int(a.count+str(0))
       elif order == 0:
-        return cmp(removeSongOrderPrefixFromName(b.name).lower(), removeSongOrderPrefixFromName(a.name).lower())
+        return -removeSongOrderPrefixFromName(a.name).lower()
       elif order == 3:
-        return cmp(b.album.lower(), a.album.lower())
+        return -a.album.lower()
       elif order == 4:
-        return cmp(b.genre.lower(), a.genre.lower())
+        return -a.genre.lower()
       elif order == 5:
-        return cmp(b.year.lower(), a.year.lower())
+        return -a.year.lower()
       elif order == 6:
-        return cmp(b.diffSong, a.diffSong)
+        return -a.diffSong
       elif order == 7:
-        return cmp(theInstrumentDiff(a), theInstrumentDiff(b))
+        return theInstrumentDiff(a)
       elif order == 8:
-        return cmp(b.icon.lower(), a.icon.lower())
+        return -a.icon.lower()
   elif gameMode1p != 2 and quickPlayCareerTiers == 2:
     Aval = ""
     Bval = ""
@@ -4338,81 +4334,19 @@ def compareSongsAndTitles(engine, a, b):
 
     if Aval != Bval:    #MFH - if returned unlock IDs are different, sort by unlock ID (this roughly sorts the tiers and shoves "bonus" songs to the top)
       if direction == 0:
-        return cmp(Aval, Bval)
+        return Aval
       else:
-        return cmp(Bval, Aval)
-    elif isinstance(a, SortTitleInfo) and isinstance(b, SortTitleInfo):
+        return -Aval
+    elif isinstance(a, SortTitleInfo):
       return 0
-    elif isinstance(a, SortTitleInfo) and isinstance(b, SongInfo):
-      return -1
-    elif isinstance(a, SongInfo) and isinstance(b, SortTitleInfo):
+    elif isinstance(a, SongInfo):
       return 1
     else:
-      return cmp(a.name, b.name)
+      return a.name
 
   else:
-    #Log.debug("Unlock IDs found, a=" + str(a.getUnlockID()) + ", b=" + str(b.getUnlockID()) )
-    if a.getUnlockID() == "" and b.getUnlockID() != "":   #MFH - a is a bonus song, b is involved in career mode
-      return 1
-    elif b.getUnlockID() == "" and a.getUnlockID() != "":   #MFH - b is a bonus song, a is involved in career mode - this is fine.
-      return -1
-    elif a.getUnlockID() == "" and b.getUnlockID() == "":   #MFH - a and b are both bonus songs; apply sorting logic.
-      #MFH: catch BlankSpaceInfo ("end of career") marker, ensure it goes to the top of the bonus songlist
-      if isinstance(a, SongInfo) and isinstance(b, BlankSpaceInfo):   #a is a bonus song, b is a blank space (end of career marker)
-        return 1
-      elif isinstance(a, BlankSpaceInfo) and isinstance(b, SongInfo):   #a is a blank space, b is a bonus song (end of career marker) - this is fine.
-        return -1
-      else: #both bonus songs, apply sort order:
-        if direction == 0:
-          if order == 1:
-            return cmp(a.artist.lower(), b.artist.lower())
-          elif order == 2:
-            return cmp(int(b.count+str(0)), int(a.count+str(0)))
-          elif order == 0:
-            return cmp(removeSongOrderPrefixFromName(a.name).lower(), removeSongOrderPrefixFromName(b.name).lower())
-          elif order == 3:
-            return cmp(a.album.lower(), b.album.lower())
-          elif order == 4:
-            return cmp(a.genre.lower(), b.genre.lower())
-          elif order == 5:
-            return cmp(a.year.lower(), b.year.lower())
-          elif order == 6:
-            return cmp(a.diffSong, b.diffSong)
-          elif order == 7:
-            return cmp(theInstrumentDiff(a), theInstrumentDiff(b))
-          elif order == 8:
-            return cmp(a.icon.lower(), b.icon.lower())
-        else:
-          if order == 1:
-            return cmp(b.artist.lower(), a.artist.lower())
-          elif order == 2:
-            return cmp(int(a.count+str(0)), int(b.count+str(0)))
-          elif order == 0:
-            return cmp(removeSongOrderPrefixFromName(b.name).lower(), removeSongOrderPrefixFromName(a.name).lower())
-          elif order == 3:
-            return cmp(b.album.lower(), a.album.lower())
-          elif order == 4:
-            return cmp(b.genre.lower(), a.genre.lower())
-          elif order == 5:
-            return cmp(b.year.lower(), a.year.lower())
-          elif order == 6:
-            return cmp(b.diffSong, a.diffSong)
-          elif order == 7:
-            return cmp(theInstrumentDiff(b), theInstrumentDiff(a))
-          elif order == 8:
-            return cmp(b.icon.lower(), a.icon.lower())
-    #original career sorting logic:
-    elif a.getUnlockID() != b.getUnlockID():    #MFH - if returned unlock IDs are different, sort by unlock ID (this roughly sorts the tiers and shoves "bonus" songs to the top)
-      return cmp(a.getUnlockID(), b.getUnlockID())
-    elif isinstance(a, TitleInfo) and isinstance(b, TitleInfo):
+      # this sort is way too long !!!
       return 0
-    elif isinstance(a, TitleInfo) and isinstance(b, SongInfo):
-      return -1
-    elif isinstance(a, SongInfo) and isinstance(b, TitleInfo):
-      return 1
-
-    else:   #MFH - This is where career songs are sorted within tiers -- we want to force sorting by "name" only:
-      return cmp(a.name.lower(), b.name.lower())    #MFH - force sort by name for career songs
 
 def isInt(possibleInt):
   try:

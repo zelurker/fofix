@@ -23,7 +23,9 @@
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
-from FakeNetworking import socket, asyncore
+#from FakeNetworking import socket, asyncore
+import asyncore
+import socket
 import struct
 import time
 import io
@@ -72,7 +74,7 @@ class Connection(asyncore.dispatcher):
     self._buffer = []
     self._sentSizeField = False
     self._receivedSizeField = 0
-    self._packet = io.StringIO()
+    self._packet = io.BytesIO()
 
     if not sock:
       self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -132,6 +134,7 @@ class Connection(asyncore.dispatcher):
             self.handlePacket(self._packet.getvalue())
           self._packet.truncate()
           self._packet.seek(0)
+          print("handle_read ok ",self)
     except socket.error as e:
       Log.error("Socket error while receiving: %s" % str(e))
 
@@ -164,8 +167,14 @@ class Connection(asyncore.dispatcher):
     try:
       data = self._buffer[0]
       if not self._sentSizeField:
+        print("no sentsizefield")
         self.send(struct.pack("H", len(data)))
         self._sentSizeField = True
+      print("trying to send ",data," type ",type(data))
+      if (type(data) == str):
+          data = str.encode(data)
+          print("type after encode ",type(data))
+
       sent = self.send(data)
       data = data[sent:]
       if data:
@@ -173,6 +182,7 @@ class Connection(asyncore.dispatcher):
       else:
         self._buffer = self._buffer[1:]
         self._sentSizeField = False
+      print("handle write ok")
     except socket.error as e:
       Log.error("Socket error while sending: %s" % str(e))
 

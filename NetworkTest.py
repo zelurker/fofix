@@ -42,7 +42,7 @@ class NetworkTest(unittest.TestCase):
 
     Network.communicate(100)
     client = list(s.clients.values())[0]
-    assert client.packet == "moikka"
+    assert client.packet == str.encode("moikka")
     assert client.id == 1
 
   def tearDown(self):

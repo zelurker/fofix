@@ -566,9 +566,7 @@ class GameEngine(Engine):
     self.y = Config.get("video","y")
     fullscreen    = self.config.get("video", "fullscreen")
     multisamples  = self.config.get("video", "multisamples")
-    print("appel setMode ",width,"x",height," multisamples = ",multisamples)
     self.video.setMode((width, height), fullscreen = fullscreen, multisamples = multisamples)
-    print("ok")
 
     if self.video.default:
       self.config.set("video", "fullscreen", False)

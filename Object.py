@@ -26,7 +26,7 @@ standard_library.install_aliases()
 from builtins import str
 from builtins import object
 import pickle
-from io import StringIO
+from io import BytesIO
 
 class Serializer(pickle.Pickler):
   def persistent_id(self, obj):
@@ -41,12 +41,12 @@ class Unserializer(pickle.Unpickler):
     return self.manager.getObject(id)
 
 def serialize(data):
-  file = StringIO()
+  file = BytesIO()
   Serializer(file, protocol = 2).dump(data)
   return file.getvalue()
 
 def unserialize(manager, data):
-  return Unserializer(manager, StringIO(data)).load()
+  return Unserializer(manager, BytesIO(data)).load()
 
 class Manager(object):
   MSG_CREATE = 0

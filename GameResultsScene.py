@@ -53,7 +53,7 @@ except ImportError:
   import sha
   class hashlib(object):
     sha1 = sha.sha
-import Cerealizer
+import cerealizer
 import binascii
 import urllib.request, urllib.parse, urllib.error
 import Log
@@ -557,8 +557,8 @@ class GameResultsSceneClient(GameResultsScene, SceneClient):
       scoreHash = hashlib.sha1("%d%d%d%s" % (player.getDifficultyInt(), self.finalScore[i], self.scoring[i].stars, str(upname))).hexdigest()
       scores[player.getDifficultyInt()]     = [(self.finalScore[i], self.scoring[i].stars, str(upname), scoreHash)]
       scores_ext[player.getDifficultyInt()] = [(scoreHash, self.scoring[i].stars) + scoreExt]
-      d["scores"] = binascii.hexlify(Cerealizer.dumps(scores))
-      d["scores_ext"] = binascii.hexlify(Cerealizer.dumps(scores_ext))
+      d["scores"] = binascii.hexlify(cerealizer.dumps(scores))
+      d["scores_ext"] = binascii.hexlify(cerealizer.dumps(scores_ext))
       url = self.engine.config.get("game", "uploadurl_w67_starpower")
       data = urllib.request.urlopen(url + "?" + urllib.parse.urlencode(d)).read()
       Log.debug("Score upload result: %s" % data)

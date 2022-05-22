@@ -83,13 +83,21 @@ class MessageBroker(object):
 
 class MessageHandler(object):
   def handleMessage(self, sender, message):
+    """ This thing is called in turn for all messagehandlers
+    so a the getattr will fail for most of them, it usually works for the 1st one though """
     f = None
     try:
       n = "handle" + str(message.__class__).split(".")[-1]
-      f = getattr(self, n)
+      # new syntax of __class__ with py3, we have some '> in the end...
+      if n[-2] == "'":
+        n = n[:len(n)-2]
+      f = getattr(self, n, None)
     except AttributeError:
       return None
-    return f(sender, **message.__dict__)
+    if f:
+      return f(sender, **message.__dict__)
+    else:
+      return None
 
   def handleSessionOpened(self, session):
     pass
@@ -120,6 +128,7 @@ class Phrasebook(object):
       Log.debug("Learned about %s, %d phrases now known." % (data[1], len(self.receivedClasses)))
     elif id in self.receivedClasses:
       message = self.receivedClasses[id][0]()
+      print("decode: message ",message," len ",len(data))
       if len(data) > 1:
         message.__dict__.update(dict(list(zip(self.receivedClasses[id][1], data[1:]))))
       return message
@@ -215,6 +224,7 @@ class ClientSession(BaseSession):
 
   def handlePacket(self, packet):
     message = self.phrasebook.decode(packet)
+    print("client session message ",message)
     if message:
       self.handleMessage(0, message)
 
