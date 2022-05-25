@@ -378,7 +378,7 @@ class Menu(Layer, KeyListener):
       self.tipDir = 0
     else:
       self.tipScroll = .5 - old_div(tipW,2)
-      self.tipScrollB = None
+      self.tipScrollB = 0
       self.tipTimerEnabled = False
       self.tipDir = 0
       self.tipSize = tipW

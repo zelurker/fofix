@@ -73,9 +73,15 @@ class ConfigChoice(Menu.Choice):
         valueIndex = values.index(o.options[v])
       except KeyError:
         valueIndex = 0
-      for i in range(len(values)):
-          values[i] = str(values[i])
-      values.sort()
+      try:
+        values.sort()
+      except:
+        try:
+          values.sort(key=lambda a: str(a))
+        except:
+          print("sorting of ",values," failed 2 times !")
+          exit(1)
+
     elif isinstance(o.options, list):
       values     = o.options
       try:

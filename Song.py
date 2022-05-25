@@ -475,13 +475,13 @@ class SongInfo(object):
         Log.warn("No tracks found!")
         raise Exception
       self._midiStyle = info.midiStyle
-      info.parts.sort(lambda b, a: cmp(b.id, a.id))
+      info.parts.sort(key=lambda a: -a.id)
       self._parts = info.parts
       for part in info.parts:
         if self.tutorial:
           self._partDifficulties[part.id] = [difficulties[HAR_DIF]]
           continue
-        info.difficulties[part.id].sort(lambda a, b: cmp(a.id, b.id))
+        info.difficulties[part.id].sort(key=lambda a: a.id)
         self._partDifficulties[part.id] = info.difficulties[part.id]
     except:
       Log.warn("Note file not parsed correctly. Selected part and/or difficulty may not be available.")
@@ -715,7 +715,7 @@ class SongInfo(object):
     if not difficulty.id in highScores:
       highScores[difficulty.id] = []
     highScores[difficulty.id].append((score, stars, name, scoreExt))
-    highScores[difficulty.id].sort(key=lambda element: element[0])
+    highScores[difficulty.id].sort(key=lambda element: -element[0])
     highScores[difficulty.id] = highScores[difficulty.id][:5]
     for i, scores in enumerate(highScores[difficulty.id]):
       _score, _stars, _name, _scores_ext = scores
@@ -2399,6 +2399,8 @@ class Song(object):
 
     self.parts        = partlist
     self.delay        = self.engine.config.get("audio", "delay")
+    if self.delay == None:
+        self.delay = 0
     self.delay        += self.info.delay
     self.missVolume   = self.engine.config.get("audio", "miss_volume")
     self.backVolume   = self.engine.config.get("audio", "songvol") #akedrou
