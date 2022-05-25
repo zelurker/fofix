@@ -69,11 +69,13 @@ class ConfigChoice(Menu.Choice):
     v = config.get(section, option)
     if isinstance(o.options, dict):
       values     = list(o.options.values())
-      values.sort()
       try:
         valueIndex = values.index(o.options[v])
       except KeyError:
         valueIndex = 0
+      for i in range(len(values)):
+          values[i] = str(values[i])
+      values.sort()
     elif isinstance(o.options, list):
       values     = o.options
       try:
