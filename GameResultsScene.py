@@ -183,6 +183,8 @@ class GameResultsSceneClient(GameResultsScene, SceneClient):
     self.cheerLoopDelay  = Theme.crowdLoopDelay
     if self.cheerLoopDelay == None:
       self.cheerLoopDelay = self.engine.config.get("game", "cheer_loop_delay")
+    if self.cheerLoopDelay == None:
+      self.cheerLoopDelay = 0
     Log.debug("Cheer loop delay used: %d" % self.cheerLoopDelay)
 
     self.cheerLoopCounter = self.cheerLoopDelay
