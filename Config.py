@@ -234,6 +234,16 @@ class Config(object):
     #myfingershurt: verbose log output
     if logIniReads == 1:
       Log.debug("Config.get: %s.%s = %s" % (section, option, value))
+    if value != None:
+        if type(value) == value:
+            # for some unknown reason, type(value) returns value instead of a type here !
+            # we assume it's a string or bytes, and try to find the bytes signature to fix it
+            try:
+              if value[0:2] == "b'":
+                  value=value[2:-1]
+            except:
+                pass
+
     return value
 
   def getOptions(self, section, option):
@@ -352,7 +362,6 @@ class Config(object):
     """
 
     global logUndefinedGets
-
     try:
       prototype[section][option]
     except KeyError:
