@@ -128,7 +128,6 @@ class Phrasebook(object):
       Log.debug("Learned about %s, %d phrases now known." % (data[1], len(self.receivedClasses)))
     elif id in self.receivedClasses:
       message = self.receivedClasses[id][0]()
-      print("decode: message ",message," len ",len(data))
       if len(data) > 1:
         message.__dict__.update(dict(list(zip(self.receivedClasses[id][1], data[1:]))))
       return message
@@ -176,7 +175,6 @@ class BaseSession(Network.Connection, Task.Task, MessageHandler):
   def sendMessage(self, message):
     #print "Sent by %s:%s: %s" % (self.__class__, self.id, message)
     #self.sendPacket(message.serialize())
-    print("session sendpacket")
     for packet in self.phrasebook.encode(message):
       self.sendPacket(packet)
 
@@ -224,7 +222,6 @@ class ClientSession(BaseSession):
 
   def handlePacket(self, packet):
     message = self.phrasebook.decode(packet)
-    print("client session message ",message)
     if message:
       self.handleMessage(0, message)
 

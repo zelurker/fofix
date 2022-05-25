@@ -162,11 +162,8 @@ class WorldServer(World):
         self.deleteScene(scene)
 
   def handleStartGame(self, sender, args):
-    print("handleStartGame")
     self.server.broadcastMessage(GameStarted())
-    print("message ok")
     id = self.createScene(STARTUP_SCENE, **args)
-    print("createscene ",id)
     if id:
       for player in self.players:
         playerId = self.objects.id(player)
@@ -242,7 +239,6 @@ class WorldClient(World):
     self.session.sendMessage(DeleteScene(id = id))
 
   def startGame(self, **args):
-    print("send startgame message ",args)
     self.session.sendMessage(StartGame(args = args))
 
   def getLocalPlayer(self):

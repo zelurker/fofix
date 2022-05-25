@@ -86,7 +86,6 @@ class Connection(asyncore.dispatcher):
   def connect(self, host, port = PORT):
     assert self.id is None
 
-    print("connect host=",host," port ",port)
     asyncore.dispatcher.connect(self, (host, port))
 
     # do a blocking connect
@@ -103,7 +102,6 @@ class Connection(asyncore.dispatcher):
     self.id = id
     self._buffer.append(struct.pack("H", self.id))
     self.handleRegistration()
-    print("accept handle ok")
 
   def setServer(self, server):
     self.server = server
@@ -134,7 +132,6 @@ class Connection(asyncore.dispatcher):
             self.handlePacket(self._packet.getvalue())
           self._packet.truncate()
           self._packet.seek(0)
-          print("handle_read ok ",self)
     except socket.error as e:
       Log.error("Socket error while receiving: %s" % str(e))
 
@@ -142,7 +139,6 @@ class Connection(asyncore.dispatcher):
     return len(self._buffer) > 0
 
   def sendPacket(self, packet):
-    print("net sendpacket 1 ",packet)
     self._buffer.append(packet)
 
   def handlePacket(self, packet):
@@ -167,13 +163,10 @@ class Connection(asyncore.dispatcher):
     try:
       data = self._buffer[0]
       if not self._sentSizeField:
-        print("no sentsizefield")
         self.send(struct.pack("H", len(data)))
         self._sentSizeField = True
-      print("trying to send ",data," type ",type(data))
       if (type(data) == str):
           data = str.encode(data)
-          print("type after encode ",type(data))
 
       sent = self.send(data)
       data = data[sent:]
@@ -182,7 +175,6 @@ class Connection(asyncore.dispatcher):
       else:
         self._buffer = self._buffer[1:]
         self._sentSizeField = False
-      print("handle write ok")
     except socket.error as e:
       Log.error("Socket error while sending: %s" % str(e))
 
@@ -195,7 +187,6 @@ class Server(asyncore.dispatcher):
     self.listen(5)
     self.clients = {}
     self.__idCounter = 0
-    print("server ok")
 
   def handle_accept(self):
     sock, addr = self.accept()
@@ -205,7 +196,6 @@ class Server(asyncore.dispatcher):
     conn.accept(self.__idCounter)
     self.clients[self.__idCounter] = conn
     self.handleConnectionOpen(conn)
-    print("server handle accept")
 
   def createConnection(self, sock):
     return Connection(sock = sock)
@@ -222,7 +212,6 @@ class Server(asyncore.dispatcher):
       c.close()
 
   def handle_close(self):
-    print("server handle close")
     return self.handleClose()
 
   def handleConnectionClose(self, connection):
@@ -237,7 +226,6 @@ class Server(asyncore.dispatcher):
       list(self.clients.values())[0].handlePacket(packet)
 
   def sendPacket(self, receiverId, packet):
-    print("network sendpacket 2 ",packet)
     self.clients[receiverId].sendPacket(packet)
 
 def communicate(cycles = 1):

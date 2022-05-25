@@ -43,7 +43,7 @@ class MidiFileParser(object):
 
         raw_in = self.raw_in
 
-        header_chunk_type = raw_in.nextSlice(4)
+        header_chunk_type = raw_in.nextSlice(4).decode()
         header_chunk_zise = raw_in.readBew(4)
 
         # check if it is a proper midi file

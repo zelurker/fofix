@@ -46,10 +46,10 @@ class Stage(object):
     self.engine           = guitarScene.engine
     self.config           = Config.MyConfigParser()
     self.reset()
-    
+
     self.wFull = None   #MFH - needed for new stage background handling
     self.hFull = None
-    
+
     # evilynux - imported myfingershurt stuff from GuitarScene
     self.mode = self.engine.config.get("game", "stage_mode")
     self.songStage = self.engine.config.get("game", "song_stage")
@@ -67,7 +67,7 @@ class Stage(object):
       self.rotationMode = slideShowMode
     else:
       self.rotationMode = animationMode
-    
+
     self.imgArr = [] #QQstarS:random
     self.imgArrScaleFactors = []  #MFH - for precalculated scale factors
     self.rotateDelay = self.engine.config.get("game",  "stage_rotate_delay") #myfingershurt - user defined stage rotate delay
@@ -110,18 +110,18 @@ class Stage(object):
         try:
           self.engine.loadImgDrawing(self, "background", os.path.join("themes",self.themename,"stages",background + ".jpg"))
         except IOError:
-          self.engine.loadImgDrawing(self, "background", os.path.join("themes",self.themename,"stages",background + ".png"))            
+          self.engine.loadImgDrawing(self, "background", os.path.join("themes",self.themename,"stages",background + ".png"))
       except IOError:
         #MFH - must first fall back on the old practice.png before forcing blank stage mode!
         try:
           try:
             self.engine.loadImgDrawing(self, "background", os.path.join("themes",self.themename,"stages","practice.jpg"))
           except IOError:
-            self.engine.loadImgDrawing(self, "background", os.path.join("themes",self.themename,"stages","practice.png"))            
+            self.engine.loadImgDrawing(self, "background", os.path.join("themes",self.themename,"stages","practice.png"))
         except IOError:
           Log.warn("No practice stage, fallbacking on a forced Blank stage mode") # evilynux
           self.mode = 2    #if no practice stage, just fall back on a forced Blank stage mode
-            
+
     elif self.songStage == 1:    #check for song-specific background
       test = True
       try:
@@ -148,7 +148,7 @@ class Stage(object):
           try:
             self.engine.loadImgDrawing(self, "background", os.path.join(self.path, "default.jpg"))
           except IOError:
-            self.engine.loadImgDrawing(self, "background", os.path.join(self.path, "default.png"))            
+            self.engine.loadImgDrawing(self, "background", os.path.join(self.path, "default.png"))
         except IOError:
           Log.warn("No default stage; falling back on a forced Blank stage mode") # evilynux
           self.mode = 2    #if no practice stage, just fall back on a forced Blank stage mode
@@ -167,7 +167,7 @@ class Stage(object):
               fileIndex += 1
             else:
               Log.debug("Practice background filtered: " + name)
-  
+
         # evilynux - improved error handling, fallback to blank background if no background are found
         if fileIndex == 0:
           Log.warn("No valid stage found!")
@@ -181,17 +181,17 @@ class Stage(object):
       elif self.rotationMode > 0 and self.mode != 2:
         files = []
         fileIndex = 0
-        
+
         if self.animatedFolder == "Random": #Select one of the subfolders under stages\ to animate randomly
           numAniStageFolders = len(self.engine.stageFolders)
           if numAniStageFolders > 0:
             self.animatedFolder = random.choice(self.engine.stageFolders)
           else:
             self.animatedFolder = "Normal"
-          
+
         elif self.animatedFolder == "None":
           self.mode = 2
-        
+
         if self.animatedFolder != "Normal" and self.mode != 2: #just use the base Stages folder for rotation
           self.path = os.path.join("themes",self.themename,"stages",self.animatedFolder)
           self.pathfull = self.engine.getPath(self.path)
@@ -218,7 +218,7 @@ class Stage(object):
           wfactor = 640.000/imgwidth
           self.imgArr.append(getattr(self, "backgroundA", os.path.join(self.path, files[j])))
           self.imgArrScaleFactors.append(wfactor)
-    
+
     if self.rotationMode > 0 and len(self.imgArr) == 0:
       self.rotationMode = 0
 
@@ -331,8 +331,8 @@ class Stage(object):
       glVertex3f(8.0, 1.0,7.0)
       glVertex3f(-8.0, 4.0,7.0)
       glVertex3f(8.0, 4.0,7.0)
-      glEnd()    
+      glEnd()
       shaders.disable()
-      
+
     self.scene.renderGuitar()
-    
+
