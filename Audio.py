@@ -64,6 +64,9 @@ if not hasattr(pygame.mixer, 'music'):
 
 try:
   import pyogg as ogg
+  # pyogg is not finished, this vorbis interface should be merged !
+  from pyogg import vorbis
+  ogg.pyoggSetStreamBufferSize(4096)
 except ImportError:
   Log.warn("PyOGG not found. OGG files will be fully decoded prior to playing; expect absurd memory usage.")
   ogg = None
@@ -80,7 +83,8 @@ class Audio(object):
       pass
 
     try:
-      pygame.mixer.init(frequency, bits, stereo and 2 or 1, bufferSize)
+      # for some reason pygame.mixer.init really expects a minus bits number -16 here... !
+      pygame.mixer.init(frequency, -bits, stereo and 2 or 1, bufferSize)
     except:
       Log.warn("Audio setup failed. Trying with default configuration.")
       pygame.mixer.init()
@@ -140,21 +144,21 @@ class OneSound(object):
 
   def play(self):
     if not self.sound:
-      self.sound   = pygame.mixer.Sound(self.file)
+        self.sound   = pygame.mixer.Sound(self.file)
     if resampleOk:
         (freq,format,channels) = pygame.mixer.get_init()
         if freq != self.freq:
           print("reload sound ",self.file)
           self.freq = self.stream.freq()
-          self.sound   = pygame.mixer.Sound(self.file)
+          self.sound   = pygame.mixer.Sound(file = self.file)
         if self.freq != freq:
             snd_array = pygame.sndarray.array(self.sound)
             samples = old_div(len(snd_array),2)
-            samples = int(samples*freq*1.0/(self.info.rate))
-            print("start resampling ",self.file," from ",self.info.rate," to ",freq," len ",old_div(len(snd_array),2)," visée ",samples)
+            samples = int(samples*freq*1.0/(self.frequency))
+            print("start resampling ",self.file," from ",self.frequency," to ",freq," len ",old_div(len(snd_array),2)," visée ",samples)
     #        if samples != len(snd_array):
     #          snd_array = np.resize(snd_array,(samples,2))
-            snd_array = resample(snd_array, freq*1.0/self.info.rate, "sinc_fastest").astype(snd_array.dtype)
+            snd_array = resample(snd_array, freq*1.0/self.frequency, "sinc_fastest").astype(snd_array.dtype)
             # datal = signal.resample(snd_array[0::2],samples).astype(snd_array.dtype)
             # datar = signal.resample(snd_array[1::2],samples).astype(snd_array.dtype)
             # snd_array = np.resize(snd_array,(len(datal)*2,2))
@@ -279,7 +283,6 @@ class Sound(object):
       sound.setVolume(volume)
 
   def fadeout(self, time):
-    print("fadeout ",time)
     for sound in self.sounds:
       sound.fadeout(time)
 
@@ -305,7 +308,7 @@ if ogg:
         return self.file.channels
 
     def time_seek(self,pos):
-        return self.file.vf.ov_time_seek(pos)
+        return vorbis.ov_time_seek(self.file.vf,pos)
 
   class StreamingOggSound(OneSound, Task):
 
@@ -354,8 +357,8 @@ if ogg:
           # intensive, it should work if different frequencies are not
           # mixed on the same song
           self.engine.audio.close()    #MFH - ensure no audio is playing during the switch!
-          print("reopen mixer at ",int(self.info.rate*self.speed))
-          self.engine.audio.pre_open(frequency = int(self.info.rate*self.speed), bits = self.engine.bits, stereo = self.engine.stereo, bufferSize = self.engine.bufferSize)
+          print("reopen mixer at ",int(self.frequency*self.speed))
+          self.engine.audio.pre_open(frequency = int(self.frequency*self.speed), bits = self.engine.bits, stereo = self.engine.stereo, bufferSize = self.engine.bufferSize)
           self.engine.audio.open(frequency = int(self.stream.freq()*self.speed), bits = self.engine.bits, stereo = self.engine.stereo, bufferSize = self.engine.bufferSize)
           (self.freq,self.format,self.channels) = pygame.mixer.get_init()
 
@@ -449,7 +452,7 @@ if ogg:
       if not data:
         self.done = True
       else:
-        if self.info.channels == 2:
+        if self.channels == 2:
           # data = struct.unpack("%dh" % (len(data) / 2), data)
           data = np.frombuffer(data, dtype=np.int16)
           samples = old_div(len(data), 2)
@@ -463,7 +466,7 @@ if ogg:
           self.buffer[self.bufferPos:self.bufferPos + samples, 0] = data[0::2]
           self.buffer[self.bufferPos:self.bufferPos + samples, 1] = data[1::2]
           self.bufferPos += samples
-        elif self.info.channels == 1:
+        elif self.channels == 1:
           samples = old_div(len(data),2)
           # data = struct.unpack("%dh" % (samples), data)
           data = np.frombuffer(data, dtype=np.int16)
@@ -474,7 +477,7 @@ if ogg:
           self.buffer[self.bufferPos:self.bufferPos + samples,1] = data
           self.bufferPos += samples
         else:
-            raise "Number of channels ? %d" % (self.info.channels)
+            raise "Number of channels ? %d" % (self.channels)
 
       # If we have at least one full buffer decode, claim a buffer and copy the
       # data over to it.
