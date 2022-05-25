@@ -265,7 +265,6 @@ class Sound(object):
                 found = True
                 break
         if not found:
-          print("updated Playing to false")
           self.Playing = False
     return self.Playing
 
