@@ -1,3 +1,11 @@
 My patches for fofix, you can read the details here :
 http://fretsonfire.org/forums/viewtopic.php?f=32&t=58361&p=626107#p626107
 
+And these patches are now updated for python3, tested with python 3.10,
+pygame 2.1.2.
+Requires the official cerealizer python module instead of the old
+Cerealizer.py source file which was here
+and the new but more primitive pyogg python module instead of the old ogg
+and vorbis modules.
+And that's all, newest python and newest pygame, and everything should be
+ok. Tested on linux only.
