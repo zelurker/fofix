@@ -45,8 +45,9 @@ if language:
     catalog = gettext.GNUTranslations(open(trFile, "rb"))
     def translate(m):
       if encoding == "None":
-        return catalog.gettext(m).decode("iso-8859-1")
+        return catalog.gettext(m)
       else:
+        # should not be called, there is no decode functions for str in py3 anyway !
         return catalog.gettext(m).decode(encoding)
     _ = translate
   except Exception as x:
