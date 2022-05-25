@@ -304,7 +304,7 @@ class SongInfo(object):
     if not self.info.has_section("song"):
       self.info.add_section("song")
     if type(value) == bytes:
-        value.decode('utf-8')
+        value = value.decode('utf-8')
     self.info.set("song", attr, value)
 
   def getObfuscatedScores(self, part = parts[GUITAR_PART]):
@@ -2949,6 +2949,8 @@ class MidiReader(midi.MidiOutStream):
     self.logSections = Config.get("game", "log_sections")
 
     self.readTextAndLyricEvents = Config.get("game","rock_band_events")
+    if self.readTextAndLyricEvents == "None":
+        self.readTextAndLyricEvents = 0
     self.guitarSoloIndex = 0
     self.guitarSoloActive = False
     self.guitarSoloSectionMarkers = False
@@ -3088,6 +3090,8 @@ class MidiReader(midi.MidiOutStream):
 
   def sequence_name(self, text):
     #if self.get_current_track() == 0:
+    if type(text) == bytes:
+        text=text.decode()
     self.partnumber = None
 
     tempText = "Found sequence_name in MIDI: " + text + ", recognized as "
@@ -3227,6 +3231,8 @@ class MidiReader(midi.MidiOutStream):
   #and then write an iteration routine to go through whatever track / difficulty is being played in GuitarScene
   #to find these markers and count the notes and add a new text event containing each solo's note count
   def text(self, text):
+    if type(text) == bytes:
+        text=text.decode()
     if text.find("GNMIDI") < 0:   #to filter out the midi class illegal usage / trial timeout messages
       #Log.debug(str(self.abs_time()) + "-MIDI Text: " + text)
       if self.readTextAndLyricEvents > 0:
@@ -3340,6 +3346,8 @@ class MidiReader(midi.MidiOutStream):
 
   #myfingershurt: adding MIDI lyric event access
   def lyric(self, text):
+    if type(text) == bytes:
+        text=text.decode()
     if text.find("GNMIDI") < 0:   #to filter out the midi class illegal usage / trial timeout messages
       #Log.debug(str(self.abs_time()) + "-MIDI Lyric: " + text)
       if self.readTextAndLyricEvents > 0:
@@ -3416,6 +3424,8 @@ class MidiSectionReader(midi.MidiOutStream):
       self.noteCountSections.append([text,pos])
 
   def lyric(self, text):  #filter lyric events
+    if type(text) == bytes:
+        text=text.decode()
     if text.find("GNMIDI") < 0:   #to filter out the midi class illegal usage / trial timeout messages
       #Log.debug(str(self.abs_time()) + "-MIDI Lyric: " + text)
       text = ""
@@ -3423,6 +3433,8 @@ class MidiSectionReader(midi.MidiOutStream):
   #MFH - adding text event / section retrieval here
   #also must prevent "Done" flag setting so can read whole MIDI file, all text events
   def text(self, text):
+    if type(text) == bytes:
+        text=text.decode()
     if text.find("GNMIDI") < 0:   #to filter out the midi class illegal usage / trial timeout messages
       pos = self.abs_time()
       #Log.debug("Found MidiInfoReader text event: " + text)
@@ -3601,6 +3613,8 @@ class MidiPartsDiffReader(midi.MidiOutStream):
 
   def sequence_name(self, text):
 
+    if type(text) == bytes:
+        text=text.decode()
     if self.logSections == 1:
       tempText = "MIDI sequence_name found: " + text + ", recognized and added to list as "
       tempText2 = ""
@@ -3988,23 +4002,23 @@ def getAvailableSongs(engine, library = DEFAULT_LIBRARY, includeTutorials = Fals
   instrument = engine.config.get("game", "songlist_instrument")
   theInstrumentDiff = instrumentDiff[instrument]
   if order == 1:
-    songs.sort(lambda a: a.artist.lower())
+    songs.sort(key = lambda a: a.artist.lower())
   elif order == 2:
-    songs.sort(lambda a: -int(a.count+str(0)))
+    songs.sort(key=lambda a: -int(a.count+str(0)))
   elif order == 0:
     songs.sort(key=lambda song: song.name.lower())
   elif order == 3:
-    songs.sort(lambda a: a.album.lower())
+    songs.sort(key=lambda a: a.album.lower())
   elif order == 4:
-    songs.sort(lambda a: a.genre.lower())
+    songs.sort(key=lambda a: a.genre.lower())
   elif order == 5:
-    songs.sort(lambda a: a.year)
+    songs.sort(key=lambda a: a.year)
   elif order == 6:
-    songs.sort(lambda a: a.diffSong)
+    songs.sort(key=lambda a: a.diffSong)
   elif order == 7:
-    songs.sort(lambda a: theInstrumentDiff(a))
+    songs.sort(key=lambda a: theInstrumentDiff(a))
   elif order == 8:
-    songs.sort(lambda a: a.icon.lower())
+    songs.sort(key=lambda a: a.icon.lower())
   if direction == 1:
       songs.reverse()
   return songs
