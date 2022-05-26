@@ -67,12 +67,10 @@ class ConfigChoice(Menu.Choice):
     tipText = config.getTipText(section, option)
     o = config.prototype[section][option]
     v = config.get(section, option)
+    if v == None:
+        v=0
     if isinstance(o.options, dict):
       values     = list(o.options.values())
-      try:
-        valueIndex = values.index(o.options[v])
-      except KeyError:
-        valueIndex = 0
       try:
         values.sort()
       except:
@@ -81,6 +79,10 @@ class ConfigChoice(Menu.Choice):
         except:
           print("sorting of ",values," failed 2 times !")
           exit(1)
+      try:
+        valueIndex = values.index(o.options[v])
+      except KeyError:
+        valueIndex = 0
 
     elif isinstance(o.options, list):
       values     = o.options
