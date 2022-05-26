@@ -2439,7 +2439,7 @@ class SongChooser(Layer, KeyListener):
   
                 # evilynux/blazingamer - Force uppercase display
                 if isinstance(item, Song.TitleInfo) or isinstance(item, Song.CareerResetterInfo) or isinstance(item, Song.BlankSpaceInfo):
-                  text = string.upper(text)
+                  text = text.upper()
   
                 # evilynux - automatically scale song name
                 scale = font.scaleText(text, maxwidth = 0.64)
@@ -2508,7 +2508,7 @@ class SongChooser(Layer, KeyListener):
                   glColor3f(c1,c2,c3)
   
                   # evilynux - Force uppercase display for artist name
-                  text = string.upper(item.artist)+suffix+yeartag
+                  text = item.artist.upper()+suffix+yeartag
   
                   # evilynux - automatically scale artist name and year
                   scale = font.scaleText(text, maxwidth = 0.554, scale = scale)
@@ -2759,13 +2759,13 @@ class SongChooser(Layer, KeyListener):
   
                 # evilynux - Force uppercase display for Career titles
                 if isinstance(item, Song.TitleInfo):
-                  text = string.upper(text)
+                  text = text.upper()
                   
                 if isinstance(item, Song.CareerResetterInfo):
-                  text = string.upper(text)
+                  text = text.upper()
   
                 if isinstance(item, Song.BlankSpaceInfo):
-                  text = string.upper(text)
+                  text = text.upper()
                   
                 scale = font.scaleText(text, maxwidth = 0.45)
                 w, h = font.getStringSize(text, scale = scale)
@@ -2799,7 +2799,7 @@ class SongChooser(Layer, KeyListener):
                   glColor3f(c1,c2,c3)
   
                   # evilynux - Force uppercase display for artist name
-                  text = string.upper(item.artist)+suffix+yeartag
+                  text = item.artist.upper()+suffix+yeartag
   
                   # evilynux - automatically scale artist name and year
                   scale = font.scaleText(text, maxwidth = 0.4, scale = scale)
@@ -2982,13 +2982,13 @@ class SongChooser(Layer, KeyListener):
   
                 # evilynux - Force uppercase display for Career titles
                 if isinstance(item, Song.TitleInfo):
-                  text = string.upper(text)
+                  text = text.upper()
                   
                 if isinstance(item, Song.CareerResetterInfo):
-                  text = string.upper(text)
+                  text = text.upper()
   
                 if isinstance(item, Song.BlankSpaceInfo):
-                  text = string.upper(text)
+                  text = text.upper()
                   
                 scale = font.scaleText(text, maxwidth = 0.45)
                 w, h = font.getStringSize(text, scale = scale)
@@ -3016,7 +3016,7 @@ class SongChooser(Layer, KeyListener):
                   glColor3f(c1,c2,c3)
   
                   # evilynux - Force uppercase display for artist name
-                  text = string.upper(item.artist)+suffix+yeartag
+                  text = item.artist.upper()+suffix+yeartag
   
                   # evilynux - automatically scale artist name and year
                   scale = font.scaleText(text, maxwidth = 0.4, scale = scale)
@@ -3361,7 +3361,7 @@ class SongChooser(Layer, KeyListener):
               maxwidth = .55
               
             if isinstance(item, Song.TitleInfo) or isinstance(item, Song.SortTitleInfo) or isinstance(item, Song.CareerResetterInfo) or isinstance(item, Song.BlankSpaceInfo):
-              text = string.upper(text)
+              text = text.upper()
               
             scale = .0015
             w, h = font.getStringSize(text, scale = scale)
@@ -3445,12 +3445,12 @@ class SongChooser(Layer, KeyListener):
                   c1,c2,c3 = self.song_rb2_artist_color
                   glColor3f(c1,c2,c3)
                   
-                  text = string.upper(text)
+                  text = text.upper()
                   font.render(text, (.095, .44), scale = scale)
                   
                   albumtag = item.album
                     
-                  albumtag = string.upper(albumtag)
+                  albumtag = albumtag.upper()
                   w, h = font.getStringSize(albumtag, scale=scale)
                   
                   while w > .21:
