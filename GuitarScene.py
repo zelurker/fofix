@@ -3386,7 +3386,7 @@ class GuitarSceneClient(GuitarScene, SceneClient):
         for n, k in enumerate(self.keysList[i]):
           if n == self.slideValue[i] and not self.controls.getState(k):
             self.controls.toggle(k, True)
-            self.keyPressed3(None, 0, k)  #mfh
+            self.keyPressed3(0, 0, k)  #mfh
           elif self.controls.getState(k):
             self.controls.toggle(k, False)
             self.keyReleased3(k)
@@ -3622,7 +3622,7 @@ class GuitarSceneClient(GuitarScene, SceneClient):
               if n in notes and not self.controls.getState(k):
                 changed = True
                 self.controls.toggle(k, True)
-                self.keyPressed3(None, 0, k)  #mfh
+                self.keyPressed3(0, 0, k)  #mfh
               elif not n in notes and self.controls.getState(k):
                 changed = True
                 self.controls.toggle(k, False)
@@ -6026,12 +6026,12 @@ class GuitarSceneClient(GuitarScene, SceneClient):
       if self.hopoAfterChord and (self.hopoStyle == 2 or self.hopoStyle == 3 or self.hopoStyle == 4):   #for GH2 systems: so user can release lower fret from chord to "tap" held HOPO
         #if len(activeList) != 0 and guitar.wasLastNoteHopod and control in self.keysList[i]:
         if len(activeList) != 0 and self.instruments[i].hopoActive > 0 and control in self.keysList[i]:
-          self.keyPressed3(None, 0, activeList[0], pullOff = True)
+          self.keyPressed3(0, 0, activeList[0], pullOff = True)
 
       else:
         #if len(activeList) != 0 and guitar.wasLastNoteHopod and activeList[0] != self.keysList[i][guitar.hopoLast] and control in self.keysList[i]:
         if len(activeList) != 0 and self.instruments[i].hopoActive > 0 and activeList[0] != self.keysList[i][self.instruments[i].hopoLast] and activeList[0] != self.keysList[i][self.instruments[i].hopoLast+5] and control in self.keysList[i]:
-          self.keyPressed3(None, 0, activeList[0], pullOff = True)
+          self.keyPressed3(0, 0, activeList[0], pullOff = True)
 
   def getPlayerNum(self, control):
     for i, player in enumerate(self.playerList):
