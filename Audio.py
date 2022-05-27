@@ -207,6 +207,7 @@ class Sound(object):
             if f.lower().endswith(".ogg"):
               file = ogg.VorbisFileStream(f)
               duration = file.vf.pcmlengths[1]/file.frequency
+              file.clean_up()
             # Both classes below are compatible and can both play ogg files
             # the difference is that OneSound is specialized on small
             # sounds, and the Streaming one on big audio tracks which need
@@ -291,6 +292,9 @@ if ogg:
   class OggStream(object):
     def __init__(self, inputFileName):
       self.file = ogg.VorbisFileStream(inputFileName)
+
+    def __del__(self):
+      self.file.clean_up()
 
     def read(self, bytes = 4096):
         ogg.pyoggSetStreamBufferSize(bytes)
