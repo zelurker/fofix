@@ -305,6 +305,8 @@ class SongInfo(object):
       self.info.add_section("song")
     if type(value) == bytes:
         value = value.decode('utf-8')
+    if type(value) != str:
+        value = str(value)
     self.info.set("song", attr, value)
 
   def getObfuscatedScores(self, part = parts[GUITAR_PART]):
