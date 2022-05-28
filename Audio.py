@@ -255,18 +255,11 @@ class Sound(object):
     return t
 
   def isPlaying(self):
-    if not self.isPause:
-        # if the song ends on a fadeout, or reaches its end, the stop
-        # command never arrives here
-        # which was dumb, the code was updated to use the event instead, it
-        # should never call this again, but I keep it just in case !
-        found = False
-        for sound in self.sounds:
-            if sound.channel and sound.channel.get_busy():
-                found = True
-                break
-        if not found:
-          self.Playing = False
+    # Mainly used by MainMenu.runMusic to test if the background music is still playing...
+    for sound in self.sounds:
+        if sound.isPlaying():
+            return True
+    self.Playing = False
     return self.Playing
 
   def stop(self):
