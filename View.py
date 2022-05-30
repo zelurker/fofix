@@ -123,6 +123,13 @@ class View(Task):
             del self.visibility[layer]
             self.engine.removeTask(layer)
             layer.hidden()
+            # print("del layer ",layer," incoming ",self.incoming," outgoing ",self.outgoing," layers ",self.layers)
+            # This is really the time to force a garbage collection...
+            # there are not always miracle results because sometimes a layer is also stored in one object's property
+            # to be able to recall it more easily later, and in this case nothing is freed.
+            # but for some normal layer it helps to avoid memory fragmentation and increases chances to return some memory to the OS...
+            import gc
+            gc.collect()
           if layer in self.incoming:
             self.incoming.remove(layer)
       elif layer in self.incoming or layer is topLayer:
