@@ -353,8 +353,8 @@ if ogg:
           # intensive, it should work if different frequencies are not
           # mixed on the same song
           self.engine.audio.close()    #MFH - ensure no audio is playing during the switch!
-          print("reopen mixer at ",int(self.frequency*self.speed))
-          self.engine.audio.pre_open(frequency = int(self.frequency*self.speed), bits = self.engine.bits, stereo = self.engine.stereo, bufferSize = self.engine.bufferSize)
+          print("reopen mixer at ",int(self.stream.freq()*self.speed)," bits ",self.engine.bits)
+          self.engine.audio.pre_open(frequency = int(self.stream.freq()*self.speed), bits = self.engine.bits, stereo = self.engine.stereo, bufferSize = self.engine.bufferSize)
           self.engine.audio.open(frequency = int(self.stream.freq()*self.speed), bits = self.engine.bits, stereo = self.engine.stereo, bufferSize = self.engine.bufferSize)
           (self.freq,self.format,self.channels) = pygame.mixer.get_init()
 
